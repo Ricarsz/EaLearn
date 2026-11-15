@@ -13,7 +13,7 @@ export function Practice({ lang, onFinished }: { lang: string; onFinished?: () =
   const [error, setError] = useState<string | null>(null);
   const started = useRef(Date.now());
 
-  const ex = session?.exercises[idx];
+  const ex = session?.exercises?.[idx];
 
   const reset = useCallback(() => {
     setPlaced([]);
@@ -27,7 +27,8 @@ export function Practice({ lang, onFinished }: { lang: string; onFinished?: () =
     setSession(null);
     try {
       const s = await api.startSession(lang, SESSION_SIZE, Date.now() >>> 0);
-      setSession(s);
+      // 兼容旧后端（返回裸数组）与半新不旧的 dev 缓存，别让整个页面白掉
+      setSession(Array.isArray(s) ? { exercises: s, review: 0 } : s);
       setIdx(0);
       reset();
     } catch (e) {
