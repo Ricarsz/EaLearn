@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, type PackSummary, type Stats } from "./api";
+import { Home, type Mode } from "./Home";
 import { Practice } from "./Practice";
 import { Scenario } from "./Scenario";
-import { Focus } from "./Focus";
 import { Settings } from "./Settings";
 import { Wordbook } from "./Wordbook";
 
-type Tab = "practice" | "scenario" | "wordbook" | "focus";
+type Tab = "practice" | "scenario" | "wordbook";
 
 export function App() {
   const [packs, setPacks] = useState<PackSummary[]>([]);
   const [lang, setLang] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [tab, setTab] = useState<Tab>("practice");
+  const [mode, setMode] = useState<Mode | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +51,7 @@ export function App() {
               onClick={() => {
                 setLang(p.lang);
                 setTab("practice");
+                setMode(null);
                 refresh();
               }}
             >
@@ -78,18 +80,6 @@ export function App() {
           </section>
         )}
 
-        {pack && (
-          <section className="coverage">
-            <p className="section-label">可用题型</p>
-            <ul>
-              <li>拼句 {pack.coverage.buildSentence}</li>
-              <li>听音 {pack.coverage.wordFromAudio}</li>
-              <li>背诵 {pack.coverage.recall}</li>
-              <li>阅读 {pack.coverage.articleMcq}</li>
-            </ul>
-          </section>
-        )}
-
         <button className="settings-btn" onClick={() => setSettingsOpen(true)}>
           ⚙ 设置
         </button>
@@ -97,7 +87,13 @@ export function App() {
 
       <main className="main">
         <nav className="tabs">
-          <button className={tab === "practice" ? "active" : ""} onClick={() => setTab("practice")}>
+          <button
+            className={tab === "practice" ? "active" : ""}
+            onClick={() => {
+              setTab("practice");
+              setMode(null);
+            }}
+          >
             练习
           </button>
           <button className={tab === "scenario" ? "active" : ""} onClick={() => setTab("scenario")}>
@@ -106,15 +102,31 @@ export function App() {
           <button className={tab === "wordbook" ? "active" : ""} onClick={() => setTab("wordbook")}>
             词库
           </button>
-          <button className={tab === "focus" ? "active" : ""} onClick={() => setTab("focus")}>
-            专注
-          </button>
         </nav>
 
         {error && <p className="error panel">{error}</p>}
         {!lang && <p className="panel muted">没有可用的语言包。</p>}
-        {lang && tab === "practice" && (
-          <Practice key={`${lang}-practice`} lang={lang} onFinished={refresh} />
+
+        {lang && tab === "practice" && mode === null && (
+          <Home
+            key={`${lang}-home`}
+            lang={lang}
+            pack={pack}
+            stats={stats}
+            onStart={(m) => setMode(m)}
+          />
+        )}
+        {lang && tab === "practice" && mode !== null && (
+          <Practice
+            key={`${lang}-${mode}-practice`}
+            lang={lang}
+            mode={mode}
+            onExit={() => {
+              setMode(null);
+              refresh();
+            }}
+            onFinished={refresh}
+          />
         )}
         {lang && tab === "scenario" && (
           <Scenario
@@ -123,7 +135,6 @@ export function App() {
             onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
-        {tab === "focus" && <Focus />}
         {lang && tab === "wordbook" && (
           <Wordbook key={`${lang}-wordbook`} lang={lang} onPractice={() => setTab("practice")} />
         )}

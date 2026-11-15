@@ -5,43 +5,30 @@ const WORK_MINUTES = [15, 25, 45] as const;
 const BREAK_MINUTES = 5;
 const DAYS = 140; // 20 周
 
-export function Focus() {
+export function Pomodoro() {
   const [minutes, setMinutes] = useState<number>(25);
   const [phase, setPhase] = useState<"work" | "break">("work");
   const [left, setLeft] = useState(25 * 60);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(0);
-  const [activity, setActivity] = useState<DayActivity[]>([]);
   const tick = useRef<number | null>(null);
 
   const total = (phase === "work" ? minutes : BREAK_MINUTES) * 60;
 
-  const refresh = () =>
-    api
-      .activity(DAYS, -new Date().getTimezoneOffset())
-      .then(setActivity)
-      .catch(() => {});
-
-  useEffect(() => {
-    refresh();
-  }, []);
-
   useEffect(() => {
     if (!running) return;
-    tick.current = window.setInterval(() => {
-      setLeft((v) => Math.max(0, v - 1));
-    }, 1000);
+    tick.current = window.setInterval(() => setLeft((v) => Math.max(0, v - 1)), 1000);
     return () => {
       if (tick.current) window.clearInterval(tick.current);
     };
   }, [running]);
 
-  // 归零：工作段自然结束才记一次专注；休息结束只提示
+  // 归零：工作段自然结束才记一次专注
   useEffect(() => {
     if (left !== 0) return;
     setRunning(false);
     if (phase === "work") {
-      api.recordFocus(minutes, true).then(refresh).catch(() => {});
+      api.recordFocus(minutes, true).catch(() => {});
       setDone((d) => d + 1);
       setPhase("break");
       setLeft(BREAK_MINUTES * 60);
@@ -51,126 +38,124 @@ export function Focus() {
     }
   }, [left, phase, minutes]);
 
-  const switchPhase = (p: "work" | "break") => {
-    setRunning(false);
-    setPhase(p);
-    setLeft((p === "work" ? minutes : BREAK_MINUTES) * 60);
-  };
-
-  const pickMinutes = (m: number) => {
-    setMinutes(m);
-    if (phase === "work" && !running) setLeft(m * 60);
-  };
-
-  const reset = () => {
-    setRunning(false);
-    setLeft(total);
-  };
-
   const mm = String(Math.floor(left / 60)).padStart(2, "0");
   const ss = String(left % 60).padStart(2, "0");
   const ratio = total === 0 ? 0 : 1 - left / total;
-  const R = 78;
+  const R = 54;
   const C = 2 * Math.PI * R;
+
+  return (
+    <div className="pomodoro compact">
+      <div className="phase-switch">
+        <button
+          className={phase === "work" ? "on" : ""}
+          onClick={() => {
+            setRunning(false);
+            setPhase("work");
+            setLeft(minutes * 60);
+          }}
+        >
+          专注
+        </button>
+        <button
+          className={phase === "break" ? "on" : ""}
+          onClick={() => {
+            setRunning(false);
+            setPhase("break");
+            setLeft(BREAK_MINUTES * 60);
+          }}
+        >
+          休息
+        </button>
+      </div>
+
+      <div className="ring small">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <circle cx="66" cy="66" r={R} className="ring-track" />
+          <circle
+            cx="66"
+            cy="66"
+            r={R}
+            className={`ring-fill ${phase}`}
+            strokeDasharray={C}
+            strokeDashoffset={C * (1 - ratio)}
+            transform="rotate(-90 66 66)"
+          />
+        </svg>
+        <div className="ring-label">
+          <span className="time">
+            {mm}:{ss}
+          </span>
+        </div>
+      </div>
+
+      <div className="durations">
+        {WORK_MINUTES.map((m) => (
+          <button
+            key={m}
+            className={minutes === m ? "on" : ""}
+            disabled={running}
+            onClick={() => {
+              setMinutes(m);
+              if (phase === "work" && !running) setLeft(m * 60);
+            }}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <div className="actions center">
+        <button className="primary small" onClick={() => setRunning((v) => !v)}>
+          {running ? "暂停" : left === total ? "开始" : "继续"}
+        </button>
+      </div>
+      <p className="muted">今天 {done} 个番茄</p>
+    </div>
+  );
+}
+
+export function Checkin() {
+  const [activity, setActivity] = useState<DayActivity[]>([]);
+
+  useEffect(() => {
+    api
+      .activity(DAYS, -new Date().getTimezoneOffset())
+      .then(setActivity)
+      .catch(() => {});
+  }, []);
 
   const stats = useMemo(() => summarize(activity), [activity]);
 
   return (
-    <div className="panel focus">
-      <div className="pomodoro">
-        <div className="phase-switch">
-          <button className={phase === "work" ? "on" : ""} onClick={() => switchPhase("work")}>
-            专注
-          </button>
-          <button className={phase === "break" ? "on" : ""} onClick={() => switchPhase("break")}>
-            休息
-          </button>
-        </div>
-
-        <div className="ring">
-          <svg width="200" height="200" viewBox="0 0 200 200">
-            <circle cx="100" cy="100" r={R} className="ring-track" />
-            <circle
-              cx="100"
-              cy="100"
-              r={R}
-              className={`ring-fill ${phase}`}
-              strokeDasharray={C}
-              strokeDashoffset={C * (1 - ratio)}
-              transform="rotate(-90 100 100)"
-            />
-          </svg>
-          <div className="ring-label">
-            <span className="time">
-              {mm}:{ss}
-            </span>
-            <span className="muted">{phase === "work" ? "专注中" : "休息一下"}</span>
-          </div>
-        </div>
-
-        <div className="durations">
-          {WORK_MINUTES.map((m) => (
-            <button
-              key={m}
-              className={minutes === m ? "on" : ""}
-              onClick={() => pickMinutes(m)}
-              disabled={running}
-            >
-              {m} 分钟
-            </button>
-          ))}
-        </div>
-
-        <div className="actions center">
-          <button className="primary" onClick={() => setRunning((v) => !v)}>
-            {running ? "暂停" : left === total ? "开始" : "继续"}
-          </button>
-          <button className="ghost" onClick={reset}>
-            重置
-          </button>
-        </div>
-
-        <p className="muted">今天已完成 {done} 个番茄</p>
+    <div className="checkin compact">
+      <div className="checkin-head">
+        <p className="section-label">打卡</p>
+        <span className="muted">
+          连续 {stats.streak} 天 · 今日 {stats.todayAttempts} 题
+        </span>
       </div>
 
-      <div className="checkin">
-        <div className="checkin-head">
-          <p className="section-label">每日打卡</p>
-          <div className="checkin-stats">
-            <span>
-              <b>{stats.streak}</b> 天连续
-            </span>
-            <span>
-              <b>{stats.activeDays}</b> 天有记录
-            </span>
-            <span>
-              今日 <b>{stats.todayMinutes}</b> 分钟 · <b>{stats.todayAttempts}</b> 题
-            </span>
-          </div>
-        </div>
+      <div className="heatmap">
+        {padStart(activity).map((d, i) =>
+          d === null ? (
+            <div key={`pad-${i}`} className="cell empty" />
+          ) : (
+            <div
+              key={d.date}
+              className={`cell l${level(d)}`}
+              title={`${d.date} · 答题 ${d.attempts} · 复习 ${d.reviews} · 专注 ${d.focus_minutes} 分钟`}
+            />
+          ),
+        )}
+      </div>
 
-        <div className="heatmap-wrap">
-          <div className="heatmap">
-            {padStart(activity).map((d, i) =>
-              d === null ? (
-                <div key={`pad-${i}`} className="cell empty" />
-              ) : (
-                <div
-                  key={d.date}
-                  className={`cell l${level(d)}`}
-                  title={`${d.date} · 答题 ${d.attempts} · 复习 ${d.reviews} · 专注 ${d.focus_minutes} 分钟`}
-                />
-              ),
-            )}
-          </div>
-          <div className="legend">
-            <span className="muted">少</span>
-            {[0, 1, 2, 3, 4].map((l) => (
-              <div key={l} className={`cell l${l}`} />
-            ))}
-            <span className="muted">多</span>
-          </div>
-        </div>
+      <div className="legend">
+        <span className="muted">少</span>
+        {[0, 1, 2, 3, 4].map((l) => (
+          <div key={l} className={`cell l${l}`} />
+        ))}
+        <span className="muted">多</span>
       </div>
     </div>
   );
@@ -194,7 +179,6 @@ function padStart(days: DayActivity[]): (DayActivity | null)[] {
 }
 
 function summarize(days: DayActivity[]) {
-  const active = days.filter((d) => d.attempts + d.reviews + d.focus_minutes > 0);
   let streak = 0;
   for (let i = days.length - 1; i >= 0; i--) {
     const d = days[i];
@@ -204,8 +188,6 @@ function summarize(days: DayActivity[]) {
   const today = days[days.length - 1];
   return {
     streak,
-    activeDays: active.length,
-    todayMinutes: today?.focus_minutes ?? 0,
     todayAttempts: today?.attempts ?? 0,
   };
 }

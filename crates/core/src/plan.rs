@@ -26,6 +26,96 @@ impl ExerciseKind {
     }
 }
 
+/// 练习方式。用户先选练什么，再进练习——不替他决定。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Mode {
+    /// 混着来
+    Mixed,
+    /// 只背单词（正面词、背面释义）
+    Recall,
+    /// 只听音选词
+    Audio,
+    /// 只拼句子
+    Sentence,
+    /// 只做阅读理解
+    Article,
+}
+
+impl Mode {
+    pub fn parse(s: &str) -> Mode {
+        match s {
+            "recall" => Mode::Recall,
+            "audio" => Mode::Audio,
+            "sentence" => Mode::Sentence,
+            "article" => Mode::Article,
+            _ => Mode::Mixed,
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Mode::Mixed => "mixed",
+            Mode::Recall => "recall",
+            Mode::Audio => "audio",
+            Mode::Sentence => "sentence",
+            Mode::Article => "article",
+        }
+    }
+}
+
+/// 按练习方式组卷。
+pub fn plan_mode(pack: &Pack, limit: usize, seed: u64, mode: Mode) -> Vec<Exercise> {
+    match mode {
+        Mode::Mixed => plan(pack, limit, seed),
+        Mode::Recall => plan_only(pack, limit, seed, ExerciseKind::Recall),
+        Mode::Audio => plan_only(pack, limit, seed, ExerciseKind::WordFromAudio),
+        Mode::Sentence => plan_only(pack, limit, seed, ExerciseKind::BuildSentence),
+        Mode::Article => {
+            let mut out = Vec::new();
+            for article in &pack.articles {
+                if !article.is_well_formed() {
+                    continue;
+                }
+                for (qi, q) in article.questions.iter().enumerate() {
+                    if out.len() >= limit {
+                        return out;
+                    }
+                    out.push(Exercise::ArticleMcq {
+                        article: article.id.clone(),
+                        question: qi,
+                        prompt: q.prompt.clone(),
+                        options: q.options.clone(),
+                        answer: q.answer,
+                    });
+                }
+            }
+            out
+        }
+    }
+}
+
+fn plan_only(pack: &Pack, limit: usize, seed: u64, kind: ExerciseKind) -> Vec<Exercise> {
+    let entries: Vec<&Entry> = pack.words.iter().chain(pack.sentences.iter()).collect();
+    let order = if entries.is_empty() {
+        return Vec::new();
+    } else {
+        shuffle(entries.len(), seed ^ 0x51CE)
+    };
+
+    let mut out = Vec::new();
+    for idx in order {
+        if out.len() >= limit {
+            break;
+        }
+        let entry = entries[idx];
+        let s = seed ^ seed_of(&entry.id);
+        if let Some(ex) = build(entry, pack, kind, s) {
+            out.push(ex);
+        }
+    }
+    out
+}
+
 /// 一个 pack 里能被出成某个题型的素材有多少。
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -362,6 +452,33 @@ mod tests {
         assert_eq!(exercise_for(&p, "s1", "sentence", 1).unwrap().kind(), "build-sentence");
         // 不存在的词条不该造出题
         assert!(exercise_for(&p, "nope", "word", 1).is_none());
+    }
+
+    #[test]
+    fn mode_limits_exercise_kinds() {
+        let p = pack();
+        let recall = plan_mode(&p, 10, 1, Mode::Recall);
+        assert!(!recall.is_empty());
+        assert!(recall.iter().all(|e| e.kind() == "recall"));
+
+        let audio = plan_mode(&p, 10, 1, Mode::Audio);
+        assert!(audio.iter().all(|e| e.kind() == "word-from-audio"));
+
+        let sentence = plan_mode(&p, 10, 1, Mode::Sentence);
+        assert!(sentence.iter().all(|e| e.kind() == "build-sentence"));
+
+        let article = plan_mode(&p, 10, 1, Mode::Article);
+        assert!(article.iter().all(|e| e.kind() == "article-mcq"));
+        assert_eq!(article.len(), 1, "测试 pack 只有 1 道阅读题");
+    }
+
+    #[test]
+    fn mode_parses_from_str() {
+        assert_eq!(Mode::parse("recall"), Mode::Recall);
+        assert_eq!(Mode::parse("audio"), Mode::Audio);
+        assert_eq!(Mode::parse("sentence"), Mode::Sentence);
+        assert_eq!(Mode::parse("article"), Mode::Article);
+        assert_eq!(Mode::parse("whatever"), Mode::Mixed);
     }
 
     #[test]

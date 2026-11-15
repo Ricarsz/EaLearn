@@ -1517,3 +1517,122 @@ textarea:focus {
 .index-url input {
   flex: 1;
 }
+
+/* ── 首页 ─────────────────────────────────────────────── */
+
+.panel.home {
+  max-width: 760px;
+  gap: 22px;
+  margin-block: auto;
+}
+
+.home-head h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 620;
+}
+
+.home-head p {
+  margin: 0;
+}
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--panel), #14181e);
+  border: 1px solid var(--line-soft);
+  text-align: left;
+  min-height: 104px;
+}
+
+.mode-card:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.mode-card.disabled {
+  opacity: 0.45;
+}
+
+.mode-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mode-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.mode-count {
+  margin-top: auto;
+  font-size: 11.5px;
+  color: var(--accent);
+}
+
+.home-bottom {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .home-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pomodoro.compact {
+  gap: 10px;
+  padding: 16px;
+}
+
+.ring.small {
+  width: 132px;
+  height: 132px;
+}
+
+.ring.small .time {
+  font-size: 26px;
+}
+
+.checkin.compact {
+  padding: 16px;
+  justify-content: space-between;
+}
+
+.checkin.compact .heatmap {
+  align-self: flex-start;
+}
+
+.actions.center {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+button.small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.progress .back {
+  padding: 2px 8px;
+  font-size: 15px;
+}
+
+.home-hint {
+  text-align: right;
+}

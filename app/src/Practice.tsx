@@ -4,7 +4,17 @@ import { playUrl } from "./audio";
 
 const SESSION_SIZE = 8;
 
-export function Practice({ lang, onFinished }: { lang: string; onFinished?: () => void }) {
+export function Practice({
+  lang,
+  mode,
+  onExit,
+  onFinished,
+}: {
+  lang: string;
+  mode: string;
+  onExit: () => void;
+  onFinished?: () => void;
+}) {
   const [session, setSession] = useState<SessionPlan | null>(null);
   const [idx, setIdx] = useState(0);
   const [placed, setPlaced] = useState<number[]>([]);
@@ -26,7 +36,7 @@ export function Practice({ lang, onFinished }: { lang: string; onFinished?: () =
     setError(null);
     setSession(null);
     try {
-      const s = await api.startSession(lang, SESSION_SIZE, Date.now() >>> 0);
+      const s = await api.startSession(lang, SESSION_SIZE, Date.now() >>> 0, mode);
       // 兼容旧后端（返回裸数组）与半新不旧的 dev 缓存，别让整个页面白掉
       setSession(Array.isArray(s) ? { exercises: s, review: 0 } : s);
       setIdx(0);
@@ -34,7 +44,7 @@ export function Practice({ lang, onFinished }: { lang: string; onFinished?: () =
     } catch (e) {
       setError(String(e));
     }
-  }, [lang, reset]);
+  }, [lang, mode, reset]);
 
   useEffect(() => {
     load();
@@ -73,8 +83,9 @@ export function Practice({ lang, onFinished }: { lang: string; onFinished?: () =
 
   if (session.exercises.length === 0) {
     return (
-      <div className="panel muted">
-        这个语言包还没有能出题的素材。先补齐句子、图片或音频再练。
+      <div className="panel">
+        <p className="muted">这种练法在当前语言包里还没有素材。</p>
+        <button onClick={onExit}>换一种</button>
       </div>
     );
   }
@@ -87,9 +98,14 @@ export function Practice({ lang, onFinished }: { lang: string; onFinished?: () =
         <p className="muted">
           共 {session.exercises.length} 题{session.review > 0 && ` · 其中复习 ${session.review} 题`}
         </p>
-        <button className="primary" onClick={load}>
-          再来一组
-        </button>
+        <div className="actions center">
+          <button className="ghost" onClick={onExit}>
+            换一种练法
+          </button>
+          <button className="primary" onClick={load}>
+            再来一组
+          </button>
+        </div>
       </div>
     );
   }
@@ -104,6 +120,9 @@ export function Practice({ lang, onFinished }: { lang: string; onFinished?: () =
   return (
     <div className="panel practice">
       <div className="progress">
+        <button className="ghost back" onClick={onExit} title="返回选择">
+          ←
+        </button>
         <div className="bar">
           <div className="fill" style={{ width: `${progress}%` }} />
         </div>

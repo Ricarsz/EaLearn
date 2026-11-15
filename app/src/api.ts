@@ -213,8 +213,8 @@ export type DialogSummary = { id: string; title: string; theme: string; nodes: n
 
 export const api = {
   listPacks: () => invoke<PackSummary[]>("list_packs"),
-  startSession: (lang: string, limit: number, seed: number) =>
-    invoke<SessionPlan>("start_session", { lang, limit, seed }),
+  startSession: (lang: string, limit: number, seed: number, mode: string) =>
+    invoke<SessionPlan>("start_session", { lang, limit, seed, mode }),
   submit: (lang: string, exercise: Exercise, answer: Answer, elapsedMs: number) =>
     invoke<SubmitResult>("submit_answer", { lang, exercise, answer, elapsedMs }),
   addCard: (lang: string, entryId: string) =>
