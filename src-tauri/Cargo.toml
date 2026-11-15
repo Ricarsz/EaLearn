@@ -16,6 +16,7 @@ ealearn-core = { path = "../crates/core" }
 ealearn-lang = { path = "../crates/lang" }
 ealearn-store = { path = "../crates/store" }
 ealearn-llm = { path = "../crates/llm" }
+ealearn-tts = { path = "../crates/tts" }
 
 # 独立于根仓库的 workspace：GUI 依赖重，不拖慢 core 的测试循环
 [workspace]

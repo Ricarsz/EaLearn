@@ -21,6 +21,7 @@ fn main() -> ExitCode {
         ("annotate", Some(lang)) => annotate(lang, args.get(2).map(String::as_str)),
         ("tokens", Some(lang)) => tokens(lang, args.get(2).map(String::as_str)),
         ("audio", Some(dir)) => audio(dir, &args[2..]),
+        ("voices", Some(lang)) => voices(lang),
         ("--help" | "-h" | "help", _) => {
             usage();
             ExitCode::SUCCESS
@@ -40,7 +41,8 @@ fn usage() {
   forge annotate <lang> [text]     打印分词与标注；不给 text 则从 stdin 读
   forge tokens <lang> [text]       只输出 token 的 JSON 数组，供生成 pack 时内联
   forge audio <pack-dir> [--voice espeak:en-us] [--force]
-                                   预合成词条与句子的音频，写回 pack 并更新指纹"
+                                   预合成词条与句子的音频，写回 pack 并更新指纹
+  forge voices <lang>              列出该语言可用的音色（espeak + 本机 piper 模型）"
     );
 }
 
@@ -318,4 +320,22 @@ fn write_manifest(
 ) -> std::io::Result<()> {
     let json = serde_json::to_string_pretty(manifest).map_err(std::io::Error::other)?;
     std::fs::write(path, json + "\n")
+}
+
+fn voices(lang: &str) -> ExitCode {
+    let list = ealearn_tts::available(lang);
+    if list.is_empty() {
+        eprintln!("{lang} 没有可用音色：确认已装 espeak-ng，或把 piper 模型放进模型目录");
+        return ExitCode::from(1);
+    }
+    for v in &list {
+        println!(
+            "{:<28} {:<7} {}",
+            v.id,
+            v.engine,
+            if v.ready { "" } else { "（缺 .onnx.json）" }
+        );
+    }
+    println!("— {} 个音色", list.len());
+    ExitCode::SUCCESS
 }

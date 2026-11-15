@@ -275,3 +275,111 @@ mod tests {
         assert!(wav.len() > 44);
     }
 }
+
+// ── 音色枚举 ──────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct VoiceInfo {
+    /// 直接可写进 manifest / 设置里的标识，形如 `espeak:en-us`
+    pub id: String,
+    /// 给用户看的名字
+    pub label: String,
+    pub engine: String,
+    /// 模型是否就绪（espeak 恒为 true）
+    pub ready: bool,
+}
+
+/// 列出某语言可用的音色：espeak 的内置音色 + 本机已下载的 piper 模型。
+pub fn available(lang: &str) -> Vec<VoiceInfo> {
+    let mut out = Vec::new();
+
+    if let Ok(listing) = Command::new("espeak-ng")
+        .arg(format!("--voices={lang}"))
+        .output()
+    {
+        if listing.status.success() {
+            let text = String::from_utf8_lossy(&listing.stdout);
+            out.extend(parse_espeak_voices(&text, lang));
+        }
+    }
+
+    if let Ok(entries) = std::fs::read_dir(piper_dir()) {
+        let prefix = format!("{lang}_");
+        let mut models: Vec<VoiceInfo> = entries
+            .flatten()
+            .filter_map(|e| {
+                let path = e.path();
+                let name = path.file_name()?.to_str()?.to_string();
+                let stem = name.strip_suffix(".onnx")?.to_string();
+                if !stem.starts_with(&prefix) {
+                    return None;
+                }
+                Some(VoiceInfo {
+                    id: format!("piper:{stem}"),
+                    label: format!("piper · {stem}"),
+                    engine: "piper".into(),
+                    ready: path.with_extension("onnx.json").exists(),
+                })
+            })
+            .collect();
+        models.sort_by(|a, b| a.id.cmp(&b.id));
+        out.extend(models);
+    }
+
+    out
+}
+
+/// 解析 `espeak-ng --voices=<lang>` 的输出。第二列是可直接用于 `-v` 的音色名。
+fn parse_espeak_voices(text: &str, lang: &str) -> Vec<VoiceInfo> {
+    text.lines()
+        .skip(1)
+        .filter_map(|line| {
+            let cols: Vec<&str> = line.split_whitespace().collect();
+            if cols.len() < 4 {
+                return None;
+            }
+            let id = cols[1];
+            if !id.starts_with(lang) {
+                return None;
+            }
+            Some(VoiceInfo {
+                id: format!("espeak:{id}"),
+                label: format!("espeak · {}", cols[3].replace('_', " ")),
+                engine: "espeak".into(),
+                ready: true,
+            })
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod voice_tests {
+    use super::*;
+
+    const SAMPLE: &str = "Pty Language       Age/Gender VoiceName          File                 Other Languages
+ 2  en-gb           --/M      English_(Great_Britain) gmw/en               (en 2)
+ 2  en-us           --/M      English_(America)  gmw/en-US            (en 3)
+ 5  ko              --/M      Korean             ko                   ";
+
+    #[test]
+    fn parses_espeak_listing() {
+        let v = parse_espeak_voices(SAMPLE, "en");
+        assert_eq!(v.len(), 2);
+        assert_eq!(v[0].id, "espeak:en-gb");
+        assert_eq!(v[1].label, "espeak · English (America)");
+        assert!(v.iter().all(|x| x.ready));
+    }
+
+    #[test]
+    fn filters_by_language() {
+        let v = parse_espeak_voices(SAMPLE, "ko");
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0].id, "espeak:ko");
+    }
+
+    #[test]
+    fn empty_listing_is_safe() {
+        assert!(parse_espeak_voices("", "en").is_empty());
+        assert!(parse_espeak_voices("only one column", "en").is_empty());
+    }
+}

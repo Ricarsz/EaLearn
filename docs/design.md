@@ -173,6 +173,8 @@ Studio 是应用内的隐藏路由，`--studio` 启动才出现，随主程序�
 
 piper 的坑（实测）：`--output_file -` 不写 stdout，会产出空文件，必须写临时文件再读回。piper 有韩语音色 `ko_KR-kss-medium`，之前的「韩语得换引擎」判断不成立。
 
+- 用户可以在界面里按语言选音色（`tts_voice:<lang>` 存设置）。选的音色与 pack 一致且词条有预生成音频时直接读文件；否则按需合成并缓存到用户数据目录的 `tts/`，缓存键同样是 `sha256(voice + text)`
+- 前端只保留一个 `Audio` 元素复用。`new Audio(url).play()` 这种写法对象没有引用，WebKitGTK 会把它回收掉，声音放到一半就断——Linux 下"点了没声/只响一下"多半是这个原因
 - 音频文件名 = `sha256(voice + "\0" + text).wav`，落在 pack 的 `media/audio/`。换音色 hash 必变，旧文件不会被误认
 - `forge audio <pack>` 批量预合成并写回 pack，已存在的直接复用，`--force` 才重做
 - 看图/听音只在「一到两个词」的词条上出题；整句当四选一答案是送分题（长度一眼看穿）

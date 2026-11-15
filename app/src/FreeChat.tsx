@@ -1,16 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { api, type LlmSettings, type TutorTurn } from "./api";
+import { THEMES } from "./themes";
 
 type Msg = { role: "user" | "tutor"; text: string; turn?: TutorTurn };
-
-const THEMES = [
-  { id: "gossip", label: "八卦" },
-  { id: "dating", label: "约会" },
-  { id: "smalltalk", label: "闲聊" },
-  { id: "complaint", label: "吐槽" },
-  { id: "shopping", label: "买东西" },
-];
 
 export function FreeChat({ lang }: { lang: string }) {
   const session = useRef(`chat:${lang}`);
@@ -87,7 +80,14 @@ export function FreeChat({ lang }: { lang: string }) {
     });
 
     try {
-      const turn = await api.chatSend(lang, session.current, theme, level, text);
+      const t = THEMES.find((x) => x.id === theme);
+      const turn = await api.chatSend(
+        lang,
+        session.current,
+        t ? `${t.label}（${t.hint}）` : theme,
+        level,
+        text,
+      );
       setMsgs((m) => {
         const copy = [...m];
         const last = copy[copy.length - 1];
@@ -107,7 +107,7 @@ export function FreeChat({ lang }: { lang: string }) {
   return (
     <div className="freechat">
       <div className="chat-toolbar">
-        <label>
+        <label title={THEMES.find((t) => t.id === theme)?.hint}>
           话题
           <select value={theme} onChange={(e) => setTheme(e.target.value)}>
             {THEMES.map((t) => (

@@ -7,3 +7,4 @@ description = "EaLearn 的 TTS 合成：可插拔引擎 + 按内容 hash 命名�
 
 [dependencies]
 sha2 = "0.10"
+serde = { workspace = true }

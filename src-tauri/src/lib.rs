@@ -538,6 +538,110 @@ fn chat_history(
     store.chat_history(&session, limit.clamp(1, 100)).map_err(err)
 }
 
+// ── 发音 ──────────────────────────────────────────────────────────────
+
+const VOICE_KEY_PREFIX: &str = "tts_voice:";
+
+fn to_data_url(bytes: &[u8]) -> String {
+    use base64::Engine;
+    format!(
+        "data:audio/wav;base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(bytes)
+    )
+}
+
+#[tauri::command]
+async fn tts_voices(lang: String) -> Result<Vec<ealearn_tts::VoiceInfo>, String> {
+    tauri::async_runtime::spawn_blocking(move || ealearn_tts::available(&lang))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_voice(state: State<'_, AppState>, lang: String) -> Result<Option<String>, String> {
+    let store = state.store.lock().map_err(err)?;
+    store.get_setting(&format!("{VOICE_KEY_PREFIX}{lang}")).map_err(err)
+}
+
+#[tauri::command]
+fn set_voice(state: State<'_, AppState>, lang: String, voice: String) -> Result<(), String> {
+    let store = state.store.lock().map_err(err)?;
+    store
+        .set_setting(&format!("{VOICE_KEY_PREFIX}{lang}"), voice.trim())
+        .map_err(err)
+}
+
+/// 朗读一段文本，返回 data URL。
+///
+/// 优先用 pack 里预生成的音频（当用户选的音色和 pack 的音色一致时）；否则按需
+/// 合成并缓存到用户数据目录。合成是阻塞调用，放到 blocking 线程里，别卡 UI。
+#[tauri::command]
+async fn speak(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    lang: String,
+    text: String,
+    entry_id: Option<String>,
+) -> Result<String, String> {
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return Err("没有可朗读的内容".into());
+    }
+
+    let (spec, pregenerated, dir) = {
+        let store = state.store.lock().map_err(err)?;
+        let packs = state.packs.lock().map_err(err)?;
+        let pack = packs.get(&lang).ok_or_else(|| format!("未加载的语言包: {lang}"))?;
+        let spec = store
+            .get_setting(&format!("{VOICE_KEY_PREFIX}{lang}"))
+            .map_err(err)?
+            .filter(|v| !v.is_empty())
+            .unwrap_or_else(|| pack.manifest.voice.clone());
+
+        let pregenerated = entry_id
+            .as_deref()
+            .and_then(|id| pack.entry(id))
+            .and_then(|e| e.audio.clone())
+            .filter(|_| spec == pack.manifest.voice)
+            .map(|rel| pack.root.join(rel))
+            .filter(|p| p.exists());
+
+        let dir = app
+            .path()
+            .app_data_dir()
+            .map_err(err)?
+            .join("tts");
+        (spec, pregenerated, dir)
+    };
+
+    if let Some(path) = pregenerated {
+        let bytes = std::fs::read(&path).map_err(err)?;
+        return Ok(to_data_url(&bytes));
+    }
+
+    let cached = dir.join(ealearn_tts::cache_name(&spec, &text));
+    let bytes = if cached.exists() {
+        std::fs::read(&cached).map_err(err)?
+    } else {
+        let spec2 = spec.clone();
+        let text2 = text.clone();
+        let cache2 = cached.clone();
+        tauri::async_runtime::spawn_blocking(move || -> Result<(), String> {
+            let engine = ealearn_tts::engine_for(&spec2).map_err(|e| e.to_string())?;
+            if let Some(parent) = cache2.parent() {
+                std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            }
+            let bytes = engine.synth_wav(&text2).map_err(|e| e.to_string())?;
+            std::fs::write(&cache2, bytes).map_err(|e| e.to_string())
+        })
+        .await
+        .map_err(|e| e.to_string())??;
+        std::fs::read(&cached).map_err(err)?
+    };
+
+    Ok(to_data_url(&bytes))
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -587,7 +691,11 @@ pub fn run() {
             get_llm_settings,
             set_llm_settings,
             chat_send,
-            chat_history
+            chat_history,
+            tts_voices,
+            get_voice,
+            set_voice,
+            speak
         ])
         .run(tauri::generate_context!())
         .expect("Tauri 启动失败");

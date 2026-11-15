@@ -51,6 +51,12 @@ curl -LO $base/en_US-amy-medium.onnx
 curl -LO $base/en_US-amy-medium.onnx.json
 ```
 
+界面左侧可按语言切换音色（espeak 内置音色 + 本机已下载的 piper 模型）。选的音色
+和 pack 一致时直接读预生成音频，否则按需合成并缓存。
+
+情景页的自由聊有 16 个话题可选（八卦、约会、闲聊、点餐、租房、看病、追剧、游戏……），
+话题会连同样例场景一起进提示词。
+
 LLM 供应商只由 `base_url` 决定，兼容任何 `/chat/completions` 实现，包括本地
 ollama 与自建代理。API key 存在本地库 `settings` 表，设置页只回显末 4 位。
 

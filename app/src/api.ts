@@ -147,6 +147,8 @@ export type LlmSettings = {
   key_hint: string;
 };
 
+export type VoiceInfo = { id: string; label: string; engine: string; ready: boolean };
+
 export type DialogSummary = { id: string; title: string; theme: string; nodes: number };
 
 export const api = {
@@ -175,4 +177,9 @@ export const api = {
     invoke<TutorTurn>("chat_send", { lang, session, theme, level, text }),
   chatHistory: (session: string, limit: number) =>
     invoke<[string, string][]>("chat_history", { session, limit }),
+  ttsVoices: (lang: string) => invoke<VoiceInfo[]>("tts_voices", { lang }),
+  getVoice: (lang: string) => invoke<string | null>("get_voice", { lang }),
+  setVoice: (lang: string, voice: string) => invoke<void>("set_voice", { lang, voice }),
+  speak: (lang: string, text: string, entryId?: string) =>
+    invoke<string>("speak", { lang, text, entryId }),
 };

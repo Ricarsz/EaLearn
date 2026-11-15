@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, type PackSummary, type Stats } from "./api";
+import { api, type PackSummary, type Stats, type VoiceInfo } from "./api";
 import { Practice } from "./Practice";
 import { Scenario } from "./Scenario";
 
@@ -11,6 +11,8 @@ export function App() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [tab, setTab] = useState<Tab>("practice");
   const [error, setError] = useState<string | null>(null);
+  const [voices, setVoices] = useState<VoiceInfo[]>([]);
+  const [voice, setVoice] = useState("");
 
   const refresh = useCallback(async () => {
     try {
@@ -27,12 +29,31 @@ export function App() {
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (!lang) return;
+    let alive = true;
+    api
+      .ttsVoices(lang)
+      .then((v) => alive && setVoices(v))
+      .catch(() => alive && setVoices([]));
+    api
+      .getVoice(lang)
+      .then((v) => alive && setVoice(v ?? ""))
+      .catch(() => alive && setVoice(""));
+    return () => {
+      alive = false;
+    };
+  }, [lang]);
+
   const pack = packs.find((p) => p.lang === lang);
 
   return (
     <div className="app">
       <aside className="sidebar">
-        <h1>EaLearn</h1>
+        <div className="brand">
+          <span className="dot" />
+          <h1>EaLearn</h1>
+        </div>
 
         <section className="packs">
           {packs.length === 0 && <p className="muted">没找到语言包</p>}
@@ -71,9 +92,31 @@ export function App() {
           </section>
         )}
 
+        {lang && (
+          <section className="voice">
+            <p className="section-label">音色</p>
+            <select
+              value={voice}
+              onChange={async (e) => {
+                const v = e.target.value;
+                setVoice(v);
+                if (v) await api.setVoice(lang, v).catch(() => {});
+              }}
+            >
+              <option value="">跟随语言包</option>
+              {voices.map((v) => (
+                <option key={v.id} value={v.id} disabled={!v.ready}>
+                  {v.label}
+                  {v.ready ? "" : "（缺模型）"}
+                </option>
+              ))}
+            </select>
+          </section>
+        )}
+
         {pack && (
           <section className="coverage">
-            <p className="muted">可用题型</p>
+            <p className="section-label">可用题型</p>
             <ul>
               <li>拼句 {pack.coverage.buildSentence}</li>
               <li>看图 {pack.coverage.wordFromImage}</li>
