@@ -19,13 +19,6 @@ pub enum Exercise {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         prompt: Option<String>,
     },
-    /// 看图选词。
-    WordFromImage {
-        entry: String,
-        image: String,
-        options: Vec<String>,
-        answer: usize,
-    },
     /// 听音选词。
     WordFromAudio {
         entry: String,
@@ -106,7 +99,6 @@ impl Exercise {
     pub fn kind(&self) -> &'static str {
         match self {
             Exercise::BuildSentence { .. } => "build-sentence",
-            Exercise::WordFromImage { .. } => "word-from-image",
             Exercise::WordFromAudio { .. } => "word-from-audio",
             Exercise::ArticleMcq { .. } => "article-mcq",
             Exercise::Recall { .. } => "recall",
@@ -118,7 +110,6 @@ impl Exercise {
     pub fn entry_id(&self) -> Option<&str> {
         match self {
             Exercise::BuildSentence { entry, .. }
-            | Exercise::WordFromImage { entry, .. }
             | Exercise::WordFromAudio { entry, .. }
             | Exercise::Recall { entry, .. } => Some(entry),
             _ => None,
@@ -136,12 +127,7 @@ impl Exercise {
                 Answer::Order { order },
             ) => Ok(grade_order(chunks, truth, order)),
             (
-                Exercise::WordFromImage {
-                    options,
-                    answer: truth,
-                    ..
-                }
-                | Exercise::WordFromAudio {
+                Exercise::WordFromAudio {
                     options,
                     answer: truth,
                     ..
@@ -337,9 +323,9 @@ mod tests {
 
     #[test]
     fn choice_grading() {
-        let ex = Exercise::WordFromImage {
+        let ex = Exercise::WordFromAudio {
             entry: "en.w.1".into(),
-            image: "media/img/a.webp".into(),
+            audio: "media/audio/a.wav".into(),
             options: vec!["gonna".into(), "wanna".into(), "gotta".into()],
             answer: 1,
         };

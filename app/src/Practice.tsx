@@ -149,8 +149,6 @@ function kindLabel(ex: Exercise) {
   switch (ex.kind) {
     case "build-sentence":
       return "拼句";
-    case "word-from-image":
-      return "看图选词";
     case "word-from-audio":
       return "听音选词";
     case "article-mcq":
@@ -187,19 +185,6 @@ function ExerciseView({
         setPlaced={setPlaced}
         locked={locked}
         lang={lang}
-      />
-    );
-  }
-
-  if (ex.kind === "word-from-image") {
-    return (
-      <PictureChoice
-        lang={lang}
-        image={ex.image}
-        options={ex.options}
-        picked={picked}
-        setPicked={setPicked}
-        locked={locked}
       />
     );
   }
@@ -392,44 +377,6 @@ function RecallCard({
           </div>
         </>
       )}
-    </div>
-  );
-}
-
-function PictureChoice({
-  lang,
-  image,
-  options,
-  picked,
-  setPicked,
-  locked,
-}: {
-  lang: string;
-  image: string;
-  options: string[];
-  picked: number | null;
-  setPicked: (v: number | null) => void;
-  locked: boolean;
-}) {
-  const [url, setUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    api
-      .assetData(lang, image)
-      .then((d) => alive && setUrl(d))
-      .catch(() => alive && setUrl(null));
-    return () => {
-      alive = false;
-    };
-  }, [lang, image]);
-
-  return (
-    <div className="exercise">
-      <div className="picture">
-        {url ? <img src={url} alt="" /> : <span className="muted">（图片素材待生成）</span>}
-      </div>
-      <Options options={options} picked={picked} setPicked={setPicked} locked={locked} />
     </div>
   );
 }

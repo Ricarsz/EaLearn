@@ -214,13 +214,30 @@ fn audio(dir: &str, rest: &[String]) -> ExitCode {
         }
     };
 
-    let spec = voice.unwrap_or_else(|| {
-        let default = match pack.manifest.lang.as_str() {
-            "ko" => "espeak:ko",
-            _ => "espeak:en-us",
-        };
-        default.to_string()
-    });
+    // 音色优先级：命令行指定 → manifest 里已有的 piper 音色 → 本机第一个可用模型
+    let spec = match voice {
+        Some(v) => v,
+        None => {
+            let current = pack.manifest.voice.clone();
+            if current.starts_with("piper:") && ealearn_tts::engine_for(&current).is_ok() {
+                current
+            } else {
+                match ealearn_tts::available(&pack.manifest.lang)
+                    .into_iter()
+                    .find(|v| v.ready)
+                {
+                    Some(v) => v.id,
+                    None => {
+                        eprintln!(
+                            "没有可用的 piper 模型。先下载一个放进 {}，                             例如 en/en_US/lessac/high/en_US-lessac-high.onnx（含 .onnx.json）",
+                            ealearn_tts::model_dir().display()
+                        );
+                        return ExitCode::from(1);
+                    }
+                }
+            }
+        }
+    };
 
     let engine = match ealearn_tts::engine_for(&spec) {
         Ok(e) => e,

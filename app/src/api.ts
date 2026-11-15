@@ -11,7 +11,6 @@ export type Token = {
 
 export type Coverage = {
   buildSentence: number;
-  wordFromImage: number;
   wordFromAudio: number;
   recall: number;
   articleMcq: number;
@@ -37,7 +36,6 @@ export type Exercise =
       answer: number[];
       prompt?: string;
     }
-  | { kind: "word-from-image"; entry: string; image: string; options: string[]; answer: number }
   | { kind: "word-from-audio"; entry: string; audio: string; options: string[]; answer: number }
   | {
       kind: "recall";
@@ -174,7 +172,7 @@ export type CardItem = {
   is_custom: boolean;
 };
 
-export type ImportResult = { added: number; skipped: string[] };
+export type ImportResult = { added: number; updated: number; skipped: string[] };
 
 export type DayActivity = {
   date: string;
@@ -204,8 +202,6 @@ export const api = {
     invoke<Token[]>("lookup", { lang, entryId }),
   define: (lang: string, word: string) =>
     invoke<Entry | null>("define", { lang, word }),
-  assetData: (lang: string, rel: string) =>
-    invoke<string | null>("asset_data", { lang, rel }),
   getLlmSettings: () => invoke<LlmSettings>("get_llm_settings"),
   setLlmSettings: (baseUrl: string, model: string, apiKey?: string) =>
     invoke<void>("set_llm_settings", { baseUrl, model, apiKey }),
@@ -220,6 +216,8 @@ export const api = {
     invoke<string>("speak", { lang, text, entryId, voice }),
   listCards: (lang: string) => invoke<CardItem[]>("list_cards", { lang }),
   deleteCard: (cardId: number) => invoke<void>("delete_card", { cardId }),
+  deleteCustomEntry: (lang: string, entryId: string) =>
+    invoke<void>("delete_custom_entry", { lang, entryId }),
   importWords: (lang: string, text: string) =>
     invoke<ImportResult>("import_words", { lang, text }),
   recordFocus: (minutes: number, completed: boolean) =>

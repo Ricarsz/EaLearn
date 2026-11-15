@@ -50,18 +50,10 @@ fn seed_pack_can_produce_gradable_exercises() {
                     .unwrap();
                 assert!(g.correct, "拼句题的正解判不过: {chunks:?}");
             }
-            ealearn_core::Exercise::WordFromImage {
-                options,
-                answer,
-                image,
-                ..
-            } => {
+            ealearn_core::Exercise::WordFromAudio { options, answer, audio, .. } => {
                 assert_eq!(options.len(), 4);
                 assert!(*answer < options.len());
-                assert!(
-                    pack.asset(image).exists() || true,
-                    "图片稍后随 TTS 一起生成"
-                );
+                assert!(pack.asset(audio).exists(), "音频文件缺失: {audio}");
             }
             _ => {}
         }

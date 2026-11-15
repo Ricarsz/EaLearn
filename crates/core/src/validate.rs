@@ -146,9 +146,6 @@ fn check_entry(at: &str, entry: &Entry) -> Report {
     if !entry.tokens.is_empty() {
         report.extend(check_coverage(at, &entry.surface, &entry.tokens));
     }
-    if entry.image.is_some() && entry.gloss.is_none() {
-        report.push(Issue::warn(at, "有图但没释义，看图选词会缺提示"));
-    }
     report
 }
 
@@ -202,10 +199,7 @@ pub fn validate_pack(pack: &Pack) -> Report {
         } else {
             seen.push(&entry.id);
         }
-        for asset in [entry.audio.as_deref(), entry.image.as_deref()]
-            .into_iter()
-            .flatten()
-        {
+        for asset in entry.audio.as_deref().into_iter() {
             if !pack.asset(asset).exists() {
                 report.push(Issue::error(at.clone(), format!("素材缺失: {asset}")));
             }

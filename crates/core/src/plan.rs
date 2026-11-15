@@ -10,7 +10,6 @@ use crate::pack::Pack;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExerciseKind {
     BuildSentence,
-    WordFromImage,
     WordFromAudio,
     Recall,
     ArticleMcq,
@@ -20,7 +19,6 @@ impl ExerciseKind {
     pub fn as_str(self) -> &'static str {
         match self {
             ExerciseKind::BuildSentence => "build-sentence",
-            ExerciseKind::WordFromImage => "word-from-image",
             ExerciseKind::WordFromAudio => "word-from-audio",
             ExerciseKind::Recall => "recall",
             ExerciseKind::ArticleMcq => "article-mcq",
@@ -33,7 +31,6 @@ impl ExerciseKind {
 #[serde(rename_all = "camelCase")]
 pub struct Coverage {
     pub build_sentence: usize,
-    pub word_from_image: usize,
     pub word_from_audio: usize,
     pub recall: usize,
     pub article_mcq: usize,
@@ -41,7 +38,7 @@ pub struct Coverage {
 
 impl Coverage {
     pub fn total(&self) -> usize {
-        self.build_sentence + self.word_from_image + self.word_from_audio + self.article_mcq
+        self.build_sentence + self.word_from_audio + self.recall + self.article_mcq
     }
 }
 
@@ -54,9 +51,6 @@ pub fn coverage(pack: &Pack) -> Coverage {
         }
         if !e.surface.trim().is_empty() && e.surface.split_whitespace().count() <= 3 {
             c.recall += 1;
-        }
-        if e.image.is_some() && is_choice_word(e) {
-            c.word_from_image += 1;
         }
         if e.audio.is_some() && is_choice_word(e) {
             c.word_from_audio += 1;
@@ -73,7 +67,7 @@ pub fn coverage(pack: &Pack) -> Coverage {
 
 /// 组装一节练习。
 ///
-/// 题型轮转：每轮按 `[拼句, 看图, 听音]` 顺序取，缺素材就跳过，保证一节里
+/// 题型轮转：每轮按 `[拼句, 听音, 背诵]` 顺序取，缺素材就跳过，保证一节里
 /// 不会全是同一种题型。文章题放在最后。
 pub fn plan(pack: &Pack, limit: usize, seed: u64) -> Vec<Exercise> {
     let entries: Vec<&Entry> = pack.words.iter().chain(pack.sentences.iter()).collect();
@@ -90,7 +84,6 @@ pub fn plan(pack: &Pack, limit: usize, seed: u64) -> Vec<Exercise> {
         let mut progressed = false;
         for kind in [
             ExerciseKind::BuildSentence,
-            ExerciseKind::WordFromImage,
             ExerciseKind::WordFromAudio,
             ExerciseKind::Recall,
         ] {
@@ -155,7 +148,6 @@ pub fn exercise_for(pack: &Pack, entry_id: &str, card_kind: &str, seed: u64) -> 
         return Exercise::build_sentence(entry, s);
     }
     build(entry, pack, ExerciseKind::WordFromAudio, s)
-        .or_else(|| build(entry, pack, ExerciseKind::WordFromImage, s))
         .or_else(|| build(entry, pack, ExerciseKind::Recall, s))
         .or_else(|| Exercise::build_sentence(entry, s))
 }
@@ -164,19 +156,6 @@ fn build(entry: &Entry, pack: &Pack, kind: ExerciseKind, seed: u64) -> Option<Ex
     let s = seed ^ seed_of(&entry.id);
     match kind {
         ExerciseKind::BuildSentence => Exercise::build_sentence(entry, s),
-        ExerciseKind::WordFromImage => {
-            if !is_choice_word(entry) {
-                return None;
-            }
-            let image = entry.image.clone()?;
-            let (options, answer) = choice_set(pack, entry, 4, s)?;
-            Some(Exercise::WordFromImage {
-                entry: entry.id.clone(),
-                image,
-                options,
-                answer,
-            })
-        }
         ExerciseKind::WordFromAudio => {
             if !is_choice_word(entry) {
                 return None;
@@ -280,9 +259,6 @@ mod tests {
             word("w4", "ghost", &["slang"]),
             word("w5", "bail", &["slang"]),
         ];
-        for w in &mut words {
-            w.image = Some(format!("media/img/{}.webp", w.id));
-        }
         words[0].audio = Some("media/audio/w1.wav".into());
         let sentences = vec![Entry::new("s1", "I kind of want to bail")];
         let articles = vec![Article {
@@ -320,7 +296,6 @@ mod tests {
     #[test]
     fn coverage_counts_available_material() {
         let c = coverage(&pack());
-        assert_eq!(c.word_from_image, 5);
         assert_eq!(c.word_from_audio, 1);
         assert_eq!(c.build_sentence, 1);
         assert_eq!(c.article_mcq, 1);
@@ -333,27 +308,22 @@ mod tests {
         assert_eq!(ex.len(), 6);
         let kinds: Vec<&str> = ex.iter().map(|e| e.kind()).collect();
         assert!(kinds.contains(&"build-sentence"));
-        assert!(kinds.contains(&"word-from-image"));
         assert!(kinds.contains(&"word-from-audio"));
     }
 
     #[test]
-    fn image_choices_include_answer_and_distractors() {
+    fn audio_choices_include_answer_and_distractors() {
         let p = pack();
         let ex = plan(&p, 10, 3);
-        let image_ex = ex
+        let (options, answer, entry_id) = ex
             .iter()
             .find_map(|e| match e {
-                Exercise::WordFromImage {
-                    options,
-                    answer,
-                    entry,
-                    ..
-                } => Some((options.clone(), *answer, entry.clone())),
+                Exercise::WordFromAudio { options, answer, entry, .. } => {
+                    Some((options.clone(), *answer, entry.clone()))
+                }
                 _ => None,
             })
-            .expect("没有出看图题");
-        let (options, answer, entry_id) = image_ex;
+            .expect("没有出听音题");
         assert_eq!(options.len(), 4);
         assert_eq!(&options[answer], &p.entry(&entry_id).unwrap().surface);
         let unique: std::collections::HashSet<_> = options.iter().collect();
@@ -386,8 +356,8 @@ mod tests {
         let p = pack();
         // w1 有音频 → 听音优先
         assert_eq!(exercise_for(&p, "w1", "word", 1).unwrap().kind(), "word-from-audio");
-        // w2 只有图 → 看图
-        assert_eq!(exercise_for(&p, "w2", "word", 1).unwrap().kind(), "word-from-image");
+        // w2 没有音频 → 退回背诵
+        assert_eq!(exercise_for(&p, "w2", "word", 1).unwrap().kind(), "recall");
         // 句子卡 → 拼句
         assert_eq!(exercise_for(&p, "s1", "sentence", 1).unwrap().kind(), "build-sentence");
         // 不存在的词条不该造出题
@@ -395,13 +365,14 @@ mod tests {
     }
 
     #[test]
-    fn missing_image_means_no_image_exercise() {
+    fn missing_audio_falls_back_to_recall() {
         let mut p = pack();
         for w in &mut p.words {
-            w.image = None;
+            w.audio = None;
         }
-        assert_eq!(coverage(&p).word_from_image, 0);
+        assert_eq!(coverage(&p).word_from_audio, 0);
         let kinds: Vec<&str> = plan(&p, 10, 1).iter().map(|e| e.kind()).collect();
-        assert!(!kinds.contains(&"word-from-image"));
+        assert!(!kinds.contains(&"word-from-audio"));
+        assert!(kinds.contains(&"recall"));
     }
 }

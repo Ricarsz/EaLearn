@@ -83,7 +83,6 @@ export function App() {
             <p className="section-label">可用题型</p>
             <ul>
               <li>拼句 {pack.coverage.buildSentence}</li>
-              <li>看图 {pack.coverage.wordFromImage}</li>
               <li>听音 {pack.coverage.wordFromAudio}</li>
               <li>背诵 {pack.coverage.recall}</li>
               <li>阅读 {pack.coverage.articleMcq}</li>

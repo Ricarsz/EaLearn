@@ -722,9 +722,9 @@ mod tests {
     fn attempts_and_stats() {
         let s = store();
         let id = s.add_card("en", "en.w.0001", CardKind::Word, NOW).unwrap();
-        let ex = Exercise::WordFromImage {
+        let ex = Exercise::WordFromAudio {
             entry: "en.w.0001".into(),
-            image: "media/img/a.webp".into(),
+            audio: "media/audio/a.wav".into(),
             options: vec!["gonna".into(), "wanna".into()],
             answer: 0,
         };
@@ -734,7 +734,7 @@ mod tests {
             "en",
             "en.w.0001",
             Some(id),
-            "word-from-image",
+            "word-from-audio",
             &right,
             1200,
             NOW,
@@ -744,7 +744,7 @@ mod tests {
             "en",
             "en.w.0001",
             Some(id),
-            "word-from-image",
+            "word-from-audio",
             &wrong,
             3400,
             NOW + 10,
@@ -804,14 +804,14 @@ mod tests {
     fn activity_buckets_by_local_day() {
         let s = store();
         let id = s.add_card("en", "en.w.0001", CardKind::Word, NOW).unwrap();
-        let ex = Exercise::WordFromImage {
+        let ex = Exercise::WordFromAudio {
             entry: "en.w.0001".into(),
-            image: "media/img/a.webp".into(),
+            audio: "media/audio/a.wav".into(),
             options: vec!["gonna".into(), "wanna".into()],
             answer: 0,
         };
         let g = ex.grade(&Answer::Choice { index: 0 }).unwrap();
-        s.record_attempt("en", "en.w.0001", Some(id), "word-from-image", &g, 100, NOW)
+        s.record_attempt("en", "en.w.0001", Some(id), "word-from-audio", &g, 100, NOW)
             .unwrap();
         s.add_focus(25, true, NOW).unwrap();
 

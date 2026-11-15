@@ -349,47 +349,6 @@ fn define(
         .cloned())
 }
 
-/// 把 pack 里的素材读成 data URL。走这条而不是 asset 协议，省掉 scope 配置，
-/// 也顺手挡住目录穿越。
-#[tauri::command]
-fn asset_data(
-    state: State<'_, AppState>,
-    lang: String,
-    rel: String,
-) -> Result<Option<String>, String> {
-    use base64::Engine;
-
-    let packs = state.packs.lock().map_err(err)?;
-    let pack = packs
-        .get(&lang)
-        .ok_or_else(|| format!("未加载的语言包: {lang}"))?;
-
-    let root = std::fs::canonicalize(&pack.root).map_err(err)?;
-    let path = std::fs::canonicalize(pack.asset(&rel)).map_err(err)?;
-    if !path.starts_with(&root) {
-        return Err("素材路径越界".into());
-    }
-    let Ok(bytes) = std::fs::read(&path) else {
-        return Ok(None);
-    };
-
-    let mime = match path.extension().and_then(|e| e.to_str()) {
-        Some("webp") => "image/webp",
-        Some("png") => "image/png",
-        Some("jpg" | "jpeg") => "image/jpeg",
-        Some("gif") => "image/gif",
-        Some("svg") => "image/svg+xml",
-        Some("wav") => "audio/wav",
-        Some("mp3") => "audio/mpeg",
-        Some("ogg") => "audio/ogg",
-        _ => "application/octet-stream",
-    };
-    Ok(Some(format!(
-        "data:{mime};base64,{}",
-        base64::engine::general_purpose::STANDARD.encode(bytes)
-    )))
-}
-
 #[derive(Serialize)]
 pub struct LlmSettingsView {
     base_url: String,
@@ -665,6 +624,24 @@ pub struct CardListItem {
     is_custom: bool,
 }
 
+/// 删掉自定义词条及其卡片。词库里的「自定义」条目才允许删。
+#[tauri::command]
+fn delete_custom_entry(
+    state: State<'_, AppState>,
+    lang: String,
+    entry_id: String,
+) -> Result<(), String> {
+    if !entry_id.starts_with("custom.") {
+        return Err("只能删除自定义词条".into());
+    }
+    let mut packs = state.packs.lock().map_err(err)?;
+    let store = state.store.lock().map_err(err)?;
+    if let Some(pack) = packs.get_mut(&lang) {
+        pack.words.retain(|e| e.id != entry_id);
+    }
+    store.delete_custom_entry(&entry_id).map_err(err)
+}
+
 #[tauri::command]
 fn list_cards(state: State<'_, AppState>, lang: String) -> Result<Vec<CardListItem>, String> {
     let packs = state.packs.lock().map_err(err)?;
@@ -713,6 +690,8 @@ fn delete_card(state: State<'_, AppState>, card_id: i64) -> Result<(), String> {
 #[derive(Serialize)]
 pub struct ImportResult {
     added: usize,
+    /// 已存在、只更新了释义或标签
+    updated: usize,
     skipped: Vec<String>,
 }
 
@@ -726,7 +705,7 @@ fn import_words(
 ) -> Result<ImportResult, String> {
     let report = ealearn_core::import::parse(&text);
     if report.words.is_empty() {
-        return Ok(ImportResult { added: 0, skipped: report.skipped });
+        return Ok(ImportResult { added: 0, updated: 0, skipped: report.skipped });
     }
 
     let mut packs = state.packs.lock().map_err(err)?;
@@ -738,6 +717,7 @@ fn import_words(
     let at = now();
 
     let mut added = 0usize;
+    let mut updated = 0usize;
     for word in report.words {
         let id = store
             .add_custom_entry(
@@ -749,6 +729,13 @@ fn import_words(
             )
             .map_err(err)?;
         if pack.entry(&id).is_some() {
+            // 词条已存在：同步一遍释义/标签，保留已有的调度状态
+            if let Some(existing) = pack.words.iter_mut().find(|e| e.id == id) {
+                existing.gloss = word.gloss.clone();
+                existing.tags = word.tags.clone();
+            }
+            updated += 1;
+            store.add_card(&lang, &id, CardKind::Word, at).map_err(err)?;
             continue;
         }
         let mut entry = ealearn_core::entry::Entry::new(&id, &word.surface);
@@ -764,7 +751,7 @@ fn import_words(
         added += 1;
     }
 
-    Ok(ImportResult { added, skipped: report.skipped })
+    Ok(ImportResult { added, updated, skipped: report.skipped })
 }
 
 // ── 专注与打卡 ────────────────────────────────────────────────────────
@@ -840,7 +827,6 @@ pub fn run() {
             get_dialog,
             lookup,
             define,
-            asset_data,
             get_setting,
             set_setting,
             get_llm_settings,
@@ -852,6 +838,7 @@ pub fn run() {
             set_voice,
             speak,
             list_cards,
+            delete_custom_entry,
             delete_card,
             import_words,
             record_focus,

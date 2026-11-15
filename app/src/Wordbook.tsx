@@ -1,8 +1,33 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, type CardItem } from "./api";
 import { playUrl } from "./audio";
 
-type Filter = "all" | "due" | "weak";
+type Filter = "all" | "due" | "weak" | "custom";
+
+type ParsedRow = { surface: string; gloss?: string; tags?: string; line: number };
+
+/// 与 Rust 侧 `ealearn_core::import::parse` 同一套规则，用来做导入前预览。
+function parseRows(text: string): ParsedRow[] {
+  const rows: ParsedRow[] = [];
+  const seen = new Set<string>();
+  text.split("\n").forEach((raw, i) => {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) return;
+    const fields = (line.includes("\t") ? line.split("\t") : line.split(",")).map((f) => f.trim());
+    const surface = fields[0];
+    if (!surface) return;
+    const key = surface.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    rows.push({
+      surface,
+      gloss: fields[1] || undefined,
+      tags: fields[2] || undefined,
+      line: i + 1,
+    });
+  });
+  return rows;
+}
 
 export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () => void }) {
   const [rows, setRows] = useState<CardItem[] | null>(null);
@@ -10,6 +35,7 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
   const [importing, setImporting] = useState(false);
   const [draft, setDraft] = useState("");
   const [note, setNote] = useState<string | null>(null);
+  const [skipped, setSkipped] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -25,19 +51,29 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
   }, [load]);
 
   const now = Math.floor(Date.now() / 1000);
+  const customCount = (rows ?? []).filter((r) => r.is_custom).length;
+  const dueCount = (rows ?? []).filter((r) => r.due <= now).length;
+  const weakCount = (rows ?? []).filter((r) => r.mastery < 0.4).length;
+
   const visible = (rows ?? []).filter((r) => {
     if (filter === "due") return r.due <= now;
     if (filter === "weak") return r.mastery < 0.4;
+    if (filter === "custom") return r.is_custom;
     return true;
   });
 
+  const parsed = useMemo(() => parseRows(draft), [draft]);
+
   const doImport = async () => {
     setError(null);
+    setSkipped([]);
     try {
       const r = await api.importWords(lang, draft);
       setNote(
-        `导入 ${r.added} 个词` + (r.skipped.length ? `，跳过 ${r.skipped.length} 行` : ""),
+        `新增 ${r.added} 个` + (r.updated ? `，更新 ${r.updated} 个` : "") +
+          (r.skipped.length ? `，跳过 ${r.skipped.length} 行` : ""),
       );
+      setSkipped(r.skipped);
       setDraft("");
       setImporting(false);
       await load();
@@ -46,7 +82,7 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
     }
   };
 
-  const remove = async (id: number) => {
+  const removeCard = async (id: number) => {
     try {
       await api.deleteCard(id);
       await load();
@@ -55,7 +91,16 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
     }
   };
 
-  const dueCount = (rows ?? []).filter((r) => r.due <= now).length;
+  const removeCustom = async (entryId: string, cardId: number) => {
+    try {
+      await api.deleteCustomEntry(lang, entryId);
+      await api.deleteCard(cardId).catch(() => {});
+      await load();
+      setNote("已删除自定义词条");
+    } catch (e) {
+      setError(String(e));
+    }
+  };
 
   return (
     <div className="panel wide">
@@ -68,7 +113,10 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
             待复习 {dueCount}
           </button>
           <button className={filter === "weak" ? "on" : ""} onClick={() => setFilter("weak")}>
-            不熟 {(rows ?? []).filter((r) => r.mastery < 0.4).length}
+            不熟 {weakCount}
+          </button>
+          <button className={filter === "custom" ? "on" : ""} onClick={() => setFilter("custom")}>
+            自定义 {customCount}
           </button>
         </div>
         <div className="actions">
@@ -82,12 +130,13 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
       {importing && (
         <div className="import-box">
           <p className="muted">
-            每行一个：<code>单词</code> + 制表符 + 释义，第三列可选标签。也可以用逗号分隔。
+            每行一个：<code>单词</code> 制表符 <code>释义</code> 制表符 <code>标签</code>，
+            后两列可省。没有制表符时按逗号切。以 <code>#</code> 开头的行与空行忽略，重复的词只取第一次。
           </p>
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={"ghost\t玩消失，失联\tslang\nspill the tea\t说八卦"}
+            placeholder={"ghost\t玩消失，失联\tslang\nspill the tea\t说八卦\nvibe"}
           />
           <div className="import-file">
             <label className="file-btn">
@@ -103,22 +152,42 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
               />
             </label>
             <span className="muted">
-              {draft.split("\n").filter((l) => l.trim() && !l.trim().startsWith("#")).length} 行待导入
+              {parsed.length ? `${parsed.length} 个词待导入` : "还没有内容"}
             </span>
-          </div>
-          <div className="actions">
-            <button className="primary" disabled={!draft.trim()} onClick={doImport}>
-              导入
+            <div className="spacer" />
+            <button className="primary" disabled={parsed.length === 0} onClick={doImport}>
+              导入 {parsed.length ? `(${parsed.length})` : ""}
             </button>
           </div>
+
+          {parsed.length > 0 && (
+            <ul className="preview">
+              {parsed.slice(0, 8).map((r) => (
+                <li key={r.surface}>
+                  <b>{r.surface}</b>
+                  <span className="muted">{r.gloss ?? "（无释义）"}</span>
+                  {r.tags && <span className="tag">{r.tags}</span>}
+                </li>
+              ))}
+              {parsed.length > 8 && <li className="muted">…还有 {parsed.length - 8} 个</li>}
+            </ul>
+          )}
         </div>
       )}
 
-      {note && <p className="muted">{note}</p>}
+      {note && <p className="ok-line">{note}</p>}
+      {skipped.length > 0 && (
+        <ul className="skipped">
+          {skipped.slice(0, 6).map((s, i) => (
+            <li key={i} className="muted">{s}</li>
+          ))}
+        </ul>
+      )}
       {error && <p className="error">{error}</p>}
-
       {rows === null && <p className="muted">读取中…</p>}
-      {rows?.length === 0 && <p className="muted">还没有词卡。答错会自动入卡，也可以导入自己的词。</p>}
+      {rows?.length === 0 && (
+        <p className="muted">还没有词卡。答错会自动入卡，也可以导入自己的词。</p>
+      )}
 
       <ul className="card-list">
         {visible.map((r) => (
@@ -128,7 +197,10 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
                 <b>{r.surface}</b>
                 <button
                   className="play small-play"
-                  onClick={() => api.speak(lang, r.surface, r.entry_id).then(playUrl).catch(() => {})}
+                  title="发音"
+                  onClick={() =>
+                    api.speak(lang, r.surface, r.entry_id).then(playUrl).catch(() => {})
+                  }
                 >
                   ▶
                 </button>
@@ -137,7 +209,10 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
               <div className="muted">{r.gloss ?? "—"}</div>
             </div>
 
-            <div className="mastery" title={`稳定性 ${r.stability.toFixed(1)} 天 · 复习 ${r.reps} 次`}>
+            <div
+              className="mastery"
+              title={`稳定性 ${r.stability.toFixed(1)} 天 · 复习 ${r.reps} 次 · 遗忘 ${r.lapses} 次`}
+            >
               <div className="mastery-bar">
                 <div className="mastery-fill" style={{ width: `${Math.round(r.mastery * 100)}%` }} />
               </div>
@@ -146,9 +221,19 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
 
             <div className="due muted">{dueLabel(r.due, now)}</div>
 
-            <button className="ghost" title="移出复习" onClick={() => remove(r.card_id)}>
-              ✕
-            </button>
+            {r.is_custom ? (
+              <button
+                className="ghost"
+                title="删除自定义词条"
+                onClick={() => removeCustom(r.entry_id, r.card_id)}
+              >
+                ✕
+              </button>
+            ) : (
+              <button className="ghost" title="移出复习" onClick={() => removeCard(r.card_id)}>
+                ✕
+              </button>
+            )}
           </li>
         ))}
       </ul>

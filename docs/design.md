@@ -82,7 +82,6 @@ packs/en/
 | id | 说明 | 素材来源 |
 |---|---|---|
 | `build-sentence` | 打乱词块，用户拼成句子 | sentences.json |
-| `word-from-image` | 看图选词 | words.json + image |
 | `word-from-audio` | 听音选词 | words.json + audio |
 | `recall` | 背诵卡：正面出词、背面出义，自评熟练度 | words.json 或自定义词条 |
 | `article-mcq` | 文章阅读理解 + 选择题 | articles.json |
@@ -170,15 +169,19 @@ Studio 是应用内的隐藏路由，`--studio` 启动才出现，随主程序�
 
 接口在 `core` 固定：`tts::synth(text, voice) -> AudioBytes`，引擎实现可换。
 
-选型现状：`piper` 已接入，英语用 `en_US-amy`（medium，61 MB），音质可接受；`espeak-ng` 留作没有模型时的兜底。manifest 的 `voice` 写成 `piper:<模型名>` 或 `espeak:<语言>` 即可切换，同一个前缀决定引擎，换音色不换代码。
+选型结论：**只用 piper**。英语 `en_US-lessac`（high），韩语 `ko_KR-kss`（medium）。传统共振峰合成（espeak 一类）音质差到影响听辨训练，不提供该选项；没有模型时直接报错而不是悄悄退化成机械音。
 
-piper 的坑（实测）：`--output_file -` 不写 stdout，会产出空文件，必须写临时文件再读回。piper 有韩语音色 `ko_KR-kss-medium`，之前的「韩语得换引擎」判断不成立。
+manifest 的 `voice` 写成 `piper:<模型名>`，音色列表只列本机模型目录里真实存在的模型。
+
+piper 的坑（实测）：`--output_file -` 不写 stdout，会产出空文件，必须写临时文件再读回。
+
+合成器输出统一过一遍 [`normalize_wav`]：RIFF/data 的长度字段若不是实际长度（espeak-ng 就写占位值），GStreamer 会按超长音频处理，WebKitGTK 里表现为点了没声。
 
 - 用户可以在界面里按语言选音色（`tts_voice:<lang>` 存设置）。选的音色与 pack 一致且词条有预生成音频时直接读文件；否则按需合成并缓存到用户数据目录的 `tts/`，缓存键同样是 `sha256(voice + text)`
 - 前端只保留一个 `Audio` 元素复用。`new Audio(url).play()` 这种写法对象没有引用，WebKitGTK 会把它回收掉，声音放到一半就断——Linux 下"点了没声/只响一下"多半是这个原因
 - 音频文件名 = `sha256(voice + "\0" + text).wav`，落在 pack 的 `media/audio/`。换音色 hash 必变，旧文件不会被误认
 - `forge audio <pack>` 批量预合成并写回 pack，已存在的直接复用，`--force` 才重做
-- 看图/听音只在「一到两个词」的词条上出题；整句当四选一答案是送分题（长度一眼看穿）
+- 只有听音在「一到两个词」的词条上出题；整句当四选一答案是送分题（长度一眼看穿）
 
 策略：pack 安装时批量预合成并按文本 hash 存 wav，运行时缺失才补。练的时候不联网。
 
@@ -225,4 +228,5 @@ M7 的出口条件就是整个架构的验收标准：加一门语言只写 pack
 
 ## 11. 已知最大成本
 
-不是代码，是图集。看图选词需要授权干净的图片，来源（AI 生成 / 开放图集）需要在 M2 之前定下来。
+不是代码，是内容：每个 pack 的词条、句子、对话都要人工校一遍。图形题（看图选词）
+需要授权干净的图集，投入产出不划算，已从题型里去掉。

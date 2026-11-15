@@ -71,9 +71,6 @@ pub struct Entry {
     /// 相对 pack 根目录的音频路径（预合成 TTS）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audio: Option<String>,
-    /// 相对 pack 根目录的图片路径。
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub image: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub difficulty: Option<u8>,
 }
@@ -88,7 +85,6 @@ impl Entry {
             tags: Vec::new(),
             tokens: Vec::new(),
             audio: None,
-            image: None,
             difficulty: None,
         }
     }
@@ -99,11 +95,6 @@ impl Entry {
 
     pub fn is_slang(&self) -> bool {
         self.has_tag("slang")
-    }
-
-    /// 有没有足够的素材支撑看图选词。
-    pub fn image_ready(&self) -> bool {
-        self.image.is_some()
     }
 
     /// 有没有足够的素材支撑听音选词。
