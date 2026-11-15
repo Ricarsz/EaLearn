@@ -22,6 +22,7 @@ fn main() -> ExitCode {
         ("tokens", Some(lang)) => tokens(lang, args.get(2).map(String::as_str)),
         ("audio", Some(dir)) => audio(dir, &args[2..]),
         ("voices", Some(lang)) => voices(lang),
+        ("say", Some(spec)) => say(spec, &args[2..]),
         ("--help" | "-h" | "help", _) => {
             usage();
             ExitCode::SUCCESS
@@ -42,7 +43,9 @@ fn usage() {
   forge tokens <lang> [text]       只输出 token 的 JSON 数组，供生成 pack 时内联
   forge audio <pack-dir> [--voice espeak:en-us] [--force]
                                    预合成词条与句子的音频，写回 pack 并更新指纹
-  forge voices <lang>              列出该语言可用的音色（espeak + 本机 piper 模型）"
+  forge voices <lang>              列出该语言可用的音色（espeak + 本机 piper 模型）
+  forge say <voice> <文字> <输出.wav>
+                                   用指定音色合成一句，排查音色问题时用"
     );
 }
 
@@ -338,4 +341,35 @@ fn voices(lang: &str) -> ExitCode {
     }
     println!("— {} 个音色", list.len());
     ExitCode::SUCCESS
+}
+
+fn say(spec: &str, rest: &[String]) -> ExitCode {
+    let Some(text) = rest.first() else {
+        eprintln!("用法: forge say <voice> <文字> <输出.wav>");
+        return ExitCode::from(2);
+    };
+    let out = rest.get(1).map(String::as_str).unwrap_or("out.wav");
+    let engine = match ealearn_tts::engine_for(spec) {
+        Ok(e) => e,
+        Err(e) => {
+            eprintln!("{e}");
+            return ExitCode::from(1);
+        }
+    };
+    match engine.synth_wav(text) {
+        Ok(bytes) => match std::fs::write(out, &bytes) {
+            Ok(()) => {
+                println!("{out} · {} 字节 · {spec}", bytes.len());
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                eprintln!("写文件失败: {e}");
+                ExitCode::from(1)
+            }
+        },
+        Err(e) => {
+            eprintln!("合成失败: {e}");
+            ExitCode::from(1)
+        }
+    }
 }

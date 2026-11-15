@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { api, type LlmSettings, type TutorTurn } from "./api";
+import { api, type Annotation, type LlmSettings, type TutorTurn } from "./api";
 import { THEMES } from "./themes";
 
 type Msg = { role: "user" | "tutor"; text: string; turn?: TutorTurn };
@@ -20,6 +20,7 @@ export function FreeChat({
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [added, setAdded] = useState<string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,6 +48,17 @@ export function FreeChat({
   useEffect(() => {
     if (scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight;
   }, [msgs]);
+
+  /// 聊天里冒出来的词直接入卡：写进自定义词条表并建卡，之后在词库和练习里都能见到。
+  const addAnnotation = async (a: Annotation) => {
+    if (added.includes(a.surface)) return;
+    try {
+      await api.importWords(lang, `${a.surface}\t${a.gloss ?? ""}\t${a.kind ?? ""}`);
+      setAdded((prev) => [...prev, a.surface]);
+    } catch (e) {
+      setError(String(e));
+    }
+  };
 
   const send = async () => {
     const text = draft.trim();
@@ -156,6 +168,14 @@ export function FreeChat({
                     <b>{a.surface}</b>
                     {a.gloss && <span className="muted"> {a.gloss}</span>}
                     {a.kind && <em className="kind">{a.kind}</em>}
+                    <button
+                      className="annot-add"
+                      disabled={added.includes(a.surface)}
+                      onClick={() => addAnnotation(a)}
+                      title="加入复习"
+                    >
+                      {added.includes(a.surface) ? "✓" : "+"}
+                    </button>
                   </span>
                 ))}
               </div>

@@ -89,6 +89,23 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
             onChange={(e) => setDraft(e.target.value)}
             placeholder={"ghost\t玩消失，失联\tslang\nspill the tea\t说八卦"}
           />
+          <div className="import-file">
+            <label className="file-btn">
+              从文件读取
+              <input
+                type="file"
+                accept=".txt,.tsv,.csv"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setDraft(await f.text());
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <span className="muted">
+              {draft.split("\n").filter((l) => l.trim() && !l.trim().startsWith("#")).length} 行待导入
+            </span>
+          </div>
           <div className="actions">
             <button className="primary" disabled={!draft.trim()} onClick={doImport}>
               导入

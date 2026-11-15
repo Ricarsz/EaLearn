@@ -60,6 +60,13 @@ CREATE TABLE IF NOT EXISTS custom_entries (
     UNIQUE (pack, surface)
 );
 
+CREATE TABLE IF NOT EXISTS focus_sessions (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    minutes   INTEGER NOT NULL,
+    completed INTEGER NOT NULL,
+    at        INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL

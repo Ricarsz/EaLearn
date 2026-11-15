@@ -99,7 +99,7 @@ impl Tts for Espeak {
         if out.stdout.is_empty() {
             return Err(TtsError::Empty("espeak-ng 输出为空".into()));
         }
-        Ok(out.stdout)
+        Ok(normalize_wav(out.stdout))
     }
 }
 
@@ -151,7 +151,7 @@ impl Tts for Piper {
                 String::from_utf8_lossy(&status.stderr).trim().to_string(),
             ));
         }
-        Ok(bytes)
+        Ok(normalize_wav(bytes))
     }
 }
 
@@ -218,6 +218,43 @@ pub fn synth_to_dir(
     Ok(name)
 }
 
+/// 修正 RIFF/data 的长度字段。
+///
+/// espeak-ng 的 `--stdout` 会把两个长度写成 0x7FFFFFxx 这种占位值，GStreamer
+/// 拿到后会按「两小时音频」处理，WebKitGTK 里表现为点了没声。piper 的头部是
+/// 对的，但统一过一遍没有坏处。
+pub fn normalize_wav(mut bytes: Vec<u8>) -> Vec<u8> {
+    if bytes.len() < 44 || &bytes[0..4] != b"RIFF" || &bytes[8..12] != b"WAVE" {
+        return bytes;
+    }
+
+    // 找 data 块（从 12 开始逐块跳，遇到就停）
+    let mut pos = 12usize;
+    while pos + 8 <= bytes.len() {
+        let id = &bytes[pos..pos + 4];
+        let size = u32::from_le_bytes([
+            bytes[pos + 4],
+            bytes[pos + 5],
+            bytes[pos + 6],
+            bytes[pos + 7],
+        ]) as usize;
+        if id == b"data" {
+            let payload = bytes.len() - (pos + 8);
+            bytes[pos + 4..pos + 8].copy_from_slice(&(payload as u32).to_le_bytes());
+            break;
+        }
+        // 未知块：size 可能也是假的，靠不住就放弃
+        if size == 0 || pos + 8 + size > bytes.len() {
+            break;
+        }
+        pos += 8 + size + (size & 1);
+    }
+
+    let riff = (bytes.len() - 8) as u32;
+    bytes[4..8].copy_from_slice(&riff.to_le_bytes());
+    bytes
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -264,6 +301,43 @@ mod tests {
         assert!(wav.len() > 44, "音频太短: {} 字节", wav.len());
         assert_eq!(&wav[0..4], b"RIFF");
         assert_eq!(&wav[8..12], b"WAVE");
+    }
+
+    #[test]
+    fn normalize_fixes_bogus_sizes() {
+        // espeak 风格的坏头：两个长度字段都是 0x7FFFFF24
+        let mut wav = Vec::new();
+        wav.extend_from_slice(b"RIFF");
+        wav.extend_from_slice(&0x7F_FF_FF_24u32.to_le_bytes());
+        wav.extend_from_slice(b"WAVEfmt ");
+        wav.extend_from_slice(&16u32.to_le_bytes());
+        wav.extend_from_slice(&[1, 0, 1, 0]); // pcm, mono
+        wav.extend_from_slice(&22_050u32.to_le_bytes());
+        wav.extend_from_slice(&44_100u32.to_le_bytes());
+        wav.extend_from_slice(&[2, 0, 16, 0]);
+        wav.extend_from_slice(b"data");
+        wav.extend_from_slice(&0x7F_FF_FF_24u32.to_le_bytes());
+        wav.extend_from_slice(&[0u8; 100]);
+
+        let fixed = normalize_wav(wav.clone());
+        assert_eq!(fixed.len(), wav.len());
+        assert_eq!(
+            u32::from_le_bytes([fixed[4], fixed[5], fixed[6], fixed[7]]),
+            (wav.len() - 8) as u32
+        );
+        assert_eq!(
+            u32::from_le_bytes([fixed[40], fixed[41], fixed[42], fixed[43]]),
+            100
+        );
+    }
+
+    #[test]
+    fn normalize_leaves_valid_headers_alone() {
+        let wav = Espeak::new("en-us").synth_wav("hello").map(normalize_wav);
+        if let Ok(w) = wav {
+            let riff = u32::from_le_bytes([w[4], w[5], w[6], w[7]]) as usize;
+            assert_eq!(riff, w.len() - 8);
+        }
     }
 
     #[test]
@@ -323,7 +397,10 @@ pub fn available(lang: &str) -> Vec<VoiceInfo> {
             })
             .collect();
         models.sort_by(|a, b| a.id.cmp(&b.id));
-        out.extend(models);
+        // piper 排前面：音质差一个量级，espeak 只是没模型时的兜底
+        let mut merged = models;
+        merged.append(&mut out);
+        out = merged;
     }
 
     out

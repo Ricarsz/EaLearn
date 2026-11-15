@@ -70,6 +70,15 @@ impl CardKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DayActivity {
+    /// 本地日期 YYYY-MM-DD
+    pub date: String,
+    pub attempts: i64,
+    pub reviews: i64,
+    pub focus_minutes: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CustomEntry {
     pub id: String,
     pub surface: String,
@@ -495,6 +504,77 @@ impl Store {
         Ok(())
     }
 
+    // ── 专注与打卡 ──────────────────────────────────────────────────────
+
+    pub fn add_focus(&self, minutes: u32, completed: bool, now: i64) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO focus_sessions (minutes, completed, at) VALUES (?1, ?2, ?3)",
+            params![minutes as i64, i64::from(completed), now],
+        )?;
+        Ok(())
+    }
+
+    /// 最近 `days` 天的活动汇总。`tz_offset_min` 是本地时区相对 UTC 的分钟数，
+    /// 打卡必须按本地日界切，不能按 UTC。
+    pub fn activity(&self, days: u32, now: i64, tz_offset_min: i32) -> Result<Vec<DayActivity>> {
+        let shift = tz_offset_min as i64 * 60;
+        let today = (now + shift).div_euclid(86_400);
+        let from_day = today - days as i64 + 1;
+
+        let mut buckets: std::collections::BTreeMap<i64, DayActivity> =
+            std::collections::BTreeMap::new();
+        for d in from_day..=today {
+            buckets.insert(d, DayActivity {
+                date: ymd_from_days(d),
+                attempts: 0,
+                reviews: 0,
+                focus_minutes: 0,
+            });
+        }
+
+        let mut stmt = self
+            .conn
+            .prepare("SELECT correct, at FROM attempts WHERE at >= ?1")?;
+        let attempts = stmt
+            .query_map(params![from_day * 86_400 - shift], |r| {
+                Ok((r.get::<_, i64>(0)?, r.get::<_, i64>(1)?))
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        for (_correct, at) in attempts {
+            if let Some(d) = buckets.get_mut(&((at + shift).div_euclid(86_400))) {
+                d.attempts += 1;
+            }
+        }
+
+        let mut stmt = self
+            .conn
+            .prepare("SELECT last_review FROM reviews WHERE last_review >= ?1")?;
+        let reviews = stmt
+            .query_map(params![from_day * 86_400 - shift], |r| r.get::<_, i64>(0))?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        for at in reviews {
+            if let Some(d) = buckets.get_mut(&((at + shift).div_euclid(86_400))) {
+                d.reviews += 1;
+            }
+        }
+
+        let mut stmt = self
+            .conn
+            .prepare("SELECT minutes, at FROM focus_sessions WHERE at >= ?1")?;
+        let focuses = stmt
+            .query_map(params![from_day * 86_400 - shift], |r| {
+                Ok((r.get::<_, i64>(0)?, r.get::<_, i64>(1)?))
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        for (minutes, at) in focuses {
+            if let Some(d) = buckets.get_mut(&((at + shift).div_euclid(86_400))) {
+                d.focus_minutes += minutes;
+            }
+        }
+
+        Ok(buckets.into_values().collect())
+    }
+
     // ── 设置 ────────────────────────────────────────────────────────────
 
     pub fn set_setting(&self, key: &str, value: &str) -> Result<()> {
@@ -539,6 +619,21 @@ impl Store {
             .collect::<rusqlite::Result<Vec<_>>>()?;
         Ok(rows.into_iter().rev().collect())
     }
+}
+
+/// 1970-01-01 起的天数 → 公历日期（Howard Hinnant 的 civil_from_days）。
+fn ymd_from_days(days: i64) -> String {
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    format!("{y:04}-{m:02}-{d:02}")
 }
 
 #[cfg(test)]
@@ -696,6 +791,42 @@ mod tests {
         let rows = s.cards("en").unwrap();
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].entry_id, "en.w.0002");
+    }
+
+    #[test]
+    fn ymd_matches_known_dates() {
+        assert_eq!(ymd_from_days(0), "1970-01-01");
+        assert_eq!(ymd_from_days(20_000), "2024-10-04");
+        assert_eq!(ymd_from_days(19_723), "2024-01-01");
+    }
+
+    #[test]
+    fn activity_buckets_by_local_day() {
+        let s = store();
+        let id = s.add_card("en", "en.w.0001", CardKind::Word, NOW).unwrap();
+        let ex = Exercise::WordFromImage {
+            entry: "en.w.0001".into(),
+            image: "media/img/a.webp".into(),
+            options: vec!["gonna".into(), "wanna".into()],
+            answer: 0,
+        };
+        let g = ex.grade(&Answer::Choice { index: 0 }).unwrap();
+        s.record_attempt("en", "en.w.0001", Some(id), "word-from-image", &g, 100, NOW)
+            .unwrap();
+        s.add_focus(25, true, NOW).unwrap();
+
+        let days = s.activity(7, NOW, 0).unwrap();
+        assert_eq!(days.len(), 7);
+        let today = days.last().unwrap();
+        assert_eq!(today.attempts, 1);
+        assert_eq!(today.focus_minutes, 25);
+        assert_eq!(today.date, ymd_from_days(NOW.div_euclid(86_400)));
+
+        // 七天前的活动不应落在今天的桶里
+        s.add_focus(25, true, NOW - 6 * 86_400).unwrap();
+        let days = s.activity(7, NOW, 0).unwrap();
+        assert_eq!(days.first().unwrap().focus_minutes, 25);
+        assert_eq!(days.last().unwrap().focus_minutes, 25);
     }
 
     #[test]

@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { api, type PackSummary, type Stats } from "./api";
 import { Practice } from "./Practice";
 import { Scenario } from "./Scenario";
+import { Focus } from "./Focus";
 import { Settings } from "./Settings";
 import { Wordbook } from "./Wordbook";
 
-type Tab = "practice" | "scenario" | "wordbook";
+type Tab = "practice" | "scenario" | "wordbook" | "focus";
 
 export function App() {
   const [packs, setPacks] = useState<PackSummary[]>([]);
@@ -106,6 +107,9 @@ export function App() {
           <button className={tab === "wordbook" ? "active" : ""} onClick={() => setTab("wordbook")}>
             词库
           </button>
+          <button className={tab === "focus" ? "active" : ""} onClick={() => setTab("focus")}>
+            专注
+          </button>
         </nav>
 
         {error && <p className="error panel">{error}</p>}
@@ -120,6 +124,7 @@ export function App() {
             onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
+        {tab === "focus" && <Focus />}
         {lang && tab === "wordbook" && (
           <Wordbook key={`${lang}-wordbook`} lang={lang} onPractice={() => setTab("practice")} />
         )}

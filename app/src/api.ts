@@ -176,6 +176,13 @@ export type CardItem = {
 
 export type ImportResult = { added: number; skipped: string[] };
 
+export type DayActivity = {
+  date: string;
+  attempts: number;
+  reviews: number;
+  focus_minutes: number;
+};
+
 export type VoiceInfo = { id: string; label: string; engine: string; ready: boolean };
 
 export type DialogSummary = { id: string; title: string; theme: string; nodes: number };
@@ -215,4 +222,8 @@ export const api = {
   deleteCard: (cardId: number) => invoke<void>("delete_card", { cardId }),
   importWords: (lang: string, text: string) =>
     invoke<ImportResult>("import_words", { lang, text }),
+  recordFocus: (minutes: number, completed: boolean) =>
+    invoke<void>("record_focus", { minutes, completed }),
+  activity: (days: number, tzOffsetMin: number) =>
+    invoke<DayActivity[]>("activity", { days, tzOffsetMin }),
 };

@@ -12,7 +12,7 @@ use ealearn_core::exercise::{Answer, Exercise, Grade};
 use ealearn_core::pack::Pack;
 use ealearn_core::plan::{self, Coverage};
 use ealearn_core::srs::{CardState, Rating, Scheduler};
-use ealearn_store::{CardKind, Stats, Store, StoreError};
+use ealearn_store::{CardKind, DayActivity, Stats, Store, StoreError};
 use serde::Serialize;
 use tauri::{Manager, State};
 
@@ -767,6 +767,30 @@ fn import_words(
     Ok(ImportResult { added, skipped: report.skipped })
 }
 
+// ── 专注与打卡 ────────────────────────────────────────────────────────
+
+#[tauri::command]
+fn record_focus(
+    state: State<'_, AppState>,
+    minutes: u32,
+    completed: bool,
+) -> Result<(), String> {
+    let store = state.store.lock().map_err(err)?;
+    store.add_focus(minutes, completed, now()).map_err(err)
+}
+
+#[tauri::command]
+fn activity(
+    state: State<'_, AppState>,
+    days: u32,
+    tz_offset_min: i32,
+) -> Result<Vec<DayActivity>, String> {
+    let store = state.store.lock().map_err(err)?;
+    store
+        .activity(days.clamp(1, 400), now(), tz_offset_min)
+        .map_err(err)
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -829,7 +853,9 @@ pub fn run() {
             speak,
             list_cards,
             delete_card,
-            import_words
+            import_words,
+            record_focus,
+            activity
         ])
         .run(tauri::generate_context!())
         .expect("Tauri 启动失败");
