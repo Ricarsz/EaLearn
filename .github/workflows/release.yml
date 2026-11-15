@@ -20,7 +20,7 @@ jobs:
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 12
 
@@ -46,6 +46,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: linux-bundles
+          if-no-files-found: error
           path: |
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/rpm/*.rpm
@@ -55,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 12
 
@@ -82,6 +83,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: windows-bundles
+          if-no-files-found: error
           path: src-tauri/target/release/bundle/msi/*.msi
 
   publish:
@@ -98,8 +100,8 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            dist/*.deb
-            dist/*.rpm
-            dist/*.msi
+            dist/**/*.deb
+            dist/**/*.rpm
+            dist/**/*.msi
           generate_release_notes: true
           fail_on_unmatched_files: true
