@@ -1,0 +1,214 @@
+[
+  {
+    "id": "ko.w.0001",
+    "surface": "밥",
+    "gloss": "饭、一餐",
+    "tokens": [
+      {
+        "surface": "밥",
+        "reading": "bap",
+        "pos": "NNG",
+        "span": [
+          0,
+          3
+        ]
+      }
+    ],
+    "audio": "media/audio/e7d80d642f4bd7aeb283f2fe073a3e0d7827f811a6504a190eb18ae9ec45c4e3.wav"
+  },
+  {
+    "id": "ko.w.0002",
+    "surface": "물",
+    "gloss": "水",
+    "tokens": [
+      {
+        "surface": "물",
+        "reading": "mul",
+        "pos": "NNG",
+        "span": [
+          0,
+          3
+        ]
+      }
+    ],
+    "audio": "media/audio/b8f6261415a1567868e3fb70067f64a8dbd32707f8154af5bdfc314072707a3c.wav"
+  },
+  {
+    "id": "ko.w.0003",
+    "surface": "친구",
+    "gloss": "朋友",
+    "tokens": [
+      {
+        "surface": "친구",
+        "reading": "chingu",
+        "pos": "NNG",
+        "span": [
+          0,
+          6
+        ]
+      }
+    ],
+    "audio": "media/audio/a19d040f6f45c4b539c77ec76c67666dca24c2f92ea01f7942cf5f13b18bb3f6.wav"
+  },
+  {
+    "id": "ko.w.0004",
+    "surface": "약속",
+    "gloss": "约定、约好的事",
+    "tokens": [
+      {
+        "surface": "약속",
+        "reading": "yaksok",
+        "pos": "NNG",
+        "span": [
+          0,
+          6
+        ]
+      }
+    ],
+    "audio": "media/audio/079135ed03c8a5b42bceb3cfe35bfb5b087dea59b6159bc2f628518650a72b2b.wav"
+  },
+  {
+    "id": "ko.w.0005",
+    "surface": "짜증나다",
+    "gloss": "烦、来气",
+    "tokens": [
+      {
+        "surface": "짜증",
+        "reading": "jjajeung",
+        "pos": "NNG",
+        "span": [
+          0,
+          6
+        ]
+      },
+      {
+        "surface": "나",
+        "reading": "na",
+        "pos": "VV",
+        "span": [
+          6,
+          9
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EC",
+        "span": [
+          9,
+          12
+        ]
+      }
+    ],
+    "audio": "media/audio/8c75311e00975a8d6259b45a330b6a9590394690505a908301aa67c7a9d2a1c5.wav"
+  },
+  {
+    "id": "ko.w.0006",
+    "surface": "눈치",
+    "gloss": "眼力见，会看气氛",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "눈치",
+        "lemma": "눈",
+        "reading": "nunchi",
+        "pos": "NNG",
+        "span": [
+          0,
+          6
+        ]
+      }
+    ],
+    "audio": "media/audio/4e2748dde46ab0c9490e3024bf84b84adf4799ac7df2aaf24b510e0d9d8664a2.wav"
+  },
+  {
+    "id": "ko.w.0007",
+    "surface": "헐",
+    "gloss": "哇（无语、震惊时用）",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "헐",
+        "lemma": "허",
+        "reading": "heol",
+        "pos": "VV+JKO",
+        "span": [
+          0,
+          3
+        ]
+      }
+    ],
+    "audio": "media/audio/409c0366153836f0fe4236d31a7f5651320cf433e9f05664badb7270a962131e.wav"
+  },
+  {
+    "id": "ko.w.0008",
+    "surface": "대박",
+    "gloss": "太棒了、太厉害了",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "대박",
+        "reading": "daebak",
+        "pos": "NNG",
+        "span": [
+          0,
+          6
+        ]
+      }
+    ],
+    "audio": "media/audio/8f1f1848a7af4b579aa5786f272af908eff09696b8cbcf9574fc5ef27e883148.wav"
+  },
+  {
+    "id": "ko.w.0009",
+    "surface": "짝사랑",
+    "gloss": "单恋",
+    "tokens": [
+      {
+        "surface": "짝사랑",
+        "lemma": "짝",
+        "reading": "jjaksarang",
+        "pos": "NNG",
+        "span": [
+          0,
+          9
+        ]
+      }
+    ],
+    "audio": "media/audio/d90202db0338bcd32a0214dc3fd4ea085625df648a0d68944f5919f550865796.wav"
+  },
+  {
+    "id": "ko.w.0010",
+    "surface": "밀당",
+    "gloss": "恋爱里的推拉、欲擒故纵",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "밀",
+        "reading": "mil",
+        "pos": "NNG",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "당",
+        "reading": "dang",
+        "pos": "XSN",
+        "span": [
+          3,
+          6
+        ]
+      }
+    ],
+    "audio": "media/audio/17eb13db58dcabaa3791b8b9659b13c14699fceb13303ac182c68e734412916c.wav"
+  }
+]

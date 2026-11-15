@@ -1,0 +1,239 @@
+[
+  {
+    "id": "ko.s.0001",
+    "surface": "오늘 진짜 짜증나",
+    "gloss": "今天真烦",
+    "tokens": [
+      {
+        "surface": "오늘",
+        "reading": "oneul",
+        "pos": "NNG",
+        "span": [
+          0,
+          6
+        ]
+      },
+      {
+        "surface": "진짜",
+        "reading": "jinjja",
+        "pos": "MAG",
+        "span": [
+          7,
+          13
+        ]
+      },
+      {
+        "surface": "짜증",
+        "reading": "jjajeung",
+        "pos": "NNG",
+        "span": [
+          14,
+          20
+        ]
+      },
+      {
+        "surface": "나",
+        "reading": "na",
+        "pos": "VV+EC",
+        "span": [
+          20,
+          23
+        ]
+      }
+    ],
+    "audio": "media/audio/24ceeef7df26f80848856c54f793c7a7ec1d75f7a5b60b37f353c94e3acbe020.wav"
+  },
+  {
+    "id": "ko.s.0002",
+    "surface": "내일 친구랑 약속 있어",
+    "gloss": "明天跟朋友有约",
+    "tokens": [
+      {
+        "surface": "내일",
+        "reading": "naeil",
+        "pos": "NNG",
+        "span": [
+          0,
+          6
+        ]
+      },
+      {
+        "surface": "친구",
+        "reading": "chingu",
+        "pos": "NNG",
+        "span": [
+          7,
+          13
+        ]
+      },
+      {
+        "surface": "랑",
+        "reading": "rang",
+        "pos": "JKB",
+        "span": [
+          13,
+          16
+        ]
+      },
+      {
+        "surface": "약속",
+        "reading": "yaksok",
+        "pos": "NNG",
+        "span": [
+          17,
+          23
+        ]
+      },
+      {
+        "surface": "있",
+        "reading": "it",
+        "pos": "VV",
+        "span": [
+          24,
+          27
+        ]
+      },
+      {
+        "surface": "어",
+        "reading": "eo",
+        "pos": "EC",
+        "span": [
+          27,
+          30
+        ]
+      }
+    ],
+    "audio": "media/audio/4e48d308d87ac346bf5e46c6d6100973a567bf12b4c75db07823dcc2ca5e63a8.wav"
+  },
+  {
+    "id": "ko.s.0003",
+    "surface": "걔가 또 약속을 깼어",
+    "gloss": "他又放鸽子了",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "걔",
+        "reading": "gyae",
+        "pos": "NP",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "가",
+        "reading": "ga",
+        "pos": "JKS",
+        "span": [
+          3,
+          6
+        ]
+      },
+      {
+        "surface": "또",
+        "reading": "tto",
+        "pos": "MAG",
+        "span": [
+          7,
+          10
+        ]
+      },
+      {
+        "surface": "약속",
+        "reading": "yaksok",
+        "pos": "NNG",
+        "span": [
+          11,
+          17
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          17,
+          20
+        ]
+      },
+      {
+        "surface": "깼",
+        "lemma": "깨",
+        "reading": "kkaet",
+        "pos": "VV+EP",
+        "span": [
+          21,
+          24
+        ]
+      },
+      {
+        "surface": "어",
+        "reading": "eo",
+        "pos": "EC",
+        "span": [
+          24,
+          27
+        ]
+      }
+    ],
+    "audio": "media/audio/da855c2b5ad8523bc75667df60f33dd95fd3cfe66893da109ec456cd6a23f787.wav"
+  },
+  {
+    "id": "ko.s.0004",
+    "surface": "너 완전 대박이다",
+    "gloss": "你太厉害了",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "너",
+        "reading": "neo",
+        "pos": "NP",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "완전",
+        "reading": "wanjeon",
+        "pos": "NNG",
+        "span": [
+          4,
+          10
+        ]
+      },
+      {
+        "surface": "대박",
+        "reading": "daebak",
+        "pos": "NNG",
+        "span": [
+          11,
+          17
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "VCP",
+        "span": [
+          17,
+          20
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EC",
+        "span": [
+          20,
+          23
+        ]
+      }
+    ],
+    "audio": "media/audio/d2a4a8a4424d4fe9f76e2c6c7c44ca00e0c1353087d4f8b5e775ade92abde831.wav"
+  }
+]

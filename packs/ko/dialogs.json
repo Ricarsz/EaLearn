@@ -1,0 +1,437 @@
+[
+  {
+    "id": "ko.d.0001",
+    "title": "约会放鸽子",
+    "theme": "gossip",
+    "start": "n1",
+    "tags": [
+      "slang",
+      "dating"
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "speaker": "a",
+        "text": "너 어제 봤어? 걔가 또 약속을 깼어.",
+        "tokens": [
+          {
+            "surface": "너",
+            "reading": "neo",
+            "pos": "NP",
+            "span": [
+              0,
+              3
+            ]
+          },
+          {
+            "surface": "어제",
+            "reading": "eoje",
+            "pos": "NNG",
+            "span": [
+              4,
+              10
+            ]
+          },
+          {
+            "surface": "봤",
+            "lemma": "보",
+            "reading": "bwat",
+            "pos": "VV+EP",
+            "span": [
+              11,
+              14
+            ]
+          },
+          {
+            "surface": "어",
+            "reading": "eo",
+            "pos": "EF",
+            "span": [
+              14,
+              17
+            ]
+          },
+          {
+            "surface": "?",
+            "reading": "?",
+            "pos": "SF",
+            "span": [
+              17,
+              18
+            ]
+          },
+          {
+            "surface": "걔",
+            "reading": "gyae",
+            "pos": "NP",
+            "span": [
+              19,
+              22
+            ]
+          },
+          {
+            "surface": "가",
+            "reading": "ga",
+            "pos": "JKS",
+            "span": [
+              22,
+              25
+            ]
+          },
+          {
+            "surface": "또",
+            "reading": "tto",
+            "pos": "MAG",
+            "span": [
+              26,
+              29
+            ]
+          },
+          {
+            "surface": "약속",
+            "reading": "yaksok",
+            "pos": "NNG",
+            "span": [
+              30,
+              36
+            ]
+          },
+          {
+            "surface": "을",
+            "reading": "eul",
+            "pos": "JKO",
+            "span": [
+              36,
+              39
+            ]
+          },
+          {
+            "surface": "깼",
+            "lemma": "깨",
+            "reading": "kkaet",
+            "pos": "VV+EP",
+            "span": [
+              40,
+              43
+            ]
+          },
+          {
+            "surface": "어",
+            "reading": "eo",
+            "pos": "EF",
+            "span": [
+              43,
+              46
+            ]
+          },
+          {
+            "surface": ".",
+            "reading": ".",
+            "pos": "SF",
+            "span": [
+              46,
+              47
+            ]
+          }
+        ],
+        "next": "n2"
+      },
+      {
+        "id": "n2",
+        "speaker": "narrator",
+        "text": "",
+        "choices": [
+          {
+            "text": "헐, 진짜?",
+            "next": "n3"
+          },
+          {
+            "text": "누구?",
+            "next": "n5"
+          },
+          {
+            "text": "별로 관심 없어.",
+            "next": "n6",
+            "awkward": true
+          }
+        ]
+      },
+      {
+        "id": "n3",
+        "speaker": "a",
+        "text": "진짜야. 나 완전 짜증나.",
+        "tokens": [
+          {
+            "surface": "진짜",
+            "reading": "jinjja",
+            "pos": "NNG",
+            "span": [
+              0,
+              6
+            ]
+          },
+          {
+            "surface": "야",
+            "lemma": "이",
+            "reading": "ya",
+            "pos": "VCP+EF",
+            "span": [
+              6,
+              9
+            ]
+          },
+          {
+            "surface": ".",
+            "reading": ".",
+            "pos": "SF",
+            "span": [
+              9,
+              10
+            ]
+          },
+          {
+            "surface": "나",
+            "reading": "na",
+            "pos": "NP",
+            "span": [
+              11,
+              14
+            ]
+          },
+          {
+            "surface": "완전",
+            "reading": "wanjeon",
+            "pos": "NNG",
+            "span": [
+              15,
+              21
+            ]
+          },
+          {
+            "surface": "짜증",
+            "reading": "jjajeung",
+            "pos": "NNG",
+            "span": [
+              22,
+              28
+            ]
+          },
+          {
+            "surface": "나",
+            "reading": "na",
+            "pos": "VV+EF",
+            "span": [
+              28,
+              31
+            ]
+          },
+          {
+            "surface": ".",
+            "reading": ".",
+            "pos": "SF",
+            "span": [
+              31,
+              32
+            ]
+          }
+        ],
+        "next": "n4"
+      },
+      {
+        "id": "n4",
+        "speaker": "narrator",
+        "text": "",
+        "choices": [
+          {
+            "text": "그래도 너무 신경 쓰지 마.",
+            "next": "n6"
+          },
+          {
+            "text": "다음엔 나도 같이 가.",
+            "next": "n6"
+          }
+        ]
+      },
+      {
+        "id": "n5",
+        "speaker": "a",
+        "text": "민수야. 어제 또 그랬어.",
+        "tokens": [
+          {
+            "surface": "민수",
+            "reading": "minsu",
+            "pos": "NNP",
+            "span": [
+              0,
+              6
+            ]
+          },
+          {
+            "surface": "야",
+            "reading": "ya",
+            "pos": "JKV",
+            "span": [
+              6,
+              9
+            ]
+          },
+          {
+            "surface": ".",
+            "reading": ".",
+            "pos": "SF",
+            "span": [
+              9,
+              10
+            ]
+          },
+          {
+            "surface": "어제",
+            "reading": "eoje",
+            "pos": "NNG",
+            "span": [
+              11,
+              17
+            ]
+          },
+          {
+            "surface": "또",
+            "reading": "tto",
+            "pos": "MAG",
+            "span": [
+              18,
+              21
+            ]
+          },
+          {
+            "surface": "그랬",
+            "lemma": "그러",
+            "reading": "geuraet",
+            "pos": "VV+EP",
+            "span": [
+              22,
+              28
+            ]
+          },
+          {
+            "surface": "어",
+            "reading": "eo",
+            "pos": "EF",
+            "span": [
+              28,
+              31
+            ]
+          },
+          {
+            "surface": ".",
+            "reading": ".",
+            "pos": "SF",
+            "span": [
+              31,
+              32
+            ]
+          }
+        ],
+        "next": "n3"
+      },
+      {
+        "id": "n6",
+        "speaker": "a",
+        "text": "고마워. 너는 참 좋은 친구야.",
+        "tokens": [
+          {
+            "surface": "고마워",
+            "lemma": "고맙",
+            "reading": "gomawo",
+            "pos": "VA+EF",
+            "span": [
+              0,
+              9
+            ]
+          },
+          {
+            "surface": ".",
+            "reading": ".",
+            "pos": "SF",
+            "span": [
+              9,
+              10
+            ]
+          },
+          {
+            "surface": "너",
+            "reading": "neo",
+            "pos": "NP",
+            "span": [
+              11,
+              14
+            ]
+          },
+          {
+            "surface": "는",
+            "reading": "neun",
+            "pos": "JX",
+            "span": [
+              14,
+              17
+            ]
+          },
+          {
+            "surface": "참",
+            "reading": "cham",
+            "pos": "NNG",
+            "span": [
+              18,
+              21
+            ]
+          },
+          {
+            "surface": "좋",
+            "reading": "jot",
+            "pos": "VA",
+            "span": [
+              22,
+              25
+            ]
+          },
+          {
+            "surface": "은",
+            "reading": "eun",
+            "pos": "ETM",
+            "span": [
+              25,
+              28
+            ]
+          },
+          {
+            "surface": "친구",
+            "reading": "chingu",
+            "pos": "NNG",
+            "span": [
+              29,
+              35
+            ]
+          },
+          {
+            "surface": "야",
+            "lemma": "이",
+            "reading": "ya",
+            "pos": "VCP+EF",
+            "span": [
+              35,
+              38
+            ]
+          },
+          {
+            "surface": ".",
+            "reading": ".",
+            "pos": "SF",
+            "span": [
+              38,
+              39
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

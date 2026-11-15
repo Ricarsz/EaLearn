@@ -1,0 +1,351 @@
+[
+  {
+    "id": "ko.a.0001",
+    "title": "약속을 지키는 사람",
+    "body": "약속을 잘 지키는 사람은 신뢰를 얻는다. 반대로 자주 약속을 어기면 친구를 잃는다. 시간을 지키는 것은 작은 배려다.",
+    "tokens": [
+      {
+        "surface": "약속",
+        "reading": "yaksok",
+        "pos": "NNG",
+        "span": [
+          0,
+          6
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          6,
+          9
+        ]
+      },
+      {
+        "surface": "잘",
+        "reading": "jal",
+        "pos": "MAG",
+        "span": [
+          10,
+          13
+        ]
+      },
+      {
+        "surface": "지키",
+        "reading": "jiki",
+        "pos": "VV",
+        "span": [
+          14,
+          20
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          20,
+          23
+        ]
+      },
+      {
+        "surface": "사람",
+        "reading": "saram",
+        "pos": "NNG",
+        "span": [
+          24,
+          30
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "JX",
+        "span": [
+          30,
+          33
+        ]
+      },
+      {
+        "surface": "신뢰",
+        "reading": "sinroe",
+        "pos": "NNG",
+        "span": [
+          34,
+          40
+        ]
+      },
+      {
+        "surface": "를",
+        "reading": "reul",
+        "pos": "JKO",
+        "span": [
+          40,
+          43
+        ]
+      },
+      {
+        "surface": "얻",
+        "reading": "eot",
+        "pos": "VV",
+        "span": [
+          44,
+          47
+        ]
+      },
+      {
+        "surface": "는다",
+        "reading": "neunda",
+        "pos": "EF",
+        "span": [
+          47,
+          53
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          53,
+          54
+        ]
+      },
+      {
+        "surface": "반",
+        "reading": "ban",
+        "pos": "NNG",
+        "span": [
+          55,
+          58
+        ]
+      },
+      {
+        "surface": "대로",
+        "reading": "daero",
+        "pos": "JX",
+        "span": [
+          58,
+          64
+        ]
+      },
+      {
+        "surface": "자주",
+        "reading": "jaju",
+        "pos": "MAG",
+        "span": [
+          65,
+          71
+        ]
+      },
+      {
+        "surface": "약속",
+        "reading": "yaksok",
+        "pos": "NNG",
+        "span": [
+          72,
+          78
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          78,
+          81
+        ]
+      },
+      {
+        "surface": "어기",
+        "reading": "eogi",
+        "pos": "VV",
+        "span": [
+          82,
+          88
+        ]
+      },
+      {
+        "surface": "면",
+        "reading": "myeon",
+        "pos": "EC",
+        "span": [
+          88,
+          91
+        ]
+      },
+      {
+        "surface": "친구",
+        "reading": "chingu",
+        "pos": "NNG",
+        "span": [
+          92,
+          98
+        ]
+      },
+      {
+        "surface": "를",
+        "reading": "reul",
+        "pos": "JKO",
+        "span": [
+          98,
+          101
+        ]
+      },
+      {
+        "surface": "잃",
+        "reading": "il",
+        "pos": "VV",
+        "span": [
+          102,
+          105
+        ]
+      },
+      {
+        "surface": "는다",
+        "reading": "neunda",
+        "pos": "EF",
+        "span": [
+          105,
+          111
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          111,
+          112
+        ]
+      },
+      {
+        "surface": "시간",
+        "reading": "sigan",
+        "pos": "NNG",
+        "span": [
+          113,
+          119
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          119,
+          122
+        ]
+      },
+      {
+        "surface": "지키",
+        "reading": "jiki",
+        "pos": "VV",
+        "span": [
+          123,
+          129
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          129,
+          132
+        ]
+      },
+      {
+        "surface": "것",
+        "reading": "geot",
+        "pos": "NNB",
+        "span": [
+          133,
+          136
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "JX",
+        "span": [
+          136,
+          139
+        ]
+      },
+      {
+        "surface": "작",
+        "reading": "jak",
+        "pos": "VA",
+        "span": [
+          140,
+          143
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "ETM",
+        "span": [
+          143,
+          146
+        ]
+      },
+      {
+        "surface": "배려",
+        "reading": "baeryeo",
+        "pos": "NNG",
+        "span": [
+          147,
+          153
+        ]
+      },
+      {
+        "surface": "다",
+        "lemma": "이",
+        "reading": "da",
+        "pos": "VCP+EF",
+        "span": [
+          153,
+          156
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          156,
+          157
+        ]
+      }
+    ],
+    "tags": [
+      "everyday"
+    ],
+    "difficulty": 2,
+    "questions": [
+      {
+        "prompt": "文章说，守约的人能得到什么？",
+        "options": [
+          "신뢰（信任）",
+          "돈（钱）",
+          "시간（时间）"
+        ],
+        "answer": 0,
+        "explain": "原文：신뢰를 얻는다。"
+      },
+      {
+        "prompt": "文中提到的「작은 배려（小小的体贴）」指什么？",
+        "options": [
+          "시간을 지키는 것（守时）",
+          "선물을 주는 것（送礼物）",
+          "말을 많이 하는 것（多说话）"
+        ],
+        "answer": 0,
+        "explain": "原文：시간을 지키는 것은 작은 배려다。"
+      }
+    ]
+  }
+]

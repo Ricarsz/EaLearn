@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "lang": "ko",
+  "display": "韩语",
+  "version": "0.1.0",
+  "profile": "ko",
+  "voice": "piper:ko_KR-kss",
+  "content_hash": "92ccd3c2d1c29f3d3cce799319ac0f6d1c7b9bb89f2fa452d209afdaaae87478"
+}
