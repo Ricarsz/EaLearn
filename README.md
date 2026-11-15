@@ -33,6 +33,22 @@ cd app && pnpm install            # 前端依赖（只需一次）
 首次运行会在用户数据目录建库并登记 `packs/` 下的语言包。
 设置环境变量 `EALEARN_PACKS` 可指向别的 pack 目录。
 
+## 安装
+
+打 tag `v*` 会触发 GitHub Actions 构建 deb / rpm 并挂到 Release；Arch 用仓库自带的 PKGBUILD
+从源码构建一个 pacman 包：
+
+```sh
+cd packaging
+makepkg -f
+paru -U ealearn-1.0.0-1-x86_64.pkg.tar.zst
+```
+
+包内容：`/usr/bin/ealearn`、`/usr/share/applications/ealearn.desktop`、
+`/usr/share/icons/hicolor/*/apps/ealearn.png`、语言包在 `/usr/share/ealearn/packs`
+（程序启动时按 资源目录 → `/usr/share/ealearn/packs` → 用户数据目录 的顺序找内容）。
+`.desktop` 由打包显式安装；用 `tauri build` 出的 deb / rpm，Tauri 会自己生成桌面项与图标。
+
 ## 首页与练法
 
 首页先选怎么练：混合复习、背单词、听力、拼句、阅读。当前语言包没有对应素材时该练法置灰。
