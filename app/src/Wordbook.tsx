@@ -79,6 +79,8 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
   });
 
   const parsed = useMemo(() => parseRows(draft), [draft]);
+  // 几千张卡一次渲染会卡，先画前 300 条
+  const shown = visible.slice(0, 300);
 
   const doImport = async () => {
     setError(null);
@@ -238,6 +240,9 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
         {remoteError && <p className="muted">在线索引不可用：{remoteError}（不影响本地导入）</p>}
         {remote === null && !remoteError && <p className="muted">读取索引…</p>}
         {remote?.length === 0 && <p className="muted">索引里没有单词书</p>}
+        {!!remote?.length && remote.filter((b) => b.lang === lang).length === 0 && (
+          <p className="muted">索引里暂时没有这门语言的单词书</p>
+        )}
         {!!remote?.length && (
           <ul>
             {remote
@@ -335,7 +340,7 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
       )}
 
       <ul className="card-list">
-        {visible.map((r) => (
+        {shown.map((r) => (
           <li key={r.card_id} className="card-row">
             <div className="card-main">
               <div className="card-title">
@@ -382,6 +387,11 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
           </li>
         ))}
       </ul>
+      {visible.length > shown.length && (
+        <p className="muted">
+          只显示前 {shown.length} 条，还有 {visible.length - shown.length} 条——用上面的筛选缩小范围。
+        </p>
+      )}
     </div>
   );
 }

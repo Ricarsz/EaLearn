@@ -17,7 +17,83 @@ pub struct ImportReport {
     pub skipped: Vec<String>,
 }
 
+/// 自动识别格式：以 `[` / `{` 开头按 JSON 词库解析（qwerty-learner 那种
+/// `[{"name":"...","trans":[...]}]`），其余按逐行 TSV/CSV。
 pub fn parse(text: &str) -> ImportReport {
+    let head = text.trim_start();
+    if head.starts_with('[') || head.starts_with('{') {
+        return parse_json(text);
+    }
+    parse_lines(text)
+}
+
+/// 解析 JSON 词书。兼容 `name`/`word` 两种字段名，释义支持字符串或字符串数组。
+pub fn parse_json(text: &str) -> ImportReport {
+    #[derive(serde::Deserialize)]
+    struct Item {
+        #[serde(default)]
+        name: String,
+        #[serde(default)]
+        word: String,
+        #[serde(default)]
+        trans: Option<Trans>,
+        #[serde(default)]
+        translation: Option<Trans>,
+    }
+    #[derive(serde::Deserialize)]
+    #[serde(untagged)]
+    enum Trans {
+        One(String),
+        Many(Vec<String>),
+    }
+    impl Trans {
+        fn joined(self) -> String {
+            match self {
+                Trans::One(s) => s,
+                Trans::Many(v) => v.join("；"),
+            }
+        }
+    }
+
+    let mut report = ImportReport::default();
+    let items: Vec<Item> = match serde_json::from_str(text) {
+        Ok(v) => v,
+        Err(e) => {
+            report.skipped.push(format!("JSON 解析失败: {e}"));
+            return report;
+        }
+    };
+
+    let mut seen: Vec<String> = Vec::new();
+    for (i, item) in items.into_iter().enumerate() {
+        let surface = if item.name.trim().is_empty() {
+            item.word.trim().to_string()
+        } else {
+            item.name.trim().to_string()
+        };
+        if surface.is_empty() {
+            continue;
+        }
+        let key = surface.to_lowercase();
+        if seen.contains(&key) {
+            report.skipped.push(format!("第 {} 条：重复的「{surface}」", i + 1));
+            continue;
+        }
+        seen.push(key);
+
+        let gloss = item
+            .trans
+            .or(item.translation)
+            .map(Trans::joined)
+            .map(|g| g.split_whitespace().collect::<Vec<_>>().join(" ").trim().to_string())
+            .filter(|g| !g.is_empty());
+
+        report.words.push(ImportedWord { surface, gloss, tags: Vec::new() });
+    }
+    report
+}
+
+fn parse_lines(text: &str) -> ImportReport {
     let mut report = ImportReport::default();
     let mut seen: Vec<String> = Vec::new();
 
@@ -66,6 +142,41 @@ pub fn parse(text: &str) -> ImportReport {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const QWERTY: &str = r#"[
+      {"name":"cancel","trans":["取消， 撤销； 删去"],"usphone":"'kænsl"},
+      {"name":"explosive","trans":["爆炸的","炸药"]},
+      {"word":"vibe","translation":"氛围"},
+      {"name":"cancel","trans":["重复"]},
+      {"name":"","trans":["无词"]}
+    ]"#;
+
+    #[test]
+    fn parses_qwerty_style_json() {
+        let r = parse(QWERTY);
+        assert_eq!(r.words.len(), 3);
+        assert_eq!(r.words[0].surface, "cancel");
+        assert_eq!(r.words[0].gloss.as_deref(), Some("取消， 撤销； 删去"));
+        assert_eq!(r.words[1].gloss.as_deref(), Some("爆炸的；炸药"));
+        assert_eq!(r.words[2].surface, "vibe");
+        assert_eq!(r.words[2].gloss.as_deref(), Some("氛围"));
+        // 重复的被记下来，空词的直接忽略
+        assert_eq!(r.skipped.len(), 1);
+        assert!(r.skipped[0].contains("重复"));
+    }
+
+    #[test]
+    fn detects_json_by_leading_bracket() {
+        assert_eq!(parse(QWERTY).words.len(), 3);
+        assert_eq!(parse("  \n[{\"name\":\"a\"}]").words.len(), 1);
+    }
+
+    #[test]
+    fn broken_json_is_reported_not_panicking() {
+        let r = parse("[{\"name\": }]");
+        assert!(r.words.is_empty());
+        assert_eq!(r.skipped.len(), 1);
+    }
 
     #[test]
     fn parses_tsv_and_csv() {

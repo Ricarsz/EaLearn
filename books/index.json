@@ -1,23 +1,80 @@
 {
-  "version": 1,
+  "version": 2,
+  "source": "https://github.com/Kaiyiwing/qwerty-learner",
+  "license": "GPL-3.0",
+  "note": "词书数据来自 qwerty-learner 社区词库，直接按其公开地址下载，不在本仓库存储。要加自己的书，改这个文件的 books 数组即可。",
   "books": [
     {
-      "id": "en-daily",
+      "id": "en-cet4",
       "lang": "en",
-      "name": "英语日常 50 词",
-      "url": "https://raw.githubusercontent.com/Ricarsz/EaLearn/main/books/en-daily.tsv",
-      "count": 50,
-      "license": "本项目原创",
-      "note": "高频日常词，配背诵卡与听音"
+      "name": "四级核心词汇",
+      "url": "https://raw.githubusercontent.com/Kaiyiwing/qwerty-learner/master/public/dicts/CET4_T.json",
+      "count": 2607,
+      "license": "GPL-3.0 · qwerty-learner",
+      "note": "CET-4，2607 词，含美式音标"
     },
     {
-      "id": "ko-daily",
-      "lang": "ko",
-      "name": "韩语日常 36 词",
-      "url": "https://raw.githubusercontent.com/Ricarsz/EaLearn/main/books/ko-daily.tsv",
-      "count": 36,
-      "license": "本项目原创",
-      "note": "问候、日常、消费场景常用词"
+      "id": "en-cet6",
+      "lang": "en",
+      "name": "六级核心词汇",
+      "url": "https://raw.githubusercontent.com/Kaiyiwing/qwerty-learner/master/public/dicts/CET6_T.json",
+      "count": 2345,
+      "license": "GPL-3.0 · qwerty-learner",
+      "note": "CET-6，2345 词"
+    },
+    {
+      "id": "en-kaoyan",
+      "lang": "en",
+      "name": "考研红宝书",
+      "url": "https://raw.githubusercontent.com/Kaiyiwing/qwerty-learner/master/public/dicts/2025KaoYanHongBaoShu.json",
+      "count": 6705,
+      "license": "GPL-3.0 · qwerty-learner",
+      "note": "2025 考研，6705 词"
+    },
+    {
+      "id": "en-gaokao",
+      "lang": "en",
+      "name": "高考 3500",
+      "url": "https://raw.githubusercontent.com/Kaiyiwing/qwerty-learner/master/public/dicts/GaoKao_3500.json",
+      "count": 3893,
+      "license": "GPL-3.0 · qwerty-learner",
+      "note": "高考词汇，3893 词"
+    },
+    {
+      "id": "en-ielts",
+      "lang": "en",
+      "name": "雅思词汇",
+      "url": "https://raw.githubusercontent.com/Kaiyiwing/qwerty-learner/master/public/dicts/DuckCircle_IELTS.json",
+      "count": 2644,
+      "license": "GPL-3.0 · qwerty-learner",
+      "note": "DuckCircle 雅思词表，2644 词"
+    },
+    {
+      "id": "en-toefl",
+      "lang": "en",
+      "name": "托福分类词汇",
+      "url": "https://raw.githubusercontent.com/Kaiyiwing/qwerty-learner/master/public/dicts/Categorized_TOEFL_Vocabulary_by_Zhanghongyan.json",
+      "count": 4123,
+      "license": "GPL-3.0 · qwerty-learner",
+      "note": "按主题分类的托福词汇，4123 词"
+    },
+    {
+      "id": "en-gre3000",
+      "lang": "en",
+      "name": "GRE 3000",
+      "url": "https://raw.githubusercontent.com/Kaiyiwing/qwerty-learner/master/public/dicts/GRE3000_3_T.json",
+      "count": 3041,
+      "license": "GPL-3.0 · qwerty-learner",
+      "note": "GRE 核心 3041 词"
+    },
+    {
+      "id": "en-4000",
+      "lang": "en",
+      "name": "4000 核心英语单词",
+      "url": "https://raw.githubusercontent.com/Kaiyiwing/qwerty-learner/master/public/dicts/4000_Essential_English_Words-meaning.json",
+      "count": 3600,
+      "license": "GPL-3.0 · qwerty-learner",
+      "note": "按使用频率编排的通识词表，3600 词"
     }
   ]
 }

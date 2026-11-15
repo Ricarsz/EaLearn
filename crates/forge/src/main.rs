@@ -24,6 +24,7 @@ fn main() -> ExitCode {
         ("voices", Some(lang)) => voices(lang),
         ("say", Some(spec)) => say(spec, &args[2..]),
         ("gen", Some("dialog")) => gen_dialog(&args[2..]),
+        ("check-import", Some(path)) => check_import(path),
         ("--help" | "-h" | "help", _) => {
             usage();
             ExitCode::SUCCESS
@@ -47,6 +48,7 @@ fn usage() {
   forge voices <lang>              列出该语言可用的音色（espeak + 本机 piper 模型）
   forge say <voice> <文字> <输出.wav>
                                    用指定音色合成一句，排查音色问题时用
+  forge check-import <file>        试解析一个词书文件，报告能识别多少词
   forge gen dialog <lang> <theme> [--count N] [--level L] [--nodes N]
                    [--out DIR] [--dry-run]
                                    让 LLM 生成剧本对话草稿，标注后写入 DIR
@@ -551,4 +553,35 @@ fn gen_dialog(rest: &[String]) -> ExitCode {
         results.len()
     );
     ExitCode::SUCCESS
+}
+
+/// 试解析一个词书文件（TSV/CSV/JSON），不写库。用来在导入前确认格式。
+fn check_import(path: &str) -> ExitCode {
+    let text = match std::fs::read_to_string(path) {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("读取失败: {e}");
+            return ExitCode::from(1);
+        }
+    };
+    let report = ealearn_core::import::parse(&text);
+    for w in report.words.iter().take(5) {
+        println!(
+            "{:<24} {}",
+            w.surface,
+            w.gloss.as_deref().unwrap_or("（无释义）")
+        );
+    }
+    if report.words.len() > 5 {
+        println!("…");
+    }
+    println!(
+        "识别 {} 词 · 跳过 {} 行",
+        report.words.len(),
+        report.skipped.len()
+    );
+    for s in report.skipped.iter().take(5) {
+        eprintln!("[跳过] {s}");
+    }
+    if report.words.is_empty() { ExitCode::from(1) } else { ExitCode::SUCCESS }
 }
