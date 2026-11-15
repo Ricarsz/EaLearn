@@ -1,0 +1,173 @@
+[
+  {
+    "id": "en.w.0001",
+    "surface": "gonna",
+    "lemma": "going to",
+    "gloss": "将要，准备（口语缩略）",
+    "tags": [
+      "slang",
+      "reduction"
+    ],
+    "tokens": [
+      {
+        "surface": "gonna",
+        "lemma": "gonna",
+        "span": [
+          0,
+          5
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.w.0002",
+    "surface": "bail",
+    "gloss": "放鸽子；中途退出",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "bail",
+        "lemma": "bail",
+        "span": [
+          0,
+          4
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.w.0003",
+    "surface": "lowkey",
+    "gloss": "偷偷地；有点（口语）",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "lowkey",
+        "lemma": "lowkey",
+        "span": [
+          0,
+          6
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.w.0004",
+    "surface": "ghost",
+    "gloss": "突然失联、玩消失（恋爱语境）",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "ghost",
+        "lemma": "ghost",
+        "span": [
+          0,
+          5
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.w.0005",
+    "surface": "crush",
+    "gloss": "暗恋对象",
+    "tags": [
+      "everyday"
+    ],
+    "tokens": [
+      {
+        "surface": "crush",
+        "lemma": "crush",
+        "span": [
+          0,
+          5
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.w.0006",
+    "surface": "vibe",
+    "gloss": "氛围、感觉",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "vibe",
+        "lemma": "vibe",
+        "span": [
+          0,
+          4
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.w.0007",
+    "surface": "hang out",
+    "gloss": "一起玩、闲晃",
+    "tags": [
+      "phrasal"
+    ],
+    "tokens": [
+      {
+        "surface": "hang",
+        "lemma": "hang",
+        "span": [
+          0,
+          4
+        ]
+      },
+      {
+        "surface": "out",
+        "lemma": "out",
+        "span": [
+          5,
+          8
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.w.0008",
+    "surface": "spill the tea",
+    "gloss": "说八卦、爆料",
+    "tags": [
+      "slang",
+      "idiom"
+    ],
+    "tokens": [
+      {
+        "surface": "spill",
+        "lemma": "spill",
+        "span": [
+          0,
+          5
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          6,
+          9
+        ]
+      },
+      {
+        "surface": "tea",
+        "lemma": "tea",
+        "span": [
+          10,
+          13
+        ]
+      }
+    ]
+  }
+]

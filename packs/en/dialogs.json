@@ -1,0 +1,367 @@
+[
+  {
+    "id": "en.d.0001",
+    "title": "八卦时间",
+    "theme": "gossip",
+    "start": "n1",
+    "tags": [
+      "slang",
+      "everyday"
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "speaker": "a",
+        "text": "Did you hear about Mia and Jake?",
+        "tokens": [
+          {
+            "surface": "Did",
+            "lemma": "do",
+            "span": [
+              0,
+              3
+            ]
+          },
+          {
+            "surface": "you",
+            "lemma": "you",
+            "span": [
+              4,
+              7
+            ]
+          },
+          {
+            "surface": "hear",
+            "lemma": "hear",
+            "span": [
+              8,
+              12
+            ]
+          },
+          {
+            "surface": "about",
+            "lemma": "about",
+            "span": [
+              13,
+              18
+            ]
+          },
+          {
+            "surface": "Mia",
+            "lemma": "mia",
+            "span": [
+              19,
+              22
+            ]
+          },
+          {
+            "surface": "and",
+            "lemma": "and",
+            "span": [
+              23,
+              26
+            ]
+          },
+          {
+            "surface": "Jake",
+            "lemma": "jake",
+            "span": [
+              27,
+              31
+            ]
+          },
+          {
+            "surface": "?",
+            "span": [
+              31,
+              32
+            ]
+          }
+        ],
+        "next": "n2"
+      },
+      {
+        "id": "n2",
+        "speaker": "narrator",
+        "text": "",
+        "choices": [
+          {
+            "text": "No way, spill the tea!",
+            "next": "n3"
+          },
+          {
+            "text": "Who?",
+            "next": "n5"
+          },
+          {
+            "text": "Not really my business.",
+            "next": "n6",
+            "awkward": true
+          }
+        ]
+      },
+      {
+        "id": "n3",
+        "speaker": "a",
+        "text": "They broke up last week. He totally ghosted her.",
+        "tokens": [
+          {
+            "surface": "They",
+            "lemma": "they",
+            "span": [
+              0,
+              4
+            ]
+          },
+          {
+            "surface": "broke",
+            "lemma": "break",
+            "span": [
+              5,
+              10
+            ]
+          },
+          {
+            "surface": "up",
+            "lemma": "up",
+            "span": [
+              11,
+              13
+            ]
+          },
+          {
+            "surface": "last",
+            "lemma": "last",
+            "span": [
+              14,
+              18
+            ]
+          },
+          {
+            "surface": "week",
+            "lemma": "week",
+            "span": [
+              19,
+              23
+            ]
+          },
+          {
+            "surface": ".",
+            "span": [
+              23,
+              24
+            ]
+          },
+          {
+            "surface": "He",
+            "lemma": "he",
+            "span": [
+              25,
+              27
+            ]
+          },
+          {
+            "surface": "totally",
+            "lemma": "totally",
+            "span": [
+              28,
+              35
+            ]
+          },
+          {
+            "surface": "ghosted",
+            "lemma": "ghost",
+            "span": [
+              36,
+              43
+            ]
+          },
+          {
+            "surface": "her",
+            "lemma": "her",
+            "span": [
+              44,
+              47
+            ]
+          },
+          {
+            "surface": ".",
+            "span": [
+              47,
+              48
+            ]
+          }
+        ],
+        "next": "n4"
+      },
+      {
+        "id": "n4",
+        "speaker": "narrator",
+        "text": "",
+        "choices": [
+          {
+            "text": "That is so lowkey cruel.",
+            "next": "n6"
+          },
+          {
+            "text": "I kind of saw it coming.",
+            "next": "n6"
+          }
+        ]
+      },
+      {
+        "id": "n5",
+        "speaker": "a",
+        "text": "Mia's boyfriend. Anyway, they broke up.",
+        "tokens": [
+          {
+            "surface": "Mia's",
+            "lemma": "mia",
+            "span": [
+              0,
+              5
+            ]
+          },
+          {
+            "surface": "boyfriend",
+            "lemma": "boyfriend",
+            "span": [
+              6,
+              15
+            ]
+          },
+          {
+            "surface": ".",
+            "span": [
+              15,
+              16
+            ]
+          },
+          {
+            "surface": "Anyway",
+            "lemma": "anyway",
+            "span": [
+              17,
+              23
+            ]
+          },
+          {
+            "surface": ",",
+            "span": [
+              23,
+              24
+            ]
+          },
+          {
+            "surface": "they",
+            "lemma": "they",
+            "span": [
+              25,
+              29
+            ]
+          },
+          {
+            "surface": "broke",
+            "lemma": "break",
+            "span": [
+              30,
+              35
+            ]
+          },
+          {
+            "surface": "up",
+            "lemma": "up",
+            "span": [
+              36,
+              38
+            ]
+          },
+          {
+            "surface": ".",
+            "span": [
+              38,
+              39
+            ]
+          }
+        ],
+        "next": "n3"
+      },
+      {
+        "id": "n6",
+        "speaker": "a",
+        "text": "Right? Anyway, do not tell anyone.",
+        "tokens": [
+          {
+            "surface": "Right",
+            "lemma": "right",
+            "span": [
+              0,
+              5
+            ]
+          },
+          {
+            "surface": "?",
+            "span": [
+              5,
+              6
+            ]
+          },
+          {
+            "surface": "Anyway",
+            "lemma": "anyway",
+            "span": [
+              7,
+              13
+            ]
+          },
+          {
+            "surface": ",",
+            "span": [
+              13,
+              14
+            ]
+          },
+          {
+            "surface": "do",
+            "lemma": "do",
+            "span": [
+              15,
+              17
+            ]
+          },
+          {
+            "surface": "not",
+            "lemma": "not",
+            "span": [
+              18,
+              21
+            ]
+          },
+          {
+            "surface": "tell",
+            "lemma": "tell",
+            "span": [
+              22,
+              26
+            ]
+          },
+          {
+            "surface": "anyone",
+            "lemma": "anyone",
+            "span": [
+              27,
+              33
+            ]
+          },
+          {
+            "surface": ".",
+            "span": [
+              33,
+              34
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

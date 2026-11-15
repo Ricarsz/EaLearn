@@ -1,0 +1,312 @@
+[
+  {
+    "id": "en.a.0001",
+    "title": "Why We Ghost",
+    "body": "Ghosting used to be rude. Now it is normal. People stop replying because a real conversation feels too heavy. But the person on the other side never learns what went wrong.",
+    "tokens": [
+      {
+        "surface": "Ghosting",
+        "lemma": "ghost",
+        "span": [
+          0,
+          8
+        ]
+      },
+      {
+        "surface": "used",
+        "lemma": "used",
+        "span": [
+          9,
+          13
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          14,
+          16
+        ]
+      },
+      {
+        "surface": "be",
+        "lemma": "be",
+        "span": [
+          17,
+          19
+        ]
+      },
+      {
+        "surface": "rude",
+        "lemma": "rude",
+        "span": [
+          20,
+          24
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          24,
+          25
+        ]
+      },
+      {
+        "surface": "Now",
+        "lemma": "now",
+        "span": [
+          26,
+          29
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          30,
+          32
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          33,
+          35
+        ]
+      },
+      {
+        "surface": "normal",
+        "lemma": "normal",
+        "span": [
+          36,
+          42
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          42,
+          43
+        ]
+      },
+      {
+        "surface": "People",
+        "lemma": "person",
+        "span": [
+          44,
+          50
+        ]
+      },
+      {
+        "surface": "stop",
+        "lemma": "stop",
+        "span": [
+          51,
+          55
+        ]
+      },
+      {
+        "surface": "replying",
+        "lemma": "reply",
+        "span": [
+          56,
+          64
+        ]
+      },
+      {
+        "surface": "because",
+        "lemma": "because",
+        "span": [
+          65,
+          72
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          73,
+          74
+        ]
+      },
+      {
+        "surface": "real",
+        "lemma": "real",
+        "span": [
+          75,
+          79
+        ]
+      },
+      {
+        "surface": "conversation",
+        "lemma": "conversation",
+        "span": [
+          80,
+          92
+        ]
+      },
+      {
+        "surface": "feels",
+        "lemma": "feel",
+        "span": [
+          93,
+          98
+        ]
+      },
+      {
+        "surface": "too",
+        "lemma": "too",
+        "span": [
+          99,
+          102
+        ]
+      },
+      {
+        "surface": "heavy",
+        "lemma": "heavy",
+        "span": [
+          103,
+          108
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          108,
+          109
+        ]
+      },
+      {
+        "surface": "But",
+        "lemma": "but",
+        "span": [
+          110,
+          113
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          114,
+          117
+        ]
+      },
+      {
+        "surface": "person",
+        "lemma": "person",
+        "span": [
+          118,
+          124
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          125,
+          127
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          128,
+          131
+        ]
+      },
+      {
+        "surface": "other",
+        "lemma": "other",
+        "span": [
+          132,
+          137
+        ]
+      },
+      {
+        "surface": "side",
+        "lemma": "side",
+        "span": [
+          138,
+          142
+        ]
+      },
+      {
+        "surface": "never",
+        "lemma": "never",
+        "span": [
+          143,
+          148
+        ]
+      },
+      {
+        "surface": "learns",
+        "lemma": "learn",
+        "span": [
+          149,
+          155
+        ]
+      },
+      {
+        "surface": "what",
+        "lemma": "what",
+        "span": [
+          156,
+          160
+        ]
+      },
+      {
+        "surface": "went",
+        "lemma": "go",
+        "span": [
+          161,
+          165
+        ]
+      },
+      {
+        "surface": "wrong",
+        "lemma": "wrong",
+        "span": [
+          166,
+          171
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          171,
+          172
+        ]
+      }
+    ],
+    "tags": [
+      "everyday",
+      "dating"
+    ],
+    "difficulty": 2,
+    "questions": [
+      {
+        "prompt": "文章说，人们现在不回复消息的主要原因是什么？",
+        "options": [
+          "真正的对话让人觉得太沉重",
+          "手机没电了",
+          "大家都变得更有礼貌"
+        ],
+        "answer": 0,
+        "explain": "原文：a real conversation feels too heavy。"
+      },
+      {
+        "prompt": "被冷落的那个人始终不知道什么？",
+        "options": [
+          "对方为什么消失",
+          "该几点回消息",
+          "约会去哪家店"
+        ],
+        "answer": 0,
+        "explain": "原文：never learns what went wrong。"
+      }
+    ]
+  }
+]

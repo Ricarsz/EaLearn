@@ -1,0 +1,11 @@
+[package]
+name = "ealearn-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "EaLearn 领域内核：pack 模型、校验、题型判分、SRS 调度（无 GUI 依赖）"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = "0.10"

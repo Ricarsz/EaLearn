@@ -1,0 +1,355 @@
+[
+  {
+    "id": "en.s.0001",
+    "surface": "I kind of want to bail on the party",
+    "gloss": "我有点不想去那个派对了",
+    "tags": [],
+    "tokens": [
+      {
+        "surface": "I",
+        "lemma": "i",
+        "span": [
+          0,
+          1
+        ]
+      },
+      {
+        "surface": "kind",
+        "lemma": "kind",
+        "span": [
+          2,
+          6
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          7,
+          9
+        ]
+      },
+      {
+        "surface": "want",
+        "lemma": "want",
+        "span": [
+          10,
+          14
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          15,
+          17
+        ]
+      },
+      {
+        "surface": "bail",
+        "lemma": "bail",
+        "span": [
+          18,
+          22
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          23,
+          25
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          26,
+          29
+        ]
+      },
+      {
+        "surface": "party",
+        "lemma": "party",
+        "span": [
+          30,
+          35
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.s.0002",
+    "surface": "She totally ghosted me after the date",
+    "gloss": "约会之后她直接玩消失了",
+    "tags": [],
+    "tokens": [
+      {
+        "surface": "She",
+        "lemma": "she",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "totally",
+        "lemma": "totally",
+        "span": [
+          4,
+          11
+        ]
+      },
+      {
+        "surface": "ghosted",
+        "lemma": "ghost",
+        "span": [
+          12,
+          19
+        ]
+      },
+      {
+        "surface": "me",
+        "lemma": "me",
+        "span": [
+          20,
+          22
+        ]
+      },
+      {
+        "surface": "after",
+        "lemma": "after",
+        "span": [
+          23,
+          28
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          29,
+          32
+        ]
+      },
+      {
+        "surface": "date",
+        "lemma": "date",
+        "span": [
+          33,
+          37
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.s.0003",
+    "surface": "Let's hang out this weekend if you're free",
+    "gloss": "你周末有空的话一起出去玩吧",
+    "tags": [],
+    "tokens": [
+      {
+        "surface": "Let's",
+        "lemma": "let",
+        "span": [
+          0,
+          5
+        ]
+      },
+      {
+        "surface": "hang",
+        "lemma": "hang",
+        "span": [
+          6,
+          10
+        ]
+      },
+      {
+        "surface": "out",
+        "lemma": "out",
+        "span": [
+          11,
+          14
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          15,
+          19
+        ]
+      },
+      {
+        "surface": "weekend",
+        "lemma": "weekend",
+        "span": [
+          20,
+          27
+        ]
+      },
+      {
+        "surface": "if",
+        "lemma": "if",
+        "span": [
+          28,
+          30
+        ]
+      },
+      {
+        "surface": "you're",
+        "lemma": "you're",
+        "span": [
+          31,
+          37
+        ]
+      },
+      {
+        "surface": "free",
+        "lemma": "free",
+        "span": [
+          38,
+          42
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.s.0004",
+    "surface": "He lowkey has a crush on you",
+    "gloss": "他其实偷偷暗恋你",
+    "tags": [],
+    "tokens": [
+      {
+        "surface": "He",
+        "lemma": "he",
+        "span": [
+          0,
+          2
+        ]
+      },
+      {
+        "surface": "lowkey",
+        "lemma": "lowkey",
+        "span": [
+          3,
+          9
+        ]
+      },
+      {
+        "surface": "has",
+        "lemma": "have",
+        "span": [
+          10,
+          13
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          14,
+          15
+        ]
+      },
+      {
+        "surface": "crush",
+        "lemma": "crush",
+        "span": [
+          16,
+          21
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          22,
+          24
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          25,
+          28
+        ]
+      }
+    ]
+  },
+  {
+    "id": "en.s.0005",
+    "surface": "Spill the tea, what happened last night",
+    "gloss": "快说八卦，昨晚到底怎么了",
+    "tags": [
+      "slang"
+    ],
+    "tokens": [
+      {
+        "surface": "Spill",
+        "lemma": "spill",
+        "span": [
+          0,
+          5
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          6,
+          9
+        ]
+      },
+      {
+        "surface": "tea",
+        "lemma": "tea",
+        "span": [
+          10,
+          13
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          13,
+          14
+        ]
+      },
+      {
+        "surface": "what",
+        "lemma": "what",
+        "span": [
+          15,
+          19
+        ]
+      },
+      {
+        "surface": "happened",
+        "lemma": "happen",
+        "span": [
+          20,
+          28
+        ]
+      },
+      {
+        "surface": "last",
+        "lemma": "last",
+        "span": [
+          29,
+          33
+        ]
+      },
+      {
+        "surface": "night",
+        "lemma": "night",
+        "span": [
+          34,
+          39
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,15 @@
+[package]
+name = "ealearn-forge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "EaLearn 内容生产 CLI：生成 → 校验 → 打包"
+
+[[bin]]
+name = "forge"
+path = "src/main.rs"
+
+[dependencies]
+ealearn-core = { workspace = true }
+ealearn-lang = { workspace = true }
+serde_json = { workspace = true }
