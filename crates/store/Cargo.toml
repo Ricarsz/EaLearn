@@ -1,0 +1,11 @@
+[package]
+name = "ealearn-store"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "EaLearn 本地库：已装 pack、SRS 卡、作答记录、设置（SQLite）"
+
+[dependencies]
+ealearn-core = { workspace = true }
+serde = { workspace = true }
+rusqlite = { version = "0.42", features = ["bundled"] }

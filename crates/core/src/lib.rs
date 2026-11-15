@@ -9,6 +9,7 @@ pub mod entry;
 pub mod exercise;
 pub mod manifest;
 pub mod pack;
+pub mod plan;
 pub mod srs;
 pub mod validate;
 
@@ -16,6 +17,7 @@ pub use entry::{Entry, Token};
 pub use exercise::{Exercise, Grade, GradeItem};
 pub use manifest::Manifest;
 pub use pack::Pack;
+pub use plan::{Coverage, ExerciseKind};
 
 /// 当前支持的 pack schema 版本。破坏性字段变更时递增。
 pub const SCHEMA_VERSION: u32 = 1;
