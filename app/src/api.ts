@@ -48,6 +48,8 @@ export type Exercise =
     }
   | { kind: "chat-scenario"; dialog: string };
 
+export type SessionPlan = { exercises: Exercise[]; review: number };
+
 export type Answer =
   | { kind: "order"; order: number[] }
   | { kind: "choice"; index: number };
@@ -154,7 +156,7 @@ export type DialogSummary = { id: string; title: string; theme: string; nodes: n
 export const api = {
   listPacks: () => invoke<PackSummary[]>("list_packs"),
   startSession: (lang: string, limit: number, seed: number) =>
-    invoke<Exercise[]>("start_session", { lang, limit, seed }),
+    invoke<SessionPlan>("start_session", { lang, limit, seed }),
   submit: (lang: string, exercise: Exercise, answer: Answer, elapsedMs: number) =>
     invoke<SubmitResult>("submit_answer", { lang, exercise, answer, elapsedMs }),
   addCard: (lang: string, entryId: string) =>

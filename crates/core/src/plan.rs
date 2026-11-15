@@ -137,6 +137,21 @@ pub fn plan(pack: &Pack, limit: usize, seed: u64) -> Vec<Exercise> {
     out
 }
 
+/// 按卡片类型挑最合适的题型。
+///
+/// 到期卡必须能练到：句子卡出拼句；词卡优先听音（有音频时最贴近复习目标），
+/// 其次看图，都没有就退回拼句。退回失败说明这条卡没有可练的素材。
+pub fn exercise_for(pack: &Pack, entry_id: &str, card_kind: &str, seed: u64) -> Option<Exercise> {
+    let entry = pack.entry(entry_id)?;
+    let s = seed ^ seed_of(&entry.id);
+    if card_kind == "sentence" {
+        return Exercise::build_sentence(entry, s);
+    }
+    build(entry, pack, ExerciseKind::WordFromAudio, s)
+        .or_else(|| build(entry, pack, ExerciseKind::WordFromImage, s))
+        .or_else(|| Exercise::build_sentence(entry, s))
+}
+
 fn build(entry: &Entry, pack: &Pack, kind: ExerciseKind, seed: u64) -> Option<Exercise> {
     let s = seed ^ seed_of(&entry.id);
     match kind {
@@ -345,6 +360,19 @@ mod tests {
         let base = plan(&p, 5, 42);
         let differs = [43u64, 44, 45, 46].iter().any(|s| plan(&p, 5, *s) != base);
         assert!(differs, "种子没有影响排程");
+    }
+
+    #[test]
+    fn card_kind_picks_the_closest_exercise() {
+        let p = pack();
+        // w1 有音频 → 听音优先
+        assert_eq!(exercise_for(&p, "w1", "word", 1).unwrap().kind(), "word-from-audio");
+        // w2 只有图 → 看图
+        assert_eq!(exercise_for(&p, "w2", "word", 1).unwrap().kind(), "word-from-image");
+        // 句子卡 → 拼句
+        assert_eq!(exercise_for(&p, "s1", "sentence", 1).unwrap().kind(), "build-sentence");
+        // 不存在的词条不该造出题
+        assert!(exercise_for(&p, "nope", "word", 1).is_none());
     }
 
     #[test]

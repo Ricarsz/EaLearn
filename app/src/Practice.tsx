@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, type Answer, type Exercise, type SubmitResult } from "./api";
+import { api, type Answer, type Exercise, type SessionPlan, type SubmitResult } from "./api";
 import { playUrl } from "./audio";
 
 const SESSION_SIZE = 8;
 
 export function Practice({ lang }: { lang: string }) {
-  const [session, setSession] = useState<Exercise[] | null>(null);
+  const [session, setSession] = useState<SessionPlan | null>(null);
   const [idx, setIdx] = useState(0);
   const [placed, setPlaced] = useState<number[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
@@ -13,7 +13,7 @@ export function Practice({ lang }: { lang: string }) {
   const [error, setError] = useState<string | null>(null);
   const started = useRef(Date.now());
 
-  const ex = session?.[idx];
+  const ex = session?.exercises[idx];
 
   const reset = useCallback(() => {
     setPlaced([]);
@@ -50,8 +50,8 @@ export function Practice({ lang }: { lang: string }) {
 
   const advance = () => {
     if (!session) return;
-    if (idx + 1 >= session.length) {
-      setIdx(session.length);
+    if (idx + 1 >= session.exercises.length) {
+      setIdx(session.exercises.length);
       return;
     }
     setIdx(idx + 1);
@@ -69,7 +69,7 @@ export function Practice({ lang }: { lang: string }) {
 
   if (!session) return <div className="panel muted">正在组卷…</div>;
 
-  if (session.length === 0) {
+  if (session.exercises.length === 0) {
     return (
       <div className="panel muted">
         这个语言包还没有能出题的素材。先补齐句子、图片或音频再练。
@@ -77,12 +77,14 @@ export function Practice({ lang }: { lang: string }) {
     );
   }
 
-  if (idx >= session.length) {
+  if (idx >= session.exercises.length) {
     return (
       <div className="panel done">
         <div className="done-mark">✓</div>
         <h2>本组完成</h2>
-        <p className="muted">共 {session.length} 题</p>
+        <p className="muted">
+          共 {session.exercises.length} 题{session.review > 0 && ` · 其中复习 ${session.review} 题`}
+        </p>
         <button className="primary" onClick={load}>
           再来一组
         </button>
@@ -95,7 +97,7 @@ export function Practice({ lang }: { lang: string }) {
   const ready =
     ex.kind === "build-sentence" ? placed.length === ex.chunks.length : picked !== null;
 
-  const progress = ((idx + (result ? 1 : 0)) / session.length) * 100;
+  const progress = ((idx + (result ? 1 : 0)) / session.exercises.length) * 100;
 
   return (
     <div className="panel">
@@ -104,7 +106,8 @@ export function Practice({ lang }: { lang: string }) {
           <div className="fill" style={{ width: `${progress}%` }} />
         </div>
         <span className="muted">
-          {idx + 1} / {session.length} · {kindLabel(ex)}
+          {idx + 1} / {session.exercises.length} · {kindLabel(ex)}
+          {session.review > 0 && ` · 复习 ${session.review}`}
         </span>
       </div>
 
