@@ -121,6 +121,32 @@ export type Entry = {
   difficulty?: number;
 };
 
+export type Annotation = {
+  surface: string;
+  lemma?: string;
+  kind?: string;
+  gloss?: string;
+  note?: string;
+};
+
+export type Correction = { original: string; fixed: string; note?: string };
+
+export type TutorTurn = {
+  reply: string;
+  translation?: string;
+  annotations?: Annotation[];
+  correction?: Correction;
+  difficulty?: number;
+  warnings?: string[];
+};
+
+export type LlmSettings = {
+  base_url: string;
+  model: string;
+  has_key: boolean;
+  key_hint: string;
+};
+
 export type DialogSummary = { id: string; title: string; theme: string; nodes: number };
 
 export const api = {
@@ -142,4 +168,11 @@ export const api = {
     invoke<Entry | null>("define", { lang, word }),
   assetData: (lang: string, rel: string) =>
     invoke<string | null>("asset_data", { lang, rel }),
+  getLlmSettings: () => invoke<LlmSettings>("get_llm_settings"),
+  setLlmSettings: (baseUrl: string, model: string, apiKey?: string) =>
+    invoke<void>("set_llm_settings", { baseUrl, model, apiKey }),
+  chatSend: (lang: string, session: string, theme: string, level: number, text: string) =>
+    invoke<TutorTurn>("chat_send", { lang, session, theme, level, text }),
+  chatHistory: (session: string, limit: number) =>
+    invoke<[string, string][]>("chat_history", { session, limit }),
 };

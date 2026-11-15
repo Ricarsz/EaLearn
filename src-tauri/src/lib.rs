@@ -390,6 +390,154 @@ fn asset_data(
     )))
 }
 
+#[derive(Serialize)]
+pub struct LlmSettingsView {
+    base_url: String,
+    model: String,
+    has_key: bool,
+    /// 只回显末 4 位，避免把 key 送到前端
+    key_hint: String,
+}
+
+const KEY_BASE_URL: &str = "llm_base_url";
+const KEY_MODEL: &str = "llm_model";
+const KEY_API: &str = "llm_api_key";
+
+#[tauri::command]
+fn get_llm_settings(state: State<'_, AppState>) -> Result<LlmSettingsView, String> {
+    let store = state.store.lock().map_err(err)?;
+    let key = store.get_setting(KEY_API).map_err(err)?.unwrap_or_default();
+    Ok(LlmSettingsView {
+        base_url: store
+            .get_setting(KEY_BASE_URL)
+            .map_err(err)?
+            .unwrap_or_else(|| "https://api.openai.com/v1".into()),
+        model: store
+            .get_setting(KEY_MODEL)
+            .map_err(err)?
+            .unwrap_or_else(|| "gpt-4o-mini".into()),
+        has_key: !key.is_empty(),
+        key_hint: if key.len() > 4 {
+            format!("…{}", &key[key.len() - 4..])
+        } else {
+            String::new()
+        },
+    })
+}
+
+#[tauri::command]
+fn set_llm_settings(
+    state: State<'_, AppState>,
+    base_url: String,
+    model: String,
+    api_key: Option<String>,
+) -> Result<(), String> {
+    let store = state.store.lock().map_err(err)?;
+    store.set_setting(KEY_BASE_URL, base_url.trim()).map_err(err)?;
+    store.set_setting(KEY_MODEL, model.trim()).map_err(err)?;
+    if let Some(k) = api_key {
+        if !k.trim().is_empty() {
+            store.set_setting(KEY_API, k.trim()).map_err(err)?;
+        }
+    }
+    Ok(())
+}
+
+/// 一轮自由对话。
+///
+/// 流式片段通过 `llm://delta` 事件推给前端做打字效果；返回的是解析并校验过的
+/// 完整回合。历史从库里取，前端不需要自己维护上下文。
+#[tauri::command]
+async fn chat_send(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    lang: String,
+    session: String,
+    theme: String,
+    level: u8,
+    text: String,
+) -> Result<ealearn_llm::TutorTurn, String> {
+    use tauri::Emitter;
+
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return Err("说点什么再发".into());
+    }
+
+    let (cfg, history, slang, label) = {
+        let store = state.store.lock().map_err(err)?;
+        let packs = state.packs.lock().map_err(err)?;
+        let pack = packs.get(&lang).ok_or_else(|| format!("未加载的语言包: {lang}"))?;
+        let base_url = store
+            .get_setting(KEY_BASE_URL)
+            .map_err(err)?
+            .unwrap_or_else(|| "https://api.openai.com/v1".into());
+        let model = store
+            .get_setting(KEY_MODEL)
+            .map_err(err)?
+            .unwrap_or_else(|| "gpt-4o-mini".into());
+        let api_key = store.get_setting(KEY_API).map_err(err)?.unwrap_or_default();
+
+        let history = store.chat_history(&session, 12).map_err(err)?;
+        let slang: Vec<String> = pack
+            .words
+            .iter()
+            .filter(|w| w.is_slang())
+            .map(|w| w.surface.clone())
+            .take(20)
+            .collect();
+        (
+            ealearn_llm::LlmConfig {
+                base_url,
+                api_key,
+                model,
+                temperature: 0.8,
+                timeout_secs: 120,
+            },
+            history,
+            slang,
+            pack.manifest.display.clone(),
+        )
+    };
+
+    let client = ealearn_llm::LlmClient::new(cfg).map_err(err)?;
+    let prompt = ealearn_llm::prompt::system_prompt(&ealearn_llm::PromptContext {
+        lang: &lang,
+        target_label: &label,
+        theme: &theme,
+        level,
+        slang: &slang,
+    });
+    let messages = ealearn_llm::prompt::build_messages(prompt, &history, &text);
+
+    let sink = app.clone();
+    let sess = session.clone();
+    let on_delta = |chunk: &str| {
+        let _ = sink.emit("llm://delta", serde_json::json!({ "session": sess, "text": chunk }));
+    };
+
+    let turn = client.chat(&messages, on_delta).await.map_err(err)?;
+
+    {
+        let store = state.store.lock().map_err(err)?;
+        let at = now();
+        store.append_chat(&session, "user", &text, at).map_err(err)?;
+        store.append_chat(&session, "tutor", &turn.reply, at + 1).map_err(err)?;
+    }
+
+    Ok(turn)
+}
+
+#[tauri::command]
+fn chat_history(
+    state: State<'_, AppState>,
+    session: String,
+    limit: usize,
+) -> Result<Vec<(String, String)>, String> {
+    let store = state.store.lock().map_err(err)?;
+    store.chat_history(&session, limit.clamp(1, 100)).map_err(err)
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -435,7 +583,11 @@ pub fn run() {
             define,
             asset_data,
             get_setting,
-            set_setting
+            set_setting,
+            get_llm_settings,
+            set_llm_settings,
+            chat_send,
+            chat_history
         ])
         .run(tauri::generate_context!())
         .expect("Tauri 启动失败");

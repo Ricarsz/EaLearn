@@ -9,6 +9,7 @@ import {
   type Speaker,
   type Token,
 } from "./api";
+import { FreeChat } from "./FreeChat";
 
 type Bubble = {
   speaker: Speaker;
@@ -24,7 +25,7 @@ const bubbleOf = (n: DialogNode): Bubble => ({
   tokens: n.tokens,
 });
 
-export function Scenario({ lang }: { lang: string }) {
+function Scripted({ lang }: { lang: string }) {
   const [list, setList] = useState<DialogSummary[]>([]);
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [nodeId, setNodeId] = useState<string | null>(null);
@@ -203,5 +204,22 @@ function TokenLine({ tokens, onPick }: { tokens: Token[]; onPick: (t: Token) => 
         );
       })}
     </span>
+  );
+}
+/// 情景页外壳：剧本线与自由聊（LLM）共用同一个入口。
+export function Scenario({ lang }: { lang: string }) {
+  const [mode, setMode] = useState<"script" | "free">("script");
+  return (
+    <div className="scenario-shell">
+      <div className="mode-switch">
+        <button className={mode === "script" ? "active" : ""} onClick={() => setMode("script")}>
+          剧本
+        </button>
+        <button className={mode === "free" ? "active" : ""} onClick={() => setMode("free")}>
+          自由聊
+        </button>
+      </div>
+      {mode === "script" ? <Scripted lang={lang} /> : <FreeChat lang={lang} />}
+    </div>
   );
 }

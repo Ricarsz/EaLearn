@@ -10,6 +10,7 @@
 crates/core     领域内核：pack 模型、标注校验、题型判分、练习排程、FSRS 调度
 crates/lang     语言适配：LanguageProfile trait + 英语 / 韩语实现
 crates/store    SQLite 本地库：pack 登记、SRS 卡、作答、设置
+crates/llm      兼容 OpenAI 协议的流式对话客户端（SSE、正文流式抽取、标注回贴校验）
 crates/forge    内容生产 CLI：校验、分词标注、内容指纹
 app             React 前端（练习 / 情景）
 src-tauri       Tauri 壳层：命令转发与状态管理，不含业务逻辑
@@ -32,7 +33,11 @@ cd app && pnpm install && pnpm tauri dev    # 桌面端
 ## 已实现的练习流程
 
 组卷（题型按素材现算、同节不重复）→ 作答 → 内核判分 → 答错自动入卡 →
-FSRS-5 排下次复习。情景页是对话图，点任意词可查义并入卡。
+FSRS-5 排下次复习。情景页有两条线：剧本对话图（点任意词可查义并入卡）和
+LLM 自由聊（自备 API key，流式打字，标注做回贴校验）。
+
+LLM 供应商只由 `base_url` 决定，兼容任何 `/chat/completions` 实现，包括本地
+ollama 与自建代理。API key 存在本地库 `settings` 表，设置页只回显末 4 位。
 
 ## forge
 
