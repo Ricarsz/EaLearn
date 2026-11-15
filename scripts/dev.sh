@@ -10,4 +10,10 @@ cd "$root"
 cache="$HOME/.local/share/top.chase141.ealearn/WebKitCache"
 [ -d "$cache" ] && rm -rf "$cache"
 
+# 上一轮没退干净的实例会占着 1420，直接重开只会报 "Port already in use"
+pkill -x ealearn-app 2>/dev/null || true
+pid=$(ss -ltnp 2>/dev/null | grep ':1420' | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2)
+[ -n "$pid" ] && kill "$pid" 2>/dev/null || true
+sleep 1
+
 exec ./app/node_modules/.bin/tauri dev
