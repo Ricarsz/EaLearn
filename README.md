@@ -24,8 +24,9 @@ docs/design.md  架构设计
 ## 运行
 
 ```sh
-cargo test --workspace                      # 内核与内容流水线
-cd app && pnpm install && pnpm tauri dev    # 桌面端
+cargo test --workspace            # 内核与内容流水线
+cd app && pnpm install            # 前端依赖（只需一次）
+./scripts/dev.sh                  # 桌面端（开发模式，须在仓库根目录）
 ```
 
 首次运行会在用户数据目录建库并登记 `packs/` 下的语言包。
