@@ -71,6 +71,13 @@ curl -LO $base/en_US-amy-medium.onnx.json
 LLM 供应商只由 `base_url` 决定，兼容任何 `/chat/completions` 实现，包括本地
 ollama 与自建代理。API key 存在本地库 `settings` 表，设置页只回显末 4 位。
 
+## 开发排查
+
+- 改了前端却还显示旧界面：WebKitGTK 会把 dev 资源缓存在应用数据目录，删掉
+  `~/.local/share/top.chase141.ealearn/WebKitCache` 再启动。
+- 某个音色没声音：`forge say <voice> "测试文本" /tmp/t.wav` 直接合成一份出来对比。
+  espeak-ng 的 wav 头部长度字段是占位值，代码里已统一修正。
+
 ## forge
 
 ```sh
