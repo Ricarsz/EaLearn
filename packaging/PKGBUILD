@@ -3,7 +3,7 @@
 #   cd packaging && makepkg -f && paru -U ealearn-1.0.0-1-x86_64.pkg.tar.zst
 pkgname=ealearn
 pkgver=1.0.0
-pkgrel=1
+pkgrel=2
 pkgdesc="离线优先的语言学习桌面应用：背单词、听力、拼句、阅读与自由聊"
 arch=('x86_64')
 url="https://github.com/Ricarsz/EaLearn"
@@ -18,8 +18,8 @@ build() {
   # makepkg 注入的 CFLAGS/LDFLAGS 会让 Rust 依赖（ring、lindera）的构建脚本链接失败
   unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
   pnpm --dir app install --frozen-lockfile --config.strictDepBuilds=false
-  pnpm --dir app build
-  cargo build --release --locked --manifest-path src-tauri/Cargo.toml
+  # 必须走 tauri CLI：直接 cargo build 出来的二进制会停在 dev 模式，去连 devUrl
+  ./app/node_modules/.bin/tauri build --no-bundle
 }
 
 package() {
