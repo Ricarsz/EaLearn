@@ -5,3 +5,10 @@
 /app/node_modules
 *.bak
 .DS_Store
+
+# makepkg 现场
+/packaging/src
+/packaging/EaLearn
+/packaging/pkg
+/packaging/*.pkg.tar.*
+/packaging/*.log

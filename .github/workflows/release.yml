@@ -22,7 +22,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 12
 
       - uses: actions/setup-node@v4
         with:
@@ -37,7 +37,7 @@ jobs:
           workspaces: ". -> target"
 
       - name: 安装前端依赖
-        run: pnpm --dir app install --frozen-lockfile
+        run: pnpm --dir app install --frozen-lockfile --config.strictDepBuilds=false
 
       - name: 构建 deb / rpm
         run: ./app/node_modules/.bin/tauri build
