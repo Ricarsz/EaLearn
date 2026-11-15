@@ -3,7 +3,6 @@
     "id": "en.s.0001",
     "surface": "I kind of want to bail on the party",
     "gloss": "我有点不想去那个派对了",
-    "tags": [],
     "tokens": [
       {
         "surface": "I",
@@ -77,13 +76,13 @@
           35
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/a166c9f021e48a6c2bdfbc1d138282fffe1136374496758337335c4318146db9.wav"
   },
   {
     "id": "en.s.0002",
     "surface": "She totally ghosted me after the date",
     "gloss": "约会之后她直接玩消失了",
-    "tags": [],
     "tokens": [
       {
         "surface": "She",
@@ -141,13 +140,13 @@
           37
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/80f0bd1604bc2b2848910f4ee3479b8114d88b63c03aac70d766a4016ef2bcc3.wav"
   },
   {
     "id": "en.s.0003",
     "surface": "Let's hang out this weekend if you're free",
     "gloss": "你周末有空的话一起出去玩吧",
-    "tags": [],
     "tokens": [
       {
         "surface": "Let's",
@@ -213,13 +212,13 @@
           42
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/ecdc2d4a7e62d756489781a3903f08257636f8680c919777c5cbbccdf321272d.wav"
   },
   {
     "id": "en.s.0004",
     "surface": "He lowkey has a crush on you",
     "gloss": "他其实偷偷暗恋你",
-    "tags": [],
     "tokens": [
       {
         "surface": "He",
@@ -277,7 +276,8 @@
           28
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/b843a694c51ca5279199bb37d3ad8ad240b2cb6d11dfdebd9d31e31c19a67e3f.wav"
   },
   {
     "id": "en.s.0005",
@@ -350,6 +350,7 @@
           39
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/efeff660e16ba775439f3551b9e8f56f2998b9c289e55be8079b92e2d0181982.wav"
   }
 ]

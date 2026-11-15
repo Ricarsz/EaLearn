@@ -82,3 +82,26 @@ fn every_slang_word_has_tokens() {
         );
     }
 }
+
+#[test]
+fn seed_pack_has_audio_for_word_choices() {
+    let pack = Pack::load(pack_dir()).unwrap();
+    let cov = coverage(&pack);
+    assert!(cov.word_from_audio >= 5, "听音题素材不足: {cov:?}");
+
+    for w in pack.words.iter().filter(|w| w.audio.is_some()) {
+        let rel = w.audio.as_ref().unwrap();
+        assert!(pack.asset(rel).exists(), "音频文件缺失: {rel}");
+    }
+
+    // 听音题不能拿整句当答案——长度一眼就能认出来
+    for ex in plan(&pack, 24, 5) {
+        if let ealearn_core::Exercise::WordFromAudio { entry, .. } = &ex {
+            let surface = &pack.entry(entry).unwrap().surface;
+            assert!(
+                surface.split_whitespace().count() <= 2,
+                "整句进了听音题: {surface}"
+            );
+        }
+    }
+}

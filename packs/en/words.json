@@ -17,7 +17,8 @@
           5
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/2c66513eda796ac4fbf3a9fe78db48ba88fe4e8cd4a34f148b896e2f3fd7164a.wav"
   },
   {
     "id": "en.w.0002",
@@ -35,7 +36,8 @@
           4
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/f9733944961161704f3ec8a51289579c60f3209e74d939cc85609d2fda532004.wav"
   },
   {
     "id": "en.w.0003",
@@ -53,7 +55,8 @@
           6
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/8712f9752efcaa3e9e95bd771b6c3515368d190fec4d1b7571338aa25a166f16.wav"
   },
   {
     "id": "en.w.0004",
@@ -71,7 +74,8 @@
           5
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/841acd97ea9a07cd2019a16875259506dc608828f99870d77f0a9c43035037bd.wav"
   },
   {
     "id": "en.w.0005",
@@ -89,7 +93,8 @@
           5
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/c01740ad26d94c6e52ff7f148212cbe495c48f1bc2e7374e7103ecb114579429.wav"
   },
   {
     "id": "en.w.0006",
@@ -107,7 +112,8 @@
           4
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/71d6fc40249c88a0c8c0a2d3e86172edaadd013034213304a77c911b7bcf4bc9.wav"
   },
   {
     "id": "en.w.0007",
@@ -133,7 +139,8 @@
           8
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/d2ac270e34b7b0817eeaa5ffe87613a7f835909369ab6be4632e9ebdfedf4061.wav"
   },
   {
     "id": "en.w.0008",
@@ -168,6 +175,7 @@
           13
         ]
       }
-    ]
+    ],
+    "audio": "media/audio/4ff297bd704305b5c113c2132b2c28c43d216c8b134c1e5c4450b7818be00251.wav"
   }
 ]

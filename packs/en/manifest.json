@@ -4,6 +4,6 @@
   "display": "英语",
   "version": "0.1.0",
   "profile": "en",
-  "voice": "en_US-neutral",
-  "content_hash": "53be44ac2291b77916482e89493789bf69db795bb3cddadb6230f85a451cc2b2"
+  "voice": "espeak:en-us",
+  "content_hash": "58840415922f172ffeecbe3b18ee13dd1eb01ef56e612508878c3bc5d6efe2c4"
 }

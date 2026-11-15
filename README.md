@@ -11,6 +11,7 @@ crates/core     领域内核：pack 模型、标注校验、题型判分、练�
 crates/lang     语言适配：LanguageProfile trait + 英语 / 韩语实现
 crates/store    SQLite 本地库：pack 登记、SRS 卡、作答、设置
 crates/llm      兼容 OpenAI 协议的流式对话客户端（SSE、正文流式抽取、标注回贴校验）
+crates/tts      预合成音频：可插拔引擎（espeak-ng / piper）+ 按内容 hash 命名缓存
 crates/forge    内容生产 CLI：校验、分词标注、内容指纹
 app             React 前端（练习 / 情景）
 src-tauri       Tauri 壳层：命令转发与状态管理，不含业务逻辑
@@ -36,6 +37,9 @@ cd app && pnpm install && pnpm tauri dev    # 桌面端
 FSRS-5 排下次复习。情景页有两条线：剧本对话图（点任意词可查义并入卡）和
 LLM 自由聊（自备 API key，流式打字，标注做回贴校验）。
 
+音频由 `forge audio` 预生成到 `packs/*/media/audio/`，练习时零网络。默认引擎
+`espeak-ng`；改成 `piper` 只需换 `voice` 约定并把模型放进 `EALEARN_PIPER_DIR`。
+
 LLM 供应商只由 `base_url` 决定，兼容任何 `/chat/completions` 实现，包括本地
 ollama 与自建代理。API key 存在本地库 `settings` 表，设置页只回显末 4 位。
 
@@ -46,6 +50,7 @@ forge validate packs/en          # 校验：标注对齐、题目、对话图、
 forge hash packs/en              # 打印内容指纹，写进 manifest 的 content_hash
 forge annotate en "text"         # 打印分词与标注
 forge tokens en "text"           # 输出 token 的 JSON 数组，生成 pack 时内联
+forge audio packs/en             # 预合成音频并写回 pack（--voice=piper:en_US-amy 换音色）
 ```
 
 `validate` 的核心是标注对齐校验：所有 token 必须首尾相接铺满原文（空白除外），

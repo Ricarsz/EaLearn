@@ -49,10 +49,10 @@ pub fn coverage(pack: &Pack) -> Coverage {
         if e.surface.split_whitespace().count() >= 3 {
             c.build_sentence += 1;
         }
-        if e.image.is_some() {
+        if e.image.is_some() && is_choice_word(e) {
             c.word_from_image += 1;
         }
-        if e.audio.is_some() {
+        if e.audio.is_some() && is_choice_word(e) {
             c.word_from_audio += 1;
         }
     }
@@ -142,6 +142,9 @@ fn build(entry: &Entry, pack: &Pack, kind: ExerciseKind, seed: u64) -> Option<Ex
     match kind {
         ExerciseKind::BuildSentence => Exercise::build_sentence(entry, s),
         ExerciseKind::WordFromImage => {
+            if !is_choice_word(entry) {
+                return None;
+            }
             let image = entry.image.clone()?;
             let (options, answer) = choice_set(pack, entry, 4, s)?;
             Some(Exercise::WordFromImage {
@@ -152,6 +155,9 @@ fn build(entry: &Entry, pack: &Pack, kind: ExerciseKind, seed: u64) -> Option<Ex
             })
         }
         ExerciseKind::WordFromAudio => {
+            if !is_choice_word(entry) {
+                return None;
+            }
             let audio = entry.audio.clone()?;
             let (options, answer) = choice_set(pack, entry, 4, s)?;
             Some(Exercise::WordFromAudio {
@@ -163,6 +169,12 @@ fn build(entry: &Entry, pack: &Pack, kind: ExerciseKind, seed: u64) -> Option<Ex
         }
         ExerciseKind::ArticleMcq => None,
     }
+}
+
+/// 看图/听音只在「词或短语」上出题。整句拿来当四选一的答案是送分题——长度
+/// 一眼就能认出来，练不到东西。
+fn is_choice_word(entry: &Entry) -> bool {
+    (1..=2).contains(&entry.surface.split_whitespace().count())
 }
 
 /// 选出 1 个正确答案 + n-1 个干扰项，返回（打乱后的选项，正确答案下标）。

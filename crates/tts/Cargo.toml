@@ -1,0 +1,9 @@
+[package]
+name = "ealearn-tts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "EaLearn 的 TTS 合成：可插拔引擎 + 按内容 hash 命名缓存"
+
+[dependencies]
+sha2 = "0.10"

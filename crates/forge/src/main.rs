@@ -20,6 +20,7 @@ fn main() -> ExitCode {
         ("hash", Some(dir)) => hash(dir),
         ("annotate", Some(lang)) => annotate(lang, args.get(2).map(String::as_str)),
         ("tokens", Some(lang)) => tokens(lang, args.get(2).map(String::as_str)),
+        ("audio", Some(dir)) => audio(dir, &args[2..]),
         ("--help" | "-h" | "help", _) => {
             usage();
             ExitCode::SUCCESS
@@ -37,7 +38,9 @@ fn usage() {
   forge validate <pack-dir>        校验 pack（标注对齐、题目、对话图、素材、指纹）
   forge hash <pack-dir>            打印内容指纹，用于写进 manifest.json 的 content_hash
   forge annotate <lang> [text]     打印分词与标注；不给 text 则从 stdin 读
-  forge tokens <lang> [text]       只输出 token 的 JSON 数组，供生成 pack 时内联"
+  forge tokens <lang> [text]       只输出 token 的 JSON 数组，供生成 pack 时内联
+  forge audio <pack-dir> [--voice espeak:en-us] [--force]
+                                   预合成词条与句子的音频，写回 pack 并更新指纹"
     );
 }
 
@@ -181,4 +184,121 @@ fn tokens(lang: &str, text: Option<&str>) -> ExitCode {
             ExitCode::from(1)
         }
     }
+}
+
+/// 预合成音频。文件名按「音色 + 文本」的 hash 决定，所以换音色不会误用旧文件，
+/// 同音色重跑则全部命中缓存。
+fn audio(dir: &str, rest: &[String]) -> ExitCode {
+    use ealearn_core::pack::Pack;
+
+    let mut voice: Option<String> = None;
+    let mut force = false;
+    for arg in rest {
+        if let Some(v) = arg.strip_prefix("--voice=") {
+            voice = Some(v.to_string());
+        } else if arg == "--force" {
+            force = true;
+        }
+    }
+
+    let mut pack = match Pack::load(dir) {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("加载失败: {e}");
+            return ExitCode::from(1);
+        }
+    };
+
+    let spec = voice.unwrap_or_else(|| {
+        let default = match pack.manifest.lang.as_str() {
+            "ko" => "espeak:ko",
+            _ => "espeak:en-us",
+        };
+        default.to_string()
+    });
+
+    let engine = match ealearn_tts::engine_for(&spec) {
+        Ok(e) => e,
+        Err(e) => {
+            eprintln!("{e}");
+            return ExitCode::from(1);
+        }
+    };
+
+    let audio_dir = pack.root.join("media/audio");
+    let mut made = 0usize;
+    let mut reused = 0usize;
+    let mut failed = 0usize;
+
+    for entry in pack.words.iter_mut().chain(pack.sentences.iter_mut()) {
+        let text = entry.surface.trim();
+        if text.is_empty() || !text.chars().any(|c| c.is_alphabetic()) {
+            continue;
+        }
+        if !force {
+            if let Some(rel) = &entry.audio {
+                if pack.root.join(rel).exists() {
+                    reused += 1;
+                    continue;
+                }
+            }
+        }
+        match ealearn_tts::synth_to_dir(engine.as_ref(), &spec, text, &audio_dir) {
+            Ok(name) => {
+                entry.audio = Some(format!("media/audio/{name}"));
+                made += 1;
+            }
+            Err(e) => {
+                eprintln!("合成失败「{text}」: {e}");
+                failed += 1;
+            }
+        }
+    }
+
+    // 写回内容文件
+    let words = pack.words.clone();
+    let sentences = pack.sentences.clone();
+    if let Err(e) = write_items(&pack.root.join("words.json"), &words) {
+        eprintln!("写回 words.json 失败: {e}");
+        return ExitCode::from(1);
+    }
+    if let Err(e) = write_items(&pack.root.join("sentences.json"), &sentences) {
+        eprintln!("写回 sentences.json 失败: {e}");
+        return ExitCode::from(1);
+    }
+
+    // 音色变了要记在新 manifest 里，否则下次不知道这批音频是谁合成的
+    pack.manifest.voice = spec.clone();
+    let hash = match pack.content_hash() {
+        Ok(h) => h,
+        Err(e) => {
+            eprintln!("计算指纹失败: {e}");
+            return ExitCode::from(1);
+        }
+    };
+    pack.manifest.content_hash = Some(hash.clone());
+    if let Err(e) = write_manifest(&pack.root.join("manifest.json"), &pack.manifest) {
+        eprintln!("写回 manifest.json 失败: {e}");
+        return ExitCode::from(1);
+    }
+
+    println!(
+        "{} · 音色 {spec} · 新生成 {made} · 复用 {reused} · 失败 {failed} · hash {}…",
+        pack.manifest.display,
+        &hash[..12]
+    );
+    if failed > 0 { ExitCode::from(1) } else { ExitCode::SUCCESS }
+}
+
+fn write_items<T: serde::Serialize>(path: &std::path::Path, items: &[T]) -> std::io::Result<()> {
+    let json = serde_json::to_string_pretty(items).map_err(std::io::Error::other)?;
+    std::fs::write(path, json + "\n")
+}
+
+fn write_manifest(
+    path: &std::path::Path,
+    manifest: &ealearn_core::Manifest,
+) -> std::io::Result<()> {
+    let json = serde_json::to_string_pretty(manifest).map_err(std::io::Error::other)?;
+    std::fs::write(path, json + "\n")
 }

@@ -12,4 +12,6 @@ path = "src/main.rs"
 [dependencies]
 ealearn-core = { workspace = true }
 ealearn-lang = { workspace = true }
+ealearn-tts = { path = "../tts" }
+serde = { workspace = true }
 serde_json = { workspace = true }

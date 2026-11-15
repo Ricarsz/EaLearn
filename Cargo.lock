@@ -258,6 +258,8 @@ version = "0.1.0"
 dependencies = [
  "ealearn-core",
  "ealearn-lang",
+ "ealearn-tts",
+ "serde",
  "serde_json",
 ]
 
@@ -288,6 +290,13 @@ dependencies = [
  "ealearn-core",
  "rusqlite",
  "serde",
+]
+
+[[package]]
+name = "ealearn-tts"
+version = "0.1.0"
+dependencies = [
+ "sha2",
 ]
 
 [[package]]

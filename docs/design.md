@@ -169,7 +169,11 @@ Studio 是应用内的隐藏路由，`--studio` 启动才出现，随主程序�
 
 接口在 `core` 固定：`tts::synth(text, voice) -> AudioBytes`，引擎实现可换。
 
-候选：piper / sherpa-onnx / MeloTTS。英语三家都成熟，**韩语支持度差异大，选型必须延后到实测之后**——先跑一个韩语音色可用性验证，再定引擎。
+选型现状：`espeak-ng` 作为起步引擎实测英语与韩语都能出声，成本为零，先让听音题跑通；音质升级走 `piper`——manifest 的 `voice` 写成 `piper:<模型名>` 即自动切换，模型目录由 `EALEARN_PIPER_DIR` 指定。同一个 `voice` 前缀决定引擎，换音色不换代码。
+
+- 音频文件名 = `sha256(voice + "\0" + text).wav`，落在 pack 的 `media/audio/`。换音色 hash 必变，旧文件不会被误认
+- `forge audio <pack>` 批量预合成并写回 pack，已存在的直接复用，`--force` 才重做
+- 看图/听音只在「一到两个词」的词条上出题；整句当四选一答案是送分题（长度一眼看穿）
 
 策略：pack 安装时批量预合成并按文本 hash 存 wav，运行时缺失才补。练的时候不联网。
 
