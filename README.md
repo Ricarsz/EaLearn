@@ -13,7 +13,7 @@ crates/store    SQLite 本地库：pack 登记、SRS 卡、作答、设置、聊
 crates/llm      兼容 OpenAI 协议的流式对话客户端（SSE、正文流式抽取、标注回贴校验）
 crates/tts      piper 合成 + 按「音色 + 文本」hash 命名的 wav 缓存
 crates/forge    内容 CLI：校验、分词标注、预合成音频、对话草稿生成
-app             React 前端（首页 / 练习 / 情景 / 词库）
+app             React 前端（首页 / 练习 / 情景 / 词库 / 发音 / 统计）
 src-tauri       Tauri 壳层：命令转发与状态管理，不含业务逻辑
 packs/en        英语内容包
 packs/ko        韩语内容包
@@ -35,19 +35,11 @@ cd app && pnpm install            # 前端依赖（只需一次）
 
 ## 安装
 
-打 tag `v*` 会触发 GitHub Actions 构建 deb / rpm 并挂到 Release；Arch 用仓库自带的 PKGBUILD
-从源码构建一个 pacman 包：
+发布版：GitHub Release 的 deb / rpm。Arch 从 `packaging/PKGBUILD` 构建：
 
 ```sh
-cd packaging
-makepkg -f
-paru -U ealearn-1.0.0-1-x86_64.pkg.tar.zst
+cd packaging && makepkg -f && paru -U ealearn-<version>-1-x86_64.pkg.tar.zst
 ```
-
-包内容：`/usr/bin/ealearn`、`/usr/share/applications/ealearn.desktop`、
-`/usr/share/icons/hicolor/*/apps/ealearn.png`、语言包在 `/usr/share/ealearn/packs`
-（程序启动时按 资源目录 → `/usr/share/ealearn/packs` → 用户数据目录 的顺序找内容）。
-`.desktop` 由打包显式安装；用 `tauri build` 出的 deb / rpm，Tauri 会自己生成桌面项与图标。
 
 ## 首页与练法
 
@@ -82,27 +74,15 @@ paru -U ealearn-1.0.0-1-x86_64.pkg.tar.zst
 
 ## 词库与单词书
 
-词库页列出所有卡片，按熟练度（由 FSRS 稳定性换算）和到期时间排序，可筛选
-待复习 / 不熟 / 自定义，可移出复习。顶部搜索框按词面或释义过滤，几万张卡也够用。
-支持导入自定义词条（每行 `word<TAB>释义[<TAB>标签]`），导入即入卡；「开始复习」直接进混合复习。
+词库页列出所有卡片，按熟练度和到期时间排序，可筛选待复习 / 不熟 / 自定义，
+顶部搜索框按词面或释义过滤，几万张卡也不卡。自定义词条每行
+`word<TAB>释义[<TAB>标签]`，导入即入卡。
 
-单词书走索引文件（`books/index.json`），索引直接指向公开词库地址，不在仓库里存词表。
-内置八本英语应试书（四级 2607 / 六级 2345 / 考研 6705 / 高考 3893 / 雅思 2644 / 托福 4123 /
-GRE 3041 / 核心 4000 3600，来自 qwerty-learner，GPL-3.0）和两本韩语书：
-韩语入门词表（486 词，MIT，简体中文释义）、韩语 5000 常用词（4725 词，CC BY 4.0，
-繁体中文释义，带例句）。导入过的书会标「已下载」，可以重复导入更新释义。
+单词书走 `books/index.json`：内置八本英语应试书（四级 2607 / 六级 2345 / 考研 6705 /
+高考 3893 / 雅思 2644 / 托福 4123 / GRE 3041 / 核心 4000）和两本韩语书（入门 486 词、
+5000 常用词 4725 词）。导入过的书标「已下载」，可以重复导入更新释义。
 
-索引地址（词库页「索引设置」）支持 http(s) URL、绝对路径与 `books/` 下的文件名；
-默认在开发时读仓库里的 `books/index.json`，打包后读远端地址。导入支持 TSV/CSV、
-JSON 数组与 JSONL 词书（`name`/`word`/`korean_term` + `trans`/`translation`/`meaning`/`english_term`），
-几千词一次事务写完。
-
-索引条目有 `kind` 字段：`words`（默认，单词书）、`sentences`（句库，导入后进拼句）、
-`article`（文本格式文章）。句库数据不写进 pack，例如 `books/sentences/en-tatoeba.tsv`（Tatoeba 英中句对，
-CC BY 2.0）通过索引按需下载到 SQLite，随时可以在设置里清掉。想加自己的句子集，把 TSV 放到
-索引指向的位置、加一条 `kind: "sentences"` 即可。
-
-词库页的「导入文章」用纯文本约定写一篇阅读材料：
+「导入文章」用纯文本约定写阅读材料：
 
 ```
 # 标题
@@ -115,49 +95,12 @@ CC BY 2.0）通过索引按需下载到 SQLite，随时可以在设置里清掉�
 = 2
 ```
 
-`#` 标题、`?` 题干、`-` 选项、`=` 正确选项序号（从 1 开始），其余行都是正文，空行分段。
-正文会按语言 profile 分词并对齐校验，对不上就整篇拒绝，避免点词查义点到错位置。
+`#` 标题、`?` 题干、`-` 选项、`=` 正确选项序号（从 1 开始），其余行是正文，空行分段。
+正文会按语言分词对齐校验，对不上就整篇拒绝。
 
 ## 自建内容仓
 
-词表和内容不必依赖别人的仓库。建议单独建一个公开仓库（例如 Gitee）专放 `books/`：
-词表 JSON、句库 TSV、阅读文章都在里面，和程序仓库分开，随时能加内容而不用发版。
-
-```
-books/
-├── index.json
-├── words/en-cet4.json       # 词表：qwerty-learner 格式或 {"name","trans"} 数组
-├── sentences/en-daily.tsv   # 句库：surface<TAB>释义
-└── articles/en-tech-01.md   # 文章：上面那套 # ? - = 约定
-```
-
-仓库根推送后，raw 地址形如 `https://gitee.com/<用户>/<仓库>/raw/master/books/index.json`
-（Gitee 会 302 到签名地址，程序跟随跳转即可）。在词库页「索引设置」填这个地址，
-或直接写多行地址，前一个失败自动换下一个。
-
-每条书目可以带 `mirrors`（备用地址数组），主地址挂了照样能装：
-
-```json
-{
-  "id": "en-daily",
-  "lang": "en",
-  "kind": "sentences",
-  "name": "英语日常句",
-  "url": "https://gitee.com/you/ealearn-content/raw/master/books/sentences/en-daily.tsv",
-  "mirrors": ["https://raw.githubusercontent.com/you/ealearn-content/main/books/sentences/en-daily.tsv"]
-}
-```
-
-把现有索引里的资源抓成本地副本、同时把 `url` 改写成自建仓地址（原地址进 `mirrors`）：
-
-```sh
-scripts/mirror-books.sh https://gitee.com/you/ealearn-content/raw/master --out /tmp/ealearn-books
-# 然后把 /tmp/ealearn-books/books 整个推上去
-```
-
-阅读材料和句库可以直接让模型批量生成：文章按 `# ? - =` 约定写，句子写成
-`surface<TAB>释义`，装进仓库、在索引里登记即可。句子至少要 3 个词才会进拼句，
-导入不校验语法，但分词对不上的文章会被拒。
+想自己管内容、不依赖别人的词表地址，见 [docs/content-hosting.md](docs/content-hosting.md)。
 
 ## 情景
 
@@ -213,12 +156,8 @@ curl -LO $base/en_US-lessac-medium.onnx.json
 
 ## 统计与错题
 
-侧栏「统计」页：
-
-- 近 7 / 14 / 30 天的每日作答柱子（蓝=答对，浅=答错）
-- 题型表现表：题量、正确率、平均耗时
-- 未来 7 天的到期卡数，用来看复习负荷会不会堆起来
-- 错题本：近 30 天错得最多的词条，按错次排序；「错题重练」直接生成一组只含错题的练习
+侧栏「统计」：近 7/14/30 天作答柱状图、题型正确率与平均耗时、未来 7 天到期负荷。
+错题本按错次排序，可以直接「错题重练」。
 
 ## 开发排查
 
