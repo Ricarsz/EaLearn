@@ -10,7 +10,7 @@ import {
   KO_VOWELS,
   type Jamo,
   type Phoneme,
-} from "./phonetics";
+} from "./phonemes";
 
 /// 试听一个词/音节。没装音色就静默失败，不打断阅读。
 function Speak({ lang, text, label }: { lang: string; text: string; label?: string }) {
