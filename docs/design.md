@@ -84,6 +84,7 @@ packs/en/
 | `build-sentence` | 打乱词块，用户拼成句子 | sentences.json |
 | `word-from-image` | 看图选词 | words.json + image |
 | `word-from-audio` | 听音选词 | words.json + audio |
+| `recall` | 背诵卡：正面出词、背面出义，自评熟练度 | words.json 或自定义词条 |
 | `article-mcq` | 文章阅读理解 + 选择题 | articles.json |
 | `chat-scenario` | 对话框情景演练 | dialogs.json |
 
@@ -190,6 +191,7 @@ piper 的坑（实测）：`--output_file -` 不写 stdout，会产出空文件�
 | `reviews` | FSRS 调度状态 |
 | `attempts` | 每次作答：题型、正确、耗时 |
 | `chat_log` | 自由聊天记录 |
+| `custom_entries` | 用户导入的词条（`surface` 在 pack 内唯一，id 由自增列派生） |
 | `settings` | UI 语言、TTS 音色、API key（加密） |
 
 ## 9. SRS
@@ -198,6 +200,10 @@ FSRS-5 调度。入卡策略：答错必入、点击标注手动入、手动收�
 
 组卷时到期卡先排，再用新内容补满；卡种决定题型（句子卡→拼句，词卡→听音→看图→拼句依次回退）。
 不这么做，复习队列就只是个数字，练的永远是随机新题。
+
+词库页展示的「熟练度」由稳定性换算：`1 - exp(-S/21)`，只用于展示，不参与调度。
+自定义词条没有音频/图片，练习时走 `recall`：正面出词（可用运行时 TTS 朗读）、
+背面出义，用户自评 不认识/模糊/认识/太简单，直接映射成 FSRS 的 1–4 评分。
 
 到期卡只按 `kind` 决定题型，不按卡里存的历史——同一张卡下次可能换题型出现，
 避免把记忆绑在某一道题的视觉形状上。

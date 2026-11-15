@@ -207,7 +207,7 @@ function TokenLine({ tokens, onPick }: { tokens: Token[]; onPick: (t: Token) => 
   );
 }
 /// 情景页外壳：剧本线与自由聊（LLM）共用同一个入口。
-export function Scenario({ lang }: { lang: string }) {
+export function Scenario({ lang, onOpenSettings }: { lang: string; onOpenSettings?: () => void }) {
   const [mode, setMode] = useState<"script" | "free">("script");
   return (
     <div className="scenario-shell">
@@ -219,7 +219,11 @@ export function Scenario({ lang }: { lang: string }) {
           自由聊
         </button>
       </div>
-      {mode === "script" ? <Scripted lang={lang} /> : <FreeChat lang={lang} />}
+      {mode === "script" ? (
+        <Scripted lang={lang} />
+      ) : (
+        <FreeChat lang={lang} onOpenSettings={onOpenSettings} />
+      )}
     </div>
   );
 }

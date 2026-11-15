@@ -13,6 +13,7 @@ export type Coverage = {
   buildSentence: number;
   wordFromImage: number;
   wordFromAudio: number;
+  recall: number;
   articleMcq: number;
 };
 
@@ -39,6 +40,13 @@ export type Exercise =
   | { kind: "word-from-image"; entry: string; image: string; options: string[]; answer: number }
   | { kind: "word-from-audio"; entry: string; audio: string; options: string[]; answer: number }
   | {
+      kind: "recall";
+      entry: string;
+      surface: string;
+      gloss?: string;
+      reading?: string;
+    }
+  | {
       kind: "article-mcq";
       article: string;
       question: number;
@@ -52,7 +60,8 @@ export type SessionPlan = { exercises: Exercise[]; review: number };
 
 export type Answer =
   | { kind: "order"; order: number[] }
-  | { kind: "choice"; index: number };
+  | { kind: "choice"; index: number }
+  | { kind: "recall"; rating: number };
 
 export type GradeItem = {
   index: number;
@@ -149,6 +158,24 @@ export type LlmSettings = {
   key_hint: string;
 };
 
+export type CardItem = {
+  card_id: number;
+  entry_id: string;
+  surface: string;
+  gloss?: string | null;
+  kind: string;
+  stability: number;
+  difficulty: number;
+  reps: number;
+  lapses: number;
+  due: number;
+  last_review?: number | null;
+  mastery: number;
+  is_custom: boolean;
+};
+
+export type ImportResult = { added: number; skipped: string[] };
+
 export type VoiceInfo = { id: string; label: string; engine: string; ready: boolean };
 
 export type DialogSummary = { id: string; title: string; theme: string; nodes: number };
@@ -182,6 +209,10 @@ export const api = {
   ttsVoices: (lang: string) => invoke<VoiceInfo[]>("tts_voices", { lang }),
   getVoice: (lang: string) => invoke<string | null>("get_voice", { lang }),
   setVoice: (lang: string, voice: string) => invoke<void>("set_voice", { lang, voice }),
-  speak: (lang: string, text: string, entryId?: string) =>
-    invoke<string>("speak", { lang, text, entryId }),
+  speak: (lang: string, text: string, entryId?: string, voice?: string) =>
+    invoke<string>("speak", { lang, text, entryId, voice }),
+  listCards: (lang: string) => invoke<CardItem[]>("list_cards", { lang }),
+  deleteCard: (cardId: number) => invoke<void>("delete_card", { cardId }),
+  importWords: (lang: string, text: string) =>
+    invoke<ImportResult>("import_words", { lang, text }),
 };

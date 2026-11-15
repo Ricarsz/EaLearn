@@ -12,6 +12,7 @@ pub enum ExerciseKind {
     BuildSentence,
     WordFromImage,
     WordFromAudio,
+    Recall,
     ArticleMcq,
 }
 
@@ -21,6 +22,7 @@ impl ExerciseKind {
             ExerciseKind::BuildSentence => "build-sentence",
             ExerciseKind::WordFromImage => "word-from-image",
             ExerciseKind::WordFromAudio => "word-from-audio",
+            ExerciseKind::Recall => "recall",
             ExerciseKind::ArticleMcq => "article-mcq",
         }
     }
@@ -33,6 +35,7 @@ pub struct Coverage {
     pub build_sentence: usize,
     pub word_from_image: usize,
     pub word_from_audio: usize,
+    pub recall: usize,
     pub article_mcq: usize,
 }
 
@@ -48,6 +51,9 @@ pub fn coverage(pack: &Pack) -> Coverage {
     for e in entries {
         if e.surface.split_whitespace().count() >= 3 {
             c.build_sentence += 1;
+        }
+        if !e.surface.trim().is_empty() && e.surface.split_whitespace().count() <= 3 {
+            c.recall += 1;
         }
         if e.image.is_some() && is_choice_word(e) {
             c.word_from_image += 1;
@@ -86,6 +92,7 @@ pub fn plan(pack: &Pack, limit: usize, seed: u64) -> Vec<Exercise> {
             ExerciseKind::BuildSentence,
             ExerciseKind::WordFromImage,
             ExerciseKind::WordFromAudio,
+            ExerciseKind::Recall,
         ] {
             if out.len() >= limit {
                 break;
@@ -149,6 +156,7 @@ pub fn exercise_for(pack: &Pack, entry_id: &str, card_kind: &str, seed: u64) -> 
     }
     build(entry, pack, ExerciseKind::WordFromAudio, s)
         .or_else(|| build(entry, pack, ExerciseKind::WordFromImage, s))
+        .or_else(|| build(entry, pack, ExerciseKind::Recall, s))
         .or_else(|| Exercise::build_sentence(entry, s))
 }
 
@@ -180,6 +188,17 @@ fn build(entry: &Entry, pack: &Pack, kind: ExerciseKind, seed: u64) -> Option<Ex
                 audio,
                 options,
                 answer,
+            })
+        }
+        ExerciseKind::Recall => {
+            if entry.surface.split_whitespace().count() > 3 {
+                return None;
+            }
+            Some(Exercise::Recall {
+                entry: entry.id.clone(),
+                surface: entry.surface.clone(),
+                gloss: entry.gloss.clone(),
+                reading: entry.tokens.first().and_then(|t| t.reading.clone()),
             })
         }
         ExerciseKind::ArticleMcq => None,

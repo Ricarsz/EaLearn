@@ -5,13 +5,15 @@ import { THEMES } from "./themes";
 
 type Msg = { role: "user" | "tutor"; text: string; turn?: TutorTurn };
 
-export function FreeChat({ lang }: { lang: string }) {
+export function FreeChat({
+  lang,
+  onOpenSettings,
+}: {
+  lang: string;
+  onOpenSettings?: () => void;
+}) {
   const session = useRef(`chat:${lang}`);
   const [settings, setSettings] = useState<LlmSettings | null>(null);
-  const [editing, setEditing] = useState(false);
-  const [baseUrl, setBaseUrl] = useState("");
-  const [model, setModel] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [theme, setTheme] = useState("gossip");
   const [level, setLevel] = useState(2);
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -27,9 +29,6 @@ export function FreeChat({ lang }: { lang: string }) {
       .then((s) => {
         if (!alive) return;
         setSettings(s);
-        setBaseUrl(s.base_url);
-        setModel(s.model);
-        setEditing(!s.has_key);
       })
       .catch((e) => alive && setError(String(e)));
 
@@ -48,17 +47,6 @@ export function FreeChat({ lang }: { lang: string }) {
   useEffect(() => {
     if (scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight;
   }, [msgs]);
-
-  const saveSettings = async () => {
-    try {
-      await api.setLlmSettings(baseUrl, model, apiKey || undefined);
-      setApiKey("");
-      setEditing(false);
-      setSettings(await api.getLlmSettings());
-    } catch (e) {
-      setError(String(e));
-    }
-  };
 
   const send = async () => {
     const text = draft.trim();
@@ -128,38 +116,21 @@ export function FreeChat({ lang }: { lang: string }) {
           </select>
         </label>
         <span className="muted">
-          {settings?.has_key ? `${settings.model}${settings.key_hint}` : "未配置 key"}
+          {settings?.has_key ? `${settings.model} ${settings.key_hint}` : "未配置 key"}
         </span>
-        <button className="ghost" onClick={() => setEditing((v) => !v)}>
+        <button className="ghost" onClick={onOpenSettings}>
           设置
         </button>
       </div>
 
-      {editing && (
-        <div className="settings-form">
-          <label>
-            Base URL
-            <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://api.openai.com/v1" />
-          </label>
-          <label>
-            模型
-            <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="gpt-4o-mini" />
-          </label>
-          <label>
-            API Key
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder={settings?.has_key ? "已保存，留空则不修改" : "sk-…"}
-            />
-          </label>
-          <div className="actions">
-            <button className="primary" onClick={saveSettings}>
-              保存
-            </button>
-          </div>
-        </div>
+      {settings && !settings.has_key && (
+        <p className="notice">
+          自由聊需要模型 API key。到
+          <button className="link" onClick={onOpenSettings}>
+            设置
+          </button>
+          里填一下，剧本模式不受影响。
+        </p>
       )}
 
       <div className="chat" ref={scroller}>

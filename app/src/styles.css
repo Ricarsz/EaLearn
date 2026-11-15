@@ -862,3 +862,355 @@ textarea:focus {
   background: #3a4350;
   background-clip: padding-box;
 }
+/* ── 设置抽屉 ─────────────────────────────────────────── */
+
+.settings-btn {
+  margin-top: auto;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border-color: var(--line-soft);
+  color: var(--muted);
+}
+
+.settings-btn:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 50;
+  animation: fade 0.15s ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.drawer {
+  width: min(460px, 92vw);
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg);
+  border-left: 1px solid var(--line);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  animation: slide 0.18s ease;
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(16px);
+    opacity: 0.6;
+  }
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 620;
+}
+
+.drawer section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer label {
+  display: grid;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.voice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.voice-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.voice-list li.on {
+  border-color: var(--accent-dim);
+  background: #1b2230;
+}
+
+.voice-pick {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  padding: 6px 0;
+  text-align: left;
+}
+
+.voice-pick .radio {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  flex: 0 0 13px;
+}
+
+.voice-list li.on .radio {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 45%, transparent 47%);
+}
+
+.voice-pick .muted {
+  margin-left: auto;
+  font-size: 11.5px;
+}
+
+/* ── 词库 ─────────────────────────────────────────────── */
+
+.panel.wide {
+  max-width: 860px;
+}
+
+.wordbook-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.filters button {
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.filters button.on {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.import-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.import-box textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 13px;
+}
+
+.import-box code {
+  background: var(--panel-2);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: 1fr 150px 78px 32px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 11px;
+  background: var(--panel);
+}
+
+.card-row:hover {
+  border-color: var(--line);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.small-play {
+  width: 24px;
+  height: 24px;
+  flex-basis: 24px;
+  font-size: 9px;
+}
+
+.mastery {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mastery-bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+
+.mastery-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4e8fd0, var(--ok));
+}
+
+.mastery .muted {
+  width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+}
+
+.due {
+  font-size: 12px;
+  text-align: right;
+}
+
+/* ── 背诵卡 ───────────────────────────────────────────── */
+
+.panel.practice {
+  margin-block: auto;
+  justify-content: center;
+}
+
+.exercise.recall {
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 34px 24px;
+}
+
+.recall-front {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.recall-front h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 620;
+  letter-spacing: 0.01em;
+}
+
+.recall-back {
+  margin: 0;
+  font-size: 17px;
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line-soft);
+  animation: rise 0.16s ease;
+}
+
+.rating {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.rating button {
+  min-width: 88px;
+}
+
+.rating .again {
+  border-color: #6b3a38;
+  color: #e6a09c;
+}
+
+.rating .hard {
+  border-color: #6b5a34;
+  color: var(--warn);
+}
+
+.rating .good {
+  border-color: #2c6b57;
+  color: var(--ok);
+}
+
+.rating .easy {
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+.actions.center {
+  justify-content: center;
+}
+
+.notice {
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0;
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  color: var(--accent);
+  cursor: pointer;
+}

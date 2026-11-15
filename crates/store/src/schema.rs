@@ -50,6 +50,16 @@ CREATE TABLE IF NOT EXISTS attempts (
 
 CREATE INDEX IF NOT EXISTS idx_attempts_at ON attempts(at);
 
+CREATE TABLE IF NOT EXISTS custom_entries (
+    seq        INTEGER PRIMARY KEY AUTOINCREMENT,
+    pack       TEXT NOT NULL,
+    surface    TEXT NOT NULL,
+    gloss      TEXT,
+    tags       TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL,
+    UNIQUE (pack, surface)
+);
+
 CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL

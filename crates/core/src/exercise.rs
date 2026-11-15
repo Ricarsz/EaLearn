@@ -41,6 +41,16 @@ pub enum Exercise {
         options: Vec<String>,
         answer: usize,
     },
+    /// 背诵：正面出词、背面出义，由用户自评熟练度。
+    /// 自定义单词没有音频/图片素材，靠它才能进练习。
+    Recall {
+        entry: String,
+        surface: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        gloss: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        reading: Option<String>,
+    },
     /// 情景对话：判分靠对话图分支推进，不走单题判分器。
     ChatScenario { dialog: String },
 }
@@ -53,6 +63,8 @@ pub enum Answer {
     Order { order: Vec<usize> },
     /// 选项下标。
     Choice { index: usize },
+    /// 背诵自评：1 不认识 / 2 模糊 / 3 认识 / 4 太简单
+    Recall { rating: u8 },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -97,6 +109,7 @@ impl Exercise {
             Exercise::WordFromImage { .. } => "word-from-image",
             Exercise::WordFromAudio { .. } => "word-from-audio",
             Exercise::ArticleMcq { .. } => "article-mcq",
+            Exercise::Recall { .. } => "recall",
             Exercise::ChatScenario { .. } => "chat-scenario",
         }
     }
@@ -106,7 +119,8 @@ impl Exercise {
         match self {
             Exercise::BuildSentence { entry, .. }
             | Exercise::WordFromImage { entry, .. }
-            | Exercise::WordFromAudio { entry, .. } => Some(entry),
+            | Exercise::WordFromAudio { entry, .. }
+            | Exercise::Recall { entry, .. } => Some(entry),
             _ => None,
         }
     }
@@ -142,6 +156,19 @@ impl Exercise {
                 },
                 Answer::Choice { index },
             ) => Ok(grade_choice(*truth, *index, options)),
+            (Exercise::Recall { gloss, .. }, Answer::Recall { rating }) => {
+                let rating = (*rating).clamp(1, 4);
+                Ok(Grade {
+                    correct: rating >= 3,
+                    ratio: rating as f32 / 4.0,
+                    items: vec![GradeItem {
+                        index: rating as usize,
+                        correct: rating >= 3,
+                        expected: gloss.clone(),
+                        note: None,
+                    }],
+                })
+            }
             (Exercise::ChatScenario { .. }, _) => Err(GradeError::NotGradable),
             _ => Err(GradeError::WrongAnswerShape),
         }

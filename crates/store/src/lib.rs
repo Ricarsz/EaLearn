@@ -69,6 +69,22 @@ impl CardKind {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CustomEntry {
+    pub id: String,
+    pub surface: String,
+    pub gloss: Option<String>,
+    pub tags: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CardRow {
+    pub card_id: i64,
+    pub entry_id: String,
+    pub kind: CardKind,
+    pub state: CardState,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PackRow {
     pub lang: String,
@@ -385,6 +401,100 @@ impl Store {
         })
     }
 
+    // ── 自定义词条 ──────────────────────────────────────────────────────
+
+    /// 用户导入的词条。id 由自增列派生，`surface` 在同一 pack 内唯一。
+    pub fn add_custom_entry(
+        &self,
+        pack: &str,
+        surface: &str,
+        gloss: Option<&str>,
+        tags: &str,
+        now: i64,
+    ) -> Result<String> {
+        self.conn.execute(
+            "INSERT INTO custom_entries (pack, surface, gloss, tags, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(pack, surface) DO UPDATE SET gloss = excluded.gloss, tags = excluded.tags",
+            params![pack, surface, gloss, tags, now],
+        )?;
+        let seq: i64 = self.conn.query_row(
+            "SELECT seq FROM custom_entries WHERE pack = ?1 AND surface = ?2",
+            params![pack, surface],
+            |r| r.get(0),
+        )?;
+        Ok(format!("custom.{pack}.{seq}"))
+    }
+
+    pub fn custom_entries(&self, pack: &str) -> Result<Vec<CustomEntry>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT seq, surface, gloss, tags FROM custom_entries WHERE pack = ?1 ORDER BY seq",
+        )?;
+        let rows = stmt
+            .query_map(params![pack], |r| {
+                Ok(CustomEntry {
+                    id: format!("custom.{pack}.{}", r.get::<_, i64>(0)?),
+                    surface: r.get(1)?,
+                    gloss: r.get(2)?,
+                    tags: r
+                        .get::<_, String>(3)?
+                        .split(',')
+                        .map(str::trim)
+                        .filter(|t| !t.is_empty())
+                        .map(str::to_string)
+                        .collect(),
+                })
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows)
+    }
+
+    pub fn delete_custom_entry(&self, id: &str) -> Result<()> {
+        // id 形如 custom.<pack>.<seq>
+        let seq = id.rsplit('.').next().unwrap_or_default();
+        self.conn.execute(
+            "DELETE FROM custom_entries WHERE seq = ?1",
+            params![seq.parse::<i64>().unwrap_or(-1)],
+        )?;
+        Ok(())
+    }
+
+    // ── 卡片浏览 ────────────────────────────────────────────────────────
+
+    pub fn cards(&self, pack: &str) -> Result<Vec<CardRow>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT c.id, c.entry_id, c.kind, r.stability, r.difficulty, r.reps, r.lapses,
+                    r.last_review, r.due
+             FROM cards c JOIN reviews r ON r.card_id = c.id
+             WHERE c.pack = ?1
+             ORDER BY r.due ASC, c.id ASC",
+        )?;
+        let rows = stmt
+            .query_map(params![pack], |r| {
+                Ok(CardRow {
+                    card_id: r.get(0)?,
+                    entry_id: r.get(1)?,
+                    kind: CardKind::parse(&r.get::<_, String>(2)?).unwrap_or(CardKind::Word),
+                    state: CardState {
+                        stability: r.get(3)?,
+                        difficulty: r.get(4)?,
+                        reps: r.get::<_, i64>(5)? as u32,
+                        lapses: r.get::<_, i64>(6)? as u32,
+                        last_review: r.get(7)?,
+                        due: r.get(8)?,
+                    },
+                })
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows)
+    }
+
+    pub fn delete_card(&self, card_id: i64) -> Result<()> {
+        self.conn
+            .execute("DELETE FROM cards WHERE id = ?1", params![card_id])?;
+        Ok(())
+    }
+
     // ── 设置 ────────────────────────────────────────────────────────────
 
     pub fn set_setting(&self, key: &str, value: &str) -> Result<()> {
@@ -551,6 +661,41 @@ mod tests {
         assert_eq!(stats.attempts_today, 2);
         assert!((stats.accuracy_today - 0.5).abs() < 1e-9);
         assert_eq!(stats.due_now, 1);
+    }
+
+    #[test]
+    fn custom_entries_roundtrip_and_dedupe() {
+        let s = store();
+        let id = s.add_custom_entry("en", "ghost", Some("玩消失"), "slang", NOW).unwrap();
+        assert!(id.starts_with("custom.en."), "id 形状不对: {id}");
+
+        let list = s.custom_entries("en").unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].surface, "ghost");
+        assert_eq!(list[0].tags, vec!["slang"]);
+
+        // 同一个词再导入一次不应新增，只更新释义
+        let again = s.add_custom_entry("en", "ghost", Some("失联"), "", NOW).unwrap();
+        assert_eq!(again, id);
+        let list = s.custom_entries("en").unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].gloss.as_deref(), Some("失联"));
+    }
+
+    #[test]
+    fn cards_can_be_listed_and_deleted() {
+        let s = store();
+        let a = s.add_card("en", "en.w.0001", CardKind::Word, NOW).unwrap();
+        s.add_card("en", "en.w.0002", CardKind::Word, NOW).unwrap();
+
+        let rows = s.cards("en").unwrap();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0].card_id, a);
+
+        s.delete_card(a).unwrap();
+        let rows = s.cards("en").unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].entry_id, "en.w.0002");
     }
 
     #[test]

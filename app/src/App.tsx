@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, type PackSummary, type Stats, type VoiceInfo } from "./api";
+import { api, type PackSummary, type Stats } from "./api";
 import { Practice } from "./Practice";
 import { Scenario } from "./Scenario";
+import { Settings } from "./Settings";
+import { Wordbook } from "./Wordbook";
 
-type Tab = "practice" | "scenario";
+type Tab = "practice" | "scenario" | "wordbook";
 
 export function App() {
   const [packs, setPacks] = useState<PackSummary[]>([]);
   const [lang, setLang] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [tab, setTab] = useState<Tab>("practice");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [voices, setVoices] = useState<VoiceInfo[]>([]);
-  const [voice, setVoice] = useState("");
 
   const refresh = useCallback(async () => {
     try {
@@ -28,22 +29,6 @@ export function App() {
   useEffect(() => {
     refresh();
   }, [refresh]);
-
-  useEffect(() => {
-    if (!lang) return;
-    let alive = true;
-    api
-      .ttsVoices(lang)
-      .then((v) => alive && setVoices(v))
-      .catch(() => alive && setVoices([]));
-    api
-      .getVoice(lang)
-      .then((v) => alive && setVoice(v ?? ""))
-      .catch(() => alive && setVoice(""));
-    return () => {
-      alive = false;
-    };
-  }, [lang]);
 
   const pack = packs.find((p) => p.lang === lang);
 
@@ -92,28 +77,6 @@ export function App() {
           </section>
         )}
 
-        {lang && (
-          <section className="voice">
-            <p className="section-label">音色</p>
-            <select
-              value={voice}
-              onChange={async (e) => {
-                const v = e.target.value;
-                setVoice(v);
-                if (v) await api.setVoice(lang, v).catch(() => {});
-              }}
-            >
-              <option value="">跟随语言包</option>
-              {voices.map((v) => (
-                <option key={v.id} value={v.id} disabled={!v.ready}>
-                  {v.label}
-                  {v.ready ? "" : "（缺模型）"}
-                </option>
-              ))}
-            </select>
-          </section>
-        )}
-
         {pack && (
           <section className="coverage">
             <p className="section-label">可用题型</p>
@@ -121,10 +84,15 @@ export function App() {
               <li>拼句 {pack.coverage.buildSentence}</li>
               <li>看图 {pack.coverage.wordFromImage}</li>
               <li>听音 {pack.coverage.wordFromAudio}</li>
+              <li>背诵 {pack.coverage.recall}</li>
               <li>阅读 {pack.coverage.articleMcq}</li>
             </ul>
           </section>
         )}
+
+        <button className="settings-btn" onClick={() => setSettingsOpen(true)}>
+          ⚙ 设置
+        </button>
       </aside>
 
       <main className="main">
@@ -135,13 +103,29 @@ export function App() {
           <button className={tab === "scenario" ? "active" : ""} onClick={() => setTab("scenario")}>
             情景
           </button>
+          <button className={tab === "wordbook" ? "active" : ""} onClick={() => setTab("wordbook")}>
+            词库
+          </button>
         </nav>
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error panel">{error}</p>}
         {!lang && <p className="panel muted">没有可用的语言包。</p>}
-        {lang && tab === "practice" && <Practice key={`${lang}-practice`} lang={lang} />}
-        {lang && tab === "scenario" && <Scenario key={`${lang}-scenario`} lang={lang} />}
+        {lang && tab === "practice" && (
+          <Practice key={`${lang}-practice`} lang={lang} onFinished={refresh} />
+        )}
+        {lang && tab === "scenario" && (
+          <Scenario
+            key={`${lang}-scenario`}
+            lang={lang}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
+        )}
+        {lang && tab === "wordbook" && (
+          <Wordbook key={`${lang}-wordbook`} lang={lang} onPractice={() => setTab("practice")} />
+        )}
       </main>
+
+      {settingsOpen && <Settings lang={lang} onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }

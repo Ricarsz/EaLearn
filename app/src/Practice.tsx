@@ -4,7 +4,7 @@ import { playUrl } from "./audio";
 
 const SESSION_SIZE = 8;
 
-export function Practice({ lang }: { lang: string }) {
+export function Practice({ lang, onFinished }: { lang: string; onFinished?: () => void }) {
   const [session, setSession] = useState<SessionPlan | null>(null);
   const [idx, setIdx] = useState(0);
   const [placed, setPlaced] = useState<number[]>([]);
@@ -43,6 +43,7 @@ export function Practice({ lang }: { lang: string }) {
     if (!ex) return;
     try {
       setResult(await api.submit(lang, ex, answer, Date.now() - started.current));
+      onFinished?.();
     } catch (e) {
       setError(String(e));
     }
@@ -100,7 +101,7 @@ export function Practice({ lang }: { lang: string }) {
   const progress = ((idx + (result ? 1 : 0)) / session.exercises.length) * 100;
 
   return (
-    <div className="panel">
+    <div className="panel practice">
       <div className="progress">
         <div className="bar">
           <div className="fill" style={{ width: `${progress}%` }} />
@@ -119,11 +120,12 @@ export function Practice({ lang }: { lang: string }) {
         picked={picked}
         setPicked={setPicked}
         locked={!!result}
+        onRecall={(rating) => submit({ kind: "recall", rating })}
       />
 
       {result ? (
         <Feedback result={result} onNext={advance} lang={lang} />
-      ) : (
+      ) : ex.kind === "recall" ? null : (
         <div className="actions">
           <button
             className="primary"
@@ -165,6 +167,7 @@ function ExerciseView({
   picked,
   setPicked,
   locked,
+  onRecall,
 }: {
   lang: string;
   ex: Exercise;
@@ -173,6 +176,7 @@ function ExerciseView({
   picked: number | null;
   setPicked: (v: number | null) => void;
   locked: boolean;
+  onRecall: (rating: number) => void;
 }) {
   if (ex.kind === "build-sentence") {
     return (
@@ -207,6 +211,10 @@ function ExerciseView({
         <Options options={ex.options} picked={picked} setPicked={setPicked} locked={locked} />
       </div>
     );
+  }
+
+  if (ex.kind === "recall") {
+    return <RecallCard lang={lang} ex={ex} onSubmit={onRecall} locked={locked} />;
   }
 
   if (ex.kind === "chat-scenario") {
@@ -334,6 +342,55 @@ function SentenceBuilder({
         />
         <span>拖动词块调整顺序，点答案里的词块可以拿回来</span>
       </div>
+    </div>
+  );
+}
+
+/// 背诵卡：正面是词，翻开看释义，自评熟练度。没有音频素材的自定义词也能练。
+function RecallCard({
+  lang,
+  ex,
+  onSubmit,
+  locked,
+}: {
+  lang: string;
+  ex: Extract<Exercise, { kind: "recall" }>;
+  onSubmit: (rating: number) => void;
+  locked: boolean;
+}) {
+  const [revealed, setRevealed] = useState(false);
+
+  return (
+    <div className="exercise recall">
+      <div className="recall-front">
+        <PlayButton lang={lang} text={ex.surface} entryId={ex.entry} />
+        <h2>{ex.surface}</h2>
+        {ex.reading && <p className="muted">/{ex.reading}/</p>}
+      </div>
+
+      {!revealed ? (
+        <div className="actions center">
+          <button className="primary" disabled={locked} onClick={() => setRevealed(true)}>
+            显示释义
+          </button>
+        </div>
+      ) : (
+        <>
+          <p className="recall-back">{ex.gloss ?? "（这个词还没有释义）"}</p>
+          <div className="rating">
+            {[
+              { r: 1, label: "不认识", cls: "again" },
+              { r: 2, label: "模糊", cls: "hard" },
+              { r: 3, label: "认识", cls: "good" },
+              { r: 4, label: "太简单", cls: "easy" },
+            ].map((x) => (
+              <button key={x.r} className={x.cls} disabled={locked} onClick={() => onSubmit(x.r)}>
+                {x.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

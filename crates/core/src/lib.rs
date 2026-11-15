@@ -7,6 +7,7 @@ pub mod article;
 pub mod dialog;
 pub mod entry;
 pub mod exercise;
+pub mod import;
 pub mod manifest;
 pub mod pack;
 pub mod plan;

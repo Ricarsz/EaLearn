@@ -582,19 +582,22 @@ async fn speak(
     lang: String,
     text: String,
     entry_id: Option<String>,
+    voice: Option<String>,
 ) -> Result<String, String> {
     let text = text.trim().to_string();
     if text.is_empty() {
         return Err("没有可朗读的内容".into());
     }
+    // 试听时传 voice：只影响这一次合成，不写回设置
+    let preview = voice.filter(|v| !v.trim().is_empty());
 
     let (spec, pregenerated, dir) = {
         let store = state.store.lock().map_err(err)?;
         let packs = state.packs.lock().map_err(err)?;
         let pack = packs.get(&lang).ok_or_else(|| format!("未加载的语言包: {lang}"))?;
-        let spec = store
-            .get_setting(&format!("{VOICE_KEY_PREFIX}{lang}"))
-            .map_err(err)?
+        let spec = preview
+            .clone()
+            .or_else(|| store.get_setting(&format!("{VOICE_KEY_PREFIX}{lang}")).ok().flatten())
             .filter(|v| !v.is_empty())
             .unwrap_or_else(|| pack.manifest.voice.clone());
 
@@ -642,6 +645,128 @@ async fn speak(
     Ok(to_data_url(&bytes))
 }
 
+// ── 词库与导入 ────────────────────────────────────────────────────────
+
+#[derive(Serialize)]
+pub struct CardListItem {
+    card_id: i64,
+    entry_id: String,
+    surface: String,
+    gloss: Option<String>,
+    kind: CardKind,
+    stability: f64,
+    difficulty: f64,
+    reps: u32,
+    lapses: u32,
+    due: i64,
+    last_review: Option<i64>,
+    /// 0–1，由 FSRS 稳定性换算；只用于展示，不参与调度
+    mastery: f64,
+    is_custom: bool,
+}
+
+#[tauri::command]
+fn list_cards(state: State<'_, AppState>, lang: String) -> Result<Vec<CardListItem>, String> {
+    let packs = state.packs.lock().map_err(err)?;
+    let pack = packs.get(&lang).ok_or_else(|| format!("未加载的语言包: {lang}"))?;
+    let store = state.store.lock().map_err(err)?;
+
+    Ok(store
+        .cards(&lang)
+        .map_err(err)?
+        .into_iter()
+        .map(|c| {
+            let entry = pack.entry(&c.entry_id);
+            CardListItem {
+                card_id: c.card_id,
+                entry_id: c.entry_id.clone(),
+                surface: entry.map(|e| e.surface.clone()).unwrap_or_else(|| c.entry_id.clone()),
+                gloss: entry.and_then(|e| e.gloss.clone()),
+                kind: c.kind,
+                stability: c.state.stability,
+                difficulty: c.state.difficulty,
+                reps: c.state.reps,
+                lapses: c.state.lapses,
+                due: c.state.due,
+                last_review: c.state.last_review,
+                mastery: mastery_of(c.state.stability),
+                is_custom: c.entry_id.starts_with("custom."),
+            }
+        })
+        .collect())
+}
+
+fn mastery_of(stability: f64) -> f64 {
+    if stability <= 0.0 {
+        0.0
+    } else {
+        (1.0 - (-stability / 21.0).exp()).clamp(0.0, 1.0)
+    }
+}
+
+#[tauri::command]
+fn delete_card(state: State<'_, AppState>, card_id: i64) -> Result<(), String> {
+    let store = state.store.lock().map_err(err)?;
+    store.delete_card(card_id).map_err(err)
+}
+
+#[derive(Serialize)]
+pub struct ImportResult {
+    added: usize,
+    skipped: Vec<String>,
+}
+
+/// 导入自定义词条：每行 `word<TAB>释义[<TAB>标签]`。
+/// 导入即入卡——用户特意写下来的词，不该还要再点一次才会复习。
+#[tauri::command]
+fn import_words(
+    state: State<'_, AppState>,
+    lang: String,
+    text: String,
+) -> Result<ImportResult, String> {
+    let report = ealearn_core::import::parse(&text);
+    if report.words.is_empty() {
+        return Ok(ImportResult { added: 0, skipped: report.skipped });
+    }
+
+    let mut packs = state.packs.lock().map_err(err)?;
+    let store = state.store.lock().map_err(err)?;
+    let pack = packs
+        .get_mut(&lang)
+        .ok_or_else(|| format!("未加载的语言包: {lang}"))?;
+    let profile = ealearn_lang::profile(&lang);
+    let at = now();
+
+    let mut added = 0usize;
+    for word in report.words {
+        let id = store
+            .add_custom_entry(
+                &lang,
+                &word.surface,
+                word.gloss.as_deref(),
+                &word.tags.join(","),
+                at,
+            )
+            .map_err(err)?;
+        if pack.entry(&id).is_some() {
+            continue;
+        }
+        let mut entry = ealearn_core::entry::Entry::new(&id, &word.surface);
+        entry.gloss = word.gloss.clone();
+        entry.tags = word.tags.clone();
+        if let Some(p) = profile {
+            entry.tokens = p.tokenize(&word.surface);
+        }
+        pack.words.push(entry);
+        store
+            .add_card(&lang, &id, CardKind::Word, at)
+            .map_err(err)?;
+        added += 1;
+    }
+
+    Ok(ImportResult { added, skipped: report.skipped })
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -653,19 +778,25 @@ pub fn run() {
 
             let at = now();
             let mut map = HashMap::new();
-            for pack in packs {
-                let m = &pack.manifest;
+            for mut pack in packs {
+                let lang = pack.manifest.lang.clone();
+                let display = pack.manifest.display.clone();
+                let version = pack.manifest.version.clone();
+                let hash = pack.manifest.content_hash.clone();
                 store
-                    .upsert_pack(
-                        &m.lang,
-                        &m.display,
-                        &m.version,
-                        m.content_hash.as_deref(),
-                        true,
-                        at,
-                    )
+                    .upsert_pack(&lang, &display, &version, hash.as_deref(), true, at)
                     .map_err(boxed)?;
-                map.insert(m.lang.clone(), pack);
+
+                if let Some(profile) = ealearn_lang::profile(&lang) {
+                    for c in store.custom_entries(&lang).map_err(boxed)? {
+                        let mut entry = ealearn_core::entry::Entry::new(&c.id, &c.surface);
+                        entry.gloss = c.gloss.clone();
+                        entry.tags = c.tags.clone();
+                        entry.tokens = profile.tokenize(&c.surface);
+                        pack.words.push(entry);
+                    }
+                }
+                map.insert(lang, pack);
             }
 
             app.manage(AppState {
@@ -695,7 +826,10 @@ pub fn run() {
             tts_voices,
             get_voice,
             set_voice,
-            speak
+            speak,
+            list_cards,
+            delete_card,
+            import_words
         ])
         .run(tauri::generate_context!())
         .expect("Tauri 启动失败");
