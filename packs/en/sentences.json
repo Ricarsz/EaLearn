@@ -352,5 +352,2120 @@
       }
     ],
     "audio": "media/audio/e50dd2537ceaf790d7b11f1ad7f52e21761f16f20172594de84ff019d83e094b.wav"
+  },
+  {
+    "id": "en.s.0006",
+    "surface": "I'm kind of swamped this week, can we push it to Friday?",
+    "gloss": "这周有点忙不过来，能推到周五吗？",
+    "tokens": [
+      {
+        "surface": "I'm",
+        "lemma": "i'm",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "kind",
+        "lemma": "kind",
+        "span": [
+          4,
+          8
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          9,
+          11
+        ]
+      },
+      {
+        "surface": "swamped",
+        "lemma": "swamp",
+        "span": [
+          12,
+          19
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          20,
+          24
+        ]
+      },
+      {
+        "surface": "week",
+        "lemma": "week",
+        "span": [
+          25,
+          29
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          29,
+          30
+        ]
+      },
+      {
+        "surface": "can",
+        "lemma": "can",
+        "span": [
+          31,
+          34
+        ]
+      },
+      {
+        "surface": "we",
+        "lemma": "we",
+        "span": [
+          35,
+          37
+        ]
+      },
+      {
+        "surface": "push",
+        "lemma": "push",
+        "span": [
+          38,
+          42
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          43,
+          45
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          46,
+          48
+        ]
+      },
+      {
+        "surface": "Friday",
+        "lemma": "friday",
+        "span": [
+          49,
+          55
+        ]
+      },
+      {
+        "surface": "?",
+        "span": [
+          55,
+          56
+        ]
+      }
+    ],
+    "audio": "media/audio/7cec26252238cce9e7465d254b4dad4b06b64f8d4c7ed412a7e1aff6c1a0d71f.wav"
+  },
+  {
+    "id": "en.s.0007",
+    "surface": "She totally ghosted me after the second date.",
+    "gloss": "第二次约会之后她就彻底消失了。",
+    "tokens": [
+      {
+        "surface": "She",
+        "lemma": "she",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "totally",
+        "lemma": "totally",
+        "span": [
+          4,
+          11
+        ]
+      },
+      {
+        "surface": "ghosted",
+        "lemma": "ghost",
+        "span": [
+          12,
+          19
+        ]
+      },
+      {
+        "surface": "me",
+        "lemma": "me",
+        "span": [
+          20,
+          22
+        ]
+      },
+      {
+        "surface": "after",
+        "lemma": "after",
+        "span": [
+          23,
+          28
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          29,
+          32
+        ]
+      },
+      {
+        "surface": "second",
+        "lemma": "second",
+        "span": [
+          33,
+          39
+        ]
+      },
+      {
+        "surface": "date",
+        "lemma": "date",
+        "span": [
+          40,
+          44
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          44,
+          45
+        ]
+      }
+    ],
+    "audio": "media/audio/34ba1d4acfd7fcc3da8ca6af7607679f87a0653347250b4472ac2f59efaaed08.wav"
+  },
+  {
+    "id": "en.s.0008",
+    "surface": "I lowkey want to bail on this party.",
+    "gloss": "我其实有点想放这个派对的鸽子。",
+    "tokens": [
+      {
+        "surface": "I",
+        "lemma": "i",
+        "span": [
+          0,
+          1
+        ]
+      },
+      {
+        "surface": "lowkey",
+        "lemma": "lowkey",
+        "span": [
+          2,
+          8
+        ]
+      },
+      {
+        "surface": "want",
+        "lemma": "want",
+        "span": [
+          9,
+          13
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          14,
+          16
+        ]
+      },
+      {
+        "surface": "bail",
+        "lemma": "bail",
+        "span": [
+          17,
+          21
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          22,
+          24
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          25,
+          29
+        ]
+      },
+      {
+        "surface": "party",
+        "lemma": "party",
+        "span": [
+          30,
+          35
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          35,
+          36
+        ]
+      }
+    ],
+    "audio": "media/audio/3d6b79426c10be67925540f7dc8a4c77711b80be591543a41724291308bf5334.wav"
+  },
+  {
+    "id": "en.s.0009",
+    "surface": "Let's grab coffee next week and catch up.",
+    "gloss": "下周找个时间喝杯咖啡聊聊近况吧。",
+    "tokens": [
+      {
+        "surface": "Let's",
+        "lemma": "let",
+        "span": [
+          0,
+          5
+        ]
+      },
+      {
+        "surface": "grab",
+        "lemma": "grab",
+        "span": [
+          6,
+          10
+        ]
+      },
+      {
+        "surface": "coffee",
+        "lemma": "coffee",
+        "span": [
+          11,
+          17
+        ]
+      },
+      {
+        "surface": "next",
+        "lemma": "next",
+        "span": [
+          18,
+          22
+        ]
+      },
+      {
+        "surface": "week",
+        "lemma": "week",
+        "span": [
+          23,
+          27
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          28,
+          31
+        ]
+      },
+      {
+        "surface": "catch",
+        "lemma": "catch",
+        "span": [
+          32,
+          37
+        ]
+      },
+      {
+        "surface": "up",
+        "lemma": "up",
+        "span": [
+          38,
+          40
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          40,
+          41
+        ]
+      }
+    ],
+    "audio": "media/audio/92af26c5561d227bce7aaffa0b48104546dfa593a44f63177c915942feeb969d.wav"
+  },
+  {
+    "id": "en.s.0010",
+    "surface": "He spilled the tea about their breakup.",
+    "gloss": "他把他们分手的八卦全说了。",
+    "tokens": [
+      {
+        "surface": "He",
+        "lemma": "he",
+        "span": [
+          0,
+          2
+        ]
+      },
+      {
+        "surface": "spilled",
+        "lemma": "spill",
+        "span": [
+          3,
+          10
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          11,
+          14
+        ]
+      },
+      {
+        "surface": "tea",
+        "lemma": "tea",
+        "span": [
+          15,
+          18
+        ]
+      },
+      {
+        "surface": "about",
+        "lemma": "about",
+        "span": [
+          19,
+          24
+        ]
+      },
+      {
+        "surface": "their",
+        "lemma": "their",
+        "span": [
+          25,
+          30
+        ]
+      },
+      {
+        "surface": "breakup",
+        "lemma": "breakup",
+        "span": [
+          31,
+          38
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          38,
+          39
+        ]
+      }
+    ],
+    "audio": "media/audio/32237dadf4926c92c8c8884058cf0df1250fefcac0ffb8f46fa4f9519f91b151.wav"
+  },
+  {
+    "id": "en.s.0011",
+    "surface": "That movie was a total waste of two hours.",
+    "gloss": "那部电影纯粹浪费了两个小时。",
+    "tokens": [
+      {
+        "surface": "That",
+        "lemma": "that",
+        "span": [
+          0,
+          4
+        ]
+      },
+      {
+        "surface": "movie",
+        "lemma": "movie",
+        "span": [
+          5,
+          10
+        ]
+      },
+      {
+        "surface": "was",
+        "lemma": "be",
+        "span": [
+          11,
+          14
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          15,
+          16
+        ]
+      },
+      {
+        "surface": "total",
+        "lemma": "total",
+        "span": [
+          17,
+          22
+        ]
+      },
+      {
+        "surface": "waste",
+        "lemma": "waste",
+        "span": [
+          23,
+          28
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          29,
+          31
+        ]
+      },
+      {
+        "surface": "two",
+        "lemma": "two",
+        "span": [
+          32,
+          35
+        ]
+      },
+      {
+        "surface": "hours",
+        "lemma": "hour",
+        "span": [
+          36,
+          41
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          41,
+          42
+        ]
+      }
+    ],
+    "audio": "media/audio/935d23bf2f3635dca82e0ce69521e781757c22d62325ad7d0eca94d41dcdcf82.wav"
+  },
+  {
+    "id": "en.s.0012",
+    "surface": "I'm not really in the mood for small talk tonight.",
+    "gloss": "今晚我不太想闲聊。",
+    "tokens": [
+      {
+        "surface": "I'm",
+        "lemma": "i'm",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "not",
+        "lemma": "not",
+        "span": [
+          4,
+          7
+        ]
+      },
+      {
+        "surface": "really",
+        "lemma": "really",
+        "span": [
+          8,
+          14
+        ]
+      },
+      {
+        "surface": "in",
+        "lemma": "in",
+        "span": [
+          15,
+          17
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          18,
+          21
+        ]
+      },
+      {
+        "surface": "mood",
+        "lemma": "mood",
+        "span": [
+          22,
+          26
+        ]
+      },
+      {
+        "surface": "for",
+        "lemma": "for",
+        "span": [
+          27,
+          30
+        ]
+      },
+      {
+        "surface": "small",
+        "lemma": "small",
+        "span": [
+          31,
+          36
+        ]
+      },
+      {
+        "surface": "talk",
+        "lemma": "talk",
+        "span": [
+          37,
+          41
+        ]
+      },
+      {
+        "surface": "tonight",
+        "lemma": "tonight",
+        "span": [
+          42,
+          49
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          49,
+          50
+        ]
+      }
+    ],
+    "audio": "media/audio/7c9964e0f0a882d716423986004f794a47630efbe6568026c910ba1e6ba4aba8.wav"
+  },
+  {
+    "id": "en.s.0013",
+    "surface": "Do you mind if I crash on your couch tonight?",
+    "gloss": "今晚我能在你沙发上凑合一晚吗？",
+    "tokens": [
+      {
+        "surface": "Do",
+        "lemma": "do",
+        "span": [
+          0,
+          2
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          3,
+          6
+        ]
+      },
+      {
+        "surface": "mind",
+        "lemma": "mind",
+        "span": [
+          7,
+          11
+        ]
+      },
+      {
+        "surface": "if",
+        "lemma": "if",
+        "span": [
+          12,
+          14
+        ]
+      },
+      {
+        "surface": "I",
+        "lemma": "i",
+        "span": [
+          15,
+          16
+        ]
+      },
+      {
+        "surface": "crash",
+        "lemma": "crash",
+        "span": [
+          17,
+          22
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          23,
+          25
+        ]
+      },
+      {
+        "surface": "your",
+        "lemma": "your",
+        "span": [
+          26,
+          30
+        ]
+      },
+      {
+        "surface": "couch",
+        "lemma": "couch",
+        "span": [
+          31,
+          36
+        ]
+      },
+      {
+        "surface": "tonight",
+        "lemma": "tonight",
+        "span": [
+          37,
+          44
+        ]
+      },
+      {
+        "surface": "?",
+        "span": [
+          44,
+          45
+        ]
+      }
+    ],
+    "audio": "media/audio/bdab516c35fbc8b9bdf8400846b8d2186762da1f8c3f06434383102a081c57f6.wav"
+  },
+  {
+    "id": "en.s.0014",
+    "surface": "We should split the bill, it's fairer that way.",
+    "gloss": "我们 AA 吧，那样更公平。",
+    "tokens": [
+      {
+        "surface": "We",
+        "lemma": "we",
+        "span": [
+          0,
+          2
+        ]
+      },
+      {
+        "surface": "should",
+        "lemma": "should",
+        "span": [
+          3,
+          9
+        ]
+      },
+      {
+        "surface": "split",
+        "lemma": "split",
+        "span": [
+          10,
+          15
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          16,
+          19
+        ]
+      },
+      {
+        "surface": "bill",
+        "lemma": "bill",
+        "span": [
+          20,
+          24
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          24,
+          25
+        ]
+      },
+      {
+        "surface": "it's",
+        "lemma": "it",
+        "span": [
+          26,
+          30
+        ]
+      },
+      {
+        "surface": "fairer",
+        "lemma": "fairer",
+        "span": [
+          31,
+          37
+        ]
+      },
+      {
+        "surface": "that",
+        "lemma": "that",
+        "span": [
+          38,
+          42
+        ]
+      },
+      {
+        "surface": "way",
+        "lemma": "way",
+        "span": [
+          43,
+          46
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          46,
+          47
+        ]
+      }
+    ],
+    "audio": "media/audio/beced9bd220031a73c4b3688b6aba7fd0c11c82c06c032d3c632244704689538.wav"
+  },
+  {
+    "id": "en.s.0015",
+    "surface": "I can't believe she showed up an hour late again.",
+    "gloss": "真不敢相信她又迟到了一小时。",
+    "tokens": [
+      {
+        "surface": "I",
+        "lemma": "i",
+        "span": [
+          0,
+          1
+        ]
+      },
+      {
+        "surface": "can't",
+        "lemma": "ca not",
+        "span": [
+          2,
+          7
+        ]
+      },
+      {
+        "surface": "believe",
+        "lemma": "believe",
+        "span": [
+          8,
+          15
+        ]
+      },
+      {
+        "surface": "she",
+        "lemma": "she",
+        "span": [
+          16,
+          19
+        ]
+      },
+      {
+        "surface": "showed",
+        "lemma": "show",
+        "span": [
+          20,
+          26
+        ]
+      },
+      {
+        "surface": "up",
+        "lemma": "up",
+        "span": [
+          27,
+          29
+        ]
+      },
+      {
+        "surface": "an",
+        "lemma": "an",
+        "span": [
+          30,
+          32
+        ]
+      },
+      {
+        "surface": "hour",
+        "lemma": "hour",
+        "span": [
+          33,
+          37
+        ]
+      },
+      {
+        "surface": "late",
+        "lemma": "late",
+        "span": [
+          38,
+          42
+        ]
+      },
+      {
+        "surface": "again",
+        "lemma": "again",
+        "span": [
+          43,
+          48
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          48,
+          49
+        ]
+      }
+    ],
+    "audio": "media/audio/902486c457425e4bef2824fc91f993d2a2e31143e3f31f394b1562c70b3db128.wav"
+  },
+  {
+    "id": "en.s.0016",
+    "surface": "Could you turn the music down a bit?",
+    "gloss": "音乐能小一点吗？",
+    "tokens": [
+      {
+        "surface": "Could",
+        "lemma": "could",
+        "span": [
+          0,
+          5
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          6,
+          9
+        ]
+      },
+      {
+        "surface": "turn",
+        "lemma": "turn",
+        "span": [
+          10,
+          14
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          15,
+          18
+        ]
+      },
+      {
+        "surface": "music",
+        "lemma": "music",
+        "span": [
+          19,
+          24
+        ]
+      },
+      {
+        "surface": "down",
+        "lemma": "down",
+        "span": [
+          25,
+          29
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          30,
+          31
+        ]
+      },
+      {
+        "surface": "bit",
+        "lemma": "bit",
+        "span": [
+          32,
+          35
+        ]
+      },
+      {
+        "surface": "?",
+        "span": [
+          35,
+          36
+        ]
+      }
+    ],
+    "audio": "media/audio/38f620758c63cb9d1c3813d54283d9091dc2302048fd613e3e4fdd359c7fb0fe.wav"
+  },
+  {
+    "id": "en.s.0017",
+    "surface": "I've been meaning to text you back all day.",
+    "gloss": "我一整天都想着回你消息。",
+    "tokens": [
+      {
+        "surface": "I've",
+        "lemma": "i've",
+        "span": [
+          0,
+          4
+        ]
+      },
+      {
+        "surface": "been",
+        "lemma": "be",
+        "span": [
+          5,
+          9
+        ]
+      },
+      {
+        "surface": "meaning",
+        "lemma": "mean",
+        "span": [
+          10,
+          17
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          18,
+          20
+        ]
+      },
+      {
+        "surface": "text",
+        "lemma": "text",
+        "span": [
+          21,
+          25
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          26,
+          29
+        ]
+      },
+      {
+        "surface": "back",
+        "lemma": "back",
+        "span": [
+          30,
+          34
+        ]
+      },
+      {
+        "surface": "all",
+        "lemma": "all",
+        "span": [
+          35,
+          38
+        ]
+      },
+      {
+        "surface": "day",
+        "lemma": "day",
+        "span": [
+          39,
+          42
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          42,
+          43
+        ]
+      }
+    ],
+    "audio": "media/audio/f8d7b4320c1f95e9a3a299ab2d7aef8c63b3e3223387134209d9697362e12709.wav"
+  },
+  {
+    "id": "en.s.0018",
+    "surface": "The line at the airport was insane this morning.",
+    "gloss": "今早机场排队排疯了。",
+    "tokens": [
+      {
+        "surface": "The",
+        "lemma": "the",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "line",
+        "lemma": "line",
+        "span": [
+          4,
+          8
+        ]
+      },
+      {
+        "surface": "at",
+        "lemma": "at",
+        "span": [
+          9,
+          11
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          12,
+          15
+        ]
+      },
+      {
+        "surface": "airport",
+        "lemma": "airport",
+        "span": [
+          16,
+          23
+        ]
+      },
+      {
+        "surface": "was",
+        "lemma": "be",
+        "span": [
+          24,
+          27
+        ]
+      },
+      {
+        "surface": "insane",
+        "lemma": "insane",
+        "span": [
+          28,
+          34
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          35,
+          39
+        ]
+      },
+      {
+        "surface": "morning",
+        "lemma": "morn",
+        "span": [
+          40,
+          47
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          47,
+          48
+        ]
+      }
+    ],
+    "audio": "media/audio/7dce5473459d8b149e02cb9a65b854ac6514aa7e0af4ed3f24d48003ff98466d.wav"
+  },
+  {
+    "id": "en.s.0019",
+    "surface": "He's been acting kind of weird since Monday.",
+    "gloss": "他从周一开始就有点怪。",
+    "tokens": [
+      {
+        "surface": "He's",
+        "lemma": "he",
+        "span": [
+          0,
+          4
+        ]
+      },
+      {
+        "surface": "been",
+        "lemma": "be",
+        "span": [
+          5,
+          9
+        ]
+      },
+      {
+        "surface": "acting",
+        "lemma": "act",
+        "span": [
+          10,
+          16
+        ]
+      },
+      {
+        "surface": "kind",
+        "lemma": "kind",
+        "span": [
+          17,
+          21
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          22,
+          24
+        ]
+      },
+      {
+        "surface": "weird",
+        "lemma": "weird",
+        "span": [
+          25,
+          30
+        ]
+      },
+      {
+        "surface": "since",
+        "lemma": "since",
+        "span": [
+          31,
+          36
+        ]
+      },
+      {
+        "surface": "Monday",
+        "lemma": "monday",
+        "span": [
+          37,
+          43
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          43,
+          44
+        ]
+      }
+    ],
+    "audio": "media/audio/fadf99d8f79788a334224d8864424173ee229c90b9583e3113e36ee067bdbd28.wav"
+  },
+  {
+    "id": "en.s.0020",
+    "surface": "Let's just order in and watch something tonight.",
+    "gloss": "今晚点外卖看点什么吧。",
+    "tokens": [
+      {
+        "surface": "Let's",
+        "lemma": "let",
+        "span": [
+          0,
+          5
+        ]
+      },
+      {
+        "surface": "just",
+        "lemma": "just",
+        "span": [
+          6,
+          10
+        ]
+      },
+      {
+        "surface": "order",
+        "lemma": "order",
+        "span": [
+          11,
+          16
+        ]
+      },
+      {
+        "surface": "in",
+        "lemma": "in",
+        "span": [
+          17,
+          19
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          20,
+          23
+        ]
+      },
+      {
+        "surface": "watch",
+        "lemma": "watch",
+        "span": [
+          24,
+          29
+        ]
+      },
+      {
+        "surface": "something",
+        "lemma": "someth",
+        "span": [
+          30,
+          39
+        ]
+      },
+      {
+        "surface": "tonight",
+        "lemma": "tonight",
+        "span": [
+          40,
+          47
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          47,
+          48
+        ]
+      }
+    ],
+    "audio": "media/audio/4c2f9d5ef1e503bc8419dda6487ff5b6f8fd5cc70d22720715b460867f593c87.wav"
+  },
+  {
+    "id": "en.s.0021",
+    "surface": "I totally forgot to charge my phone last night.",
+    "gloss": "我昨晚完全忘了给手机充电。",
+    "tokens": [
+      {
+        "surface": "I",
+        "lemma": "i",
+        "span": [
+          0,
+          1
+        ]
+      },
+      {
+        "surface": "totally",
+        "lemma": "totally",
+        "span": [
+          2,
+          9
+        ]
+      },
+      {
+        "surface": "forgot",
+        "lemma": "forgot",
+        "span": [
+          10,
+          16
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          17,
+          19
+        ]
+      },
+      {
+        "surface": "charge",
+        "lemma": "charge",
+        "span": [
+          20,
+          26
+        ]
+      },
+      {
+        "surface": "my",
+        "lemma": "my",
+        "span": [
+          27,
+          29
+        ]
+      },
+      {
+        "surface": "phone",
+        "lemma": "phone",
+        "span": [
+          30,
+          35
+        ]
+      },
+      {
+        "surface": "last",
+        "lemma": "last",
+        "span": [
+          36,
+          40
+        ]
+      },
+      {
+        "surface": "night",
+        "lemma": "night",
+        "span": [
+          41,
+          46
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          46,
+          47
+        ]
+      }
+    ],
+    "audio": "media/audio/0967a8b2a977479aaa13edeb02a584773a5e0066be14dce54a1460b670436fb8.wav"
+  },
+  {
+    "id": "en.s.0022",
+    "surface": "She always finds a way to make things awkward.",
+    "gloss": "她总有办法把气氛弄尴尬。",
+    "tokens": [
+      {
+        "surface": "She",
+        "lemma": "she",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "always",
+        "lemma": "alway",
+        "span": [
+          4,
+          10
+        ]
+      },
+      {
+        "surface": "finds",
+        "lemma": "find",
+        "span": [
+          11,
+          16
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          17,
+          18
+        ]
+      },
+      {
+        "surface": "way",
+        "lemma": "way",
+        "span": [
+          19,
+          22
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          23,
+          25
+        ]
+      },
+      {
+        "surface": "make",
+        "lemma": "make",
+        "span": [
+          26,
+          30
+        ]
+      },
+      {
+        "surface": "things",
+        "lemma": "thing",
+        "span": [
+          31,
+          37
+        ]
+      },
+      {
+        "surface": "awkward",
+        "lemma": "awkward",
+        "span": [
+          38,
+          45
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          45,
+          46
+        ]
+      }
+    ],
+    "audio": "media/audio/59e42b25cac5c0f7f3a6bd84a1c685862a6537a5aa86f142581f952f0a229329.wav"
+  },
+  {
+    "id": "en.s.0023",
+    "surface": "I'd rather walk than wait for the bus in this rain.",
+    "gloss": "这雨里我宁可走路也不等公交。",
+    "tokens": [
+      {
+        "surface": "I'd",
+        "lemma": "i'd",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "rather",
+        "lemma": "rather",
+        "span": [
+          4,
+          10
+        ]
+      },
+      {
+        "surface": "walk",
+        "lemma": "walk",
+        "span": [
+          11,
+          15
+        ]
+      },
+      {
+        "surface": "than",
+        "lemma": "than",
+        "span": [
+          16,
+          20
+        ]
+      },
+      {
+        "surface": "wait",
+        "lemma": "wait",
+        "span": [
+          21,
+          25
+        ]
+      },
+      {
+        "surface": "for",
+        "lemma": "for",
+        "span": [
+          26,
+          29
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          30,
+          33
+        ]
+      },
+      {
+        "surface": "bus",
+        "lemma": "bus",
+        "span": [
+          34,
+          37
+        ]
+      },
+      {
+        "surface": "in",
+        "lemma": "in",
+        "span": [
+          38,
+          40
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          41,
+          45
+        ]
+      },
+      {
+        "surface": "rain",
+        "lemma": "rain",
+        "span": [
+          46,
+          50
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          50,
+          51
+        ]
+      }
+    ],
+    "audio": "media/audio/f2a0630d1d8a7ed8feaf14d517e5a35da8434bf062f18aae53c4378e4fd99d4c.wav"
+  },
+  {
+    "id": "en.s.0024",
+    "surface": "Can you believe how expensive rent has gotten?",
+    "gloss": "你能信房租涨成什么样了吗？",
+    "tokens": [
+      {
+        "surface": "Can",
+        "lemma": "can",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          4,
+          7
+        ]
+      },
+      {
+        "surface": "believe",
+        "lemma": "believe",
+        "span": [
+          8,
+          15
+        ]
+      },
+      {
+        "surface": "how",
+        "lemma": "how",
+        "span": [
+          16,
+          19
+        ]
+      },
+      {
+        "surface": "expensive",
+        "lemma": "expensive",
+        "span": [
+          20,
+          29
+        ]
+      },
+      {
+        "surface": "rent",
+        "lemma": "rent",
+        "span": [
+          30,
+          34
+        ]
+      },
+      {
+        "surface": "has",
+        "lemma": "have",
+        "span": [
+          35,
+          38
+        ]
+      },
+      {
+        "surface": "gotten",
+        "lemma": "get",
+        "span": [
+          39,
+          45
+        ]
+      },
+      {
+        "surface": "?",
+        "span": [
+          45,
+          46
+        ]
+      }
+    ],
+    "audio": "media/audio/f8a7bba5b1fce23acbd0052ce3485286f028222768b83a73ebcc961b3ead7d50.wav"
+  },
+  {
+    "id": "en.s.0025",
+    "surface": "I'm down for whatever, just text me the details.",
+    "gloss": "我都可以，细节发我就行。",
+    "tokens": [
+      {
+        "surface": "I'm",
+        "lemma": "i'm",
+        "span": [
+          0,
+          3
+        ]
+      },
+      {
+        "surface": "down",
+        "lemma": "down",
+        "span": [
+          4,
+          8
+        ]
+      },
+      {
+        "surface": "for",
+        "lemma": "for",
+        "span": [
+          9,
+          12
+        ]
+      },
+      {
+        "surface": "whatever",
+        "lemma": "whatever",
+        "span": [
+          13,
+          21
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          21,
+          22
+        ]
+      },
+      {
+        "surface": "just",
+        "lemma": "just",
+        "span": [
+          23,
+          27
+        ]
+      },
+      {
+        "surface": "text",
+        "lemma": "text",
+        "span": [
+          28,
+          32
+        ]
+      },
+      {
+        "surface": "me",
+        "lemma": "me",
+        "span": [
+          33,
+          35
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          36,
+          39
+        ]
+      },
+      {
+        "surface": "details",
+        "lemma": "detail",
+        "span": [
+          40,
+          47
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          47,
+          48
+        ]
+      }
+    ],
+    "audio": "media/audio/3c6dba4d0855e910e186c999381f3b52f983360c22394cdbbf5ac583eef8f04f.wav"
+  },
+  {
+    "id": "en.s.0026",
+    "surface": "Honestly, that joke did not land at all.",
+    "gloss": "说实话，那个笑话完全没响。",
+    "tokens": [
+      {
+        "surface": "Honestly",
+        "lemma": "honestly",
+        "span": [
+          0,
+          8
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          8,
+          9
+        ]
+      },
+      {
+        "surface": "that",
+        "lemma": "that",
+        "span": [
+          10,
+          14
+        ]
+      },
+      {
+        "surface": "joke",
+        "lemma": "joke",
+        "span": [
+          15,
+          19
+        ]
+      },
+      {
+        "surface": "did",
+        "lemma": "do",
+        "span": [
+          20,
+          23
+        ]
+      },
+      {
+        "surface": "not",
+        "lemma": "not",
+        "span": [
+          24,
+          27
+        ]
+      },
+      {
+        "surface": "land",
+        "lemma": "land",
+        "span": [
+          28,
+          32
+        ]
+      },
+      {
+        "surface": "at",
+        "lemma": "at",
+        "span": [
+          33,
+          35
+        ]
+      },
+      {
+        "surface": "all",
+        "lemma": "all",
+        "span": [
+          36,
+          39
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          39,
+          40
+        ]
+      }
+    ],
+    "audio": "media/audio/e47ab328bdb0756e6cdbe3ae924a0ba8f856057cdae1de931cd53261f3a3b73b.wav"
+  },
+  {
+    "id": "en.s.0027",
+    "surface": "We ended up talking until two in the morning.",
+    "gloss": "我们最后聊到凌晨两点。",
+    "tokens": [
+      {
+        "surface": "We",
+        "lemma": "we",
+        "span": [
+          0,
+          2
+        ]
+      },
+      {
+        "surface": "ended",
+        "lemma": "end",
+        "span": [
+          3,
+          8
+        ]
+      },
+      {
+        "surface": "up",
+        "lemma": "up",
+        "span": [
+          9,
+          11
+        ]
+      },
+      {
+        "surface": "talking",
+        "lemma": "talk",
+        "span": [
+          12,
+          19
+        ]
+      },
+      {
+        "surface": "until",
+        "lemma": "until",
+        "span": [
+          20,
+          25
+        ]
+      },
+      {
+        "surface": "two",
+        "lemma": "two",
+        "span": [
+          26,
+          29
+        ]
+      },
+      {
+        "surface": "in",
+        "lemma": "in",
+        "span": [
+          30,
+          32
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          33,
+          36
+        ]
+      },
+      {
+        "surface": "morning",
+        "lemma": "morn",
+        "span": [
+          37,
+          44
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          44,
+          45
+        ]
+      }
+    ],
+    "audio": "media/audio/bcca274785436787d2486538cd9b8cefb9992db4edb2f5ecff5fab2112c5a3f1.wav"
+  },
+  {
+    "id": "en.s.0028",
+    "surface": "He keeps saying he'll change, but nothing happens.",
+    "gloss": "他老说会改，但什么都没变。",
+    "tokens": [
+      {
+        "surface": "He",
+        "lemma": "he",
+        "span": [
+          0,
+          2
+        ]
+      },
+      {
+        "surface": "keeps",
+        "lemma": "keep",
+        "span": [
+          3,
+          8
+        ]
+      },
+      {
+        "surface": "saying",
+        "lemma": "say",
+        "span": [
+          9,
+          15
+        ]
+      },
+      {
+        "surface": "he'll",
+        "lemma": "he'll",
+        "span": [
+          16,
+          21
+        ]
+      },
+      {
+        "surface": "change",
+        "lemma": "change",
+        "span": [
+          22,
+          28
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          28,
+          29
+        ]
+      },
+      {
+        "surface": "but",
+        "lemma": "but",
+        "span": [
+          30,
+          33
+        ]
+      },
+      {
+        "surface": "nothing",
+        "lemma": "noth",
+        "span": [
+          34,
+          41
+        ]
+      },
+      {
+        "surface": "happens",
+        "lemma": "happen",
+        "span": [
+          42,
+          49
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          49,
+          50
+        ]
+      }
+    ],
+    "audio": "media/audio/82d65e7d102203172d13e73e31bb128dc51ae10c3337dc3c80b260c800156b78.wav"
+  },
+  {
+    "id": "en.s.0029",
+    "surface": "I need to get this off my chest before I explode.",
+    "gloss": "我得把这事说出来，不然要炸了。",
+    "tokens": [
+      {
+        "surface": "I",
+        "lemma": "i",
+        "span": [
+          0,
+          1
+        ]
+      },
+      {
+        "surface": "need",
+        "lemma": "need",
+        "span": [
+          2,
+          6
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          7,
+          9
+        ]
+      },
+      {
+        "surface": "get",
+        "lemma": "get",
+        "span": [
+          10,
+          13
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          14,
+          18
+        ]
+      },
+      {
+        "surface": "off",
+        "lemma": "off",
+        "span": [
+          19,
+          22
+        ]
+      },
+      {
+        "surface": "my",
+        "lemma": "my",
+        "span": [
+          23,
+          25
+        ]
+      },
+      {
+        "surface": "chest",
+        "lemma": "chest",
+        "span": [
+          26,
+          31
+        ]
+      },
+      {
+        "surface": "before",
+        "lemma": "before",
+        "span": [
+          32,
+          38
+        ]
+      },
+      {
+        "surface": "I",
+        "lemma": "i",
+        "span": [
+          39,
+          40
+        ]
+      },
+      {
+        "surface": "explode",
+        "lemma": "explode",
+        "span": [
+          41,
+          48
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          48,
+          49
+        ]
+      }
+    ],
+    "audio": "media/audio/223fa423ce891fc7def0f97e027c8a503e1d61fcf63ed0e77c9db018c288d618.wav"
   }
 ]

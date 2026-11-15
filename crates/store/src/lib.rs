@@ -16,6 +16,7 @@ pub mod schema;
 #[derive(Debug)]
 pub enum StoreError {
     Sqlite(rusqlite::Error),
+    Io(std::io::Error),
     Corner(String),
 }
 
@@ -23,6 +24,7 @@ impl std::fmt::Display for StoreError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             StoreError::Sqlite(e) => write!(f, "数据库错误: {e}"),
+            StoreError::Io(e) => write!(f, "文件错误: {e}"),
             StoreError::Corner(m) => write!(f, "{m}"),
         }
     }
@@ -33,6 +35,12 @@ impl std::error::Error for StoreError {}
 impl From<rusqlite::Error> for StoreError {
     fn from(e: rusqlite::Error) -> Self {
         StoreError::Sqlite(e)
+    }
+}
+
+impl From<std::io::Error> for StoreError {
+    fn from(e: std::io::Error) -> Self {
+        StoreError::Io(e)
     }
 }
 
@@ -88,6 +96,15 @@ pub struct CustomEntry {
     pub book: String,
 }
 
+/// 用户导入的阅读文章。`questions` 是题目数组的 JSON。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CustomArticle {
+    pub id: String,
+    pub title: String,
+    pub body: String,
+    pub questions: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CardRow {
     pub card_id: i64,
@@ -123,6 +140,48 @@ pub struct Stats {
     pub reviews_today: i64,
     pub attempts_today: i64,
     pub accuracy_today: f64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DayAccuracy {
+    pub date: String,
+    pub attempts: i64,
+    pub correct: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct KindAccuracy {
+    pub kind: String,
+    pub attempts: i64,
+    pub correct: i64,
+    pub avg_ms: f64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DueBucket {
+    pub date: String,
+    pub due: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct WeakEntry {
+    pub entry_id: String,
+    pub total: i64,
+    pub wrong: i64,
+    pub last_at: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ExportRow {
+    pub pack: String,
+    pub entry_id: String,
+    pub kind: String,
+    pub stability: f64,
+    pub difficulty: f64,
+    pub reps: i64,
+    pub lapses: i64,
+    pub last_review: i64,
+    pub due: i64,
 }
 
 pub struct Store {
@@ -559,6 +618,77 @@ impl Store {
         Ok(())
     }
 
+    // ── 自定义文章 ──────────────────────────────────────────────────────
+
+    /// 用户导入的阅读文章。题目以 JSON 存在一列，读出来再反序列化。
+    pub fn add_custom_article(
+        &self,
+        pack: &str,
+        title: &str,
+        body: &str,
+        questions: &str,
+        now: i64,
+    ) -> Result<String> {
+        self.conn.execute(
+            "INSERT INTO custom_articles (pack, title, body, questions, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![pack, title, body, questions, now],
+        )?;
+        Ok(format!("custom.article.{}", self.conn.last_insert_rowid()))
+    }
+
+    pub fn custom_articles(&self, pack: &str) -> Result<Vec<CustomArticle>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT seq, title, body, questions FROM custom_articles WHERE pack = ?1 ORDER BY seq",
+        )?;
+        let rows = stmt
+            .query_map(params![pack], |r| {
+                Ok(CustomArticle {
+                    id: format!("custom.article.{}", r.get::<_, i64>(0)?),
+                    title: r.get(1)?,
+                    body: r.get(2)?,
+                    questions: r.get(3)?,
+                })
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows)
+    }
+
+    pub fn delete_custom_article(&self, id: &str) -> Result<()> {
+        let seq = id.rsplit('.').next().unwrap_or_default();
+        self.conn.execute(
+            "DELETE FROM custom_articles WHERE seq = ?1",
+            params![seq.parse::<i64>().unwrap_or(-1)],
+        )?;
+        Ok(())
+    }
+
+    // ── 清理数据 ────────────────────────────────────────────────────────
+
+    /// 清学习记录：卡片（连带 reviews）、作答、番茄钟、聊天。
+    /// 导入的词条/文章与设置都保留。
+    pub fn clear_progress(&self) -> Result<()> {
+        self.conn.execute_batch(
+            "DELETE FROM attempts;
+             DELETE FROM cards;
+             DELETE FROM focus_sessions;
+             DELETE FROM chat_log;",
+        )?;
+        Ok(())
+    }
+
+    /// 连导入内容与设置一起清空，回到刚装好的状态（语言包由启动时重新登记）。
+    pub fn clear_all(&self) -> Result<()> {
+        self.clear_progress()?;
+        self.conn.execute_batch(
+            "DELETE FROM custom_articles;
+             DELETE FROM custom_entries;
+             DELETE FROM settings;
+             DELETE FROM packs;",
+        )?;
+        Ok(())
+    }
+
     // ── 卡片浏览 ────────────────────────────────────────────────────────
 
     pub fn cards(&self, pack: &str) -> Result<Vec<CardRow>> {
@@ -615,12 +745,15 @@ impl Store {
         let mut buckets: std::collections::BTreeMap<i64, DayActivity> =
             std::collections::BTreeMap::new();
         for d in from_day..=today {
-            buckets.insert(d, DayActivity {
-                date: ymd_from_days(d),
-                attempts: 0,
-                reviews: 0,
-                focus_minutes: 0,
-            });
+            buckets.insert(
+                d,
+                DayActivity {
+                    date: ymd_from_days(d),
+                    attempts: 0,
+                    reviews: 0,
+                    focus_minutes: 0,
+                },
+            );
         }
 
         let mut stmt = self
@@ -664,6 +797,225 @@ impl Store {
         }
 
         Ok(buckets.into_values().collect())
+    }
+
+    // ── 统计与导出 ──────────────────────────────────────────────────────
+
+    /// 每日作答数与正确数，空白日补 0。
+    pub fn daily_accuracy(
+        &self,
+        days: u32,
+        now: i64,
+        tz_offset_min: i32,
+    ) -> Result<Vec<DayAccuracy>> {
+        let shift = tz_offset_min as i64 * 60;
+        let today = (now + shift).div_euclid(86_400);
+        let from_day = today - days as i64 + 1;
+
+        let mut buckets: std::collections::BTreeMap<i64, DayAccuracy> =
+            std::collections::BTreeMap::new();
+        for d in from_day..=today {
+            buckets.insert(
+                d,
+                DayAccuracy {
+                    date: ymd_from_days(d),
+                    attempts: 0,
+                    correct: 0,
+                },
+            );
+        }
+
+        let mut stmt = self
+            .conn
+            .prepare("SELECT correct, at FROM attempts WHERE at >= ?1")?;
+        let rows = stmt
+            .query_map(params![from_day * 86_400 - shift], |r| {
+                Ok((r.get::<_, i64>(0)?, r.get::<_, i64>(1)?))
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        for (correct, at) in rows {
+            if let Some(d) = buckets.get_mut(&((at + shift).div_euclid(86_400))) {
+                d.attempts += 1;
+                if correct != 0 {
+                    d.correct += 1;
+                }
+            }
+        }
+        Ok(buckets.into_values().collect())
+    }
+
+    /// 各题型的作答量、正确数与平均耗时。
+    pub fn kind_accuracy(&self, since: i64, packs: &[&str]) -> Result<Vec<KindAccuracy>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT pack, exercise_kind, correct, elapsed_ms FROM attempts WHERE at >= ?1",
+        )?;
+        let rows = stmt
+            .query_map(params![since], |r| {
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, String>(1)?,
+                    r.get::<_, i64>(2)?,
+                    r.get::<_, i64>(3)?,
+                ))
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+
+        let mut map: std::collections::BTreeMap<String, (i64, i64, i64)> =
+            std::collections::BTreeMap::new();
+        for (pack, kind, correct, ms) in rows {
+            if !packs.is_empty() && !packs.contains(&pack.as_str()) {
+                continue;
+            }
+            let e = map.entry(kind).or_insert((0, 0, 0));
+            e.0 += 1;
+            if correct != 0 {
+                e.1 += 1;
+            }
+            e.2 += ms;
+        }
+        Ok(map
+            .into_iter()
+            .map(|(kind, (attempts, correct, ms))| KindAccuracy {
+                kind,
+                attempts,
+                correct,
+                avg_ms: if attempts > 0 {
+                    ms as f64 / attempts as f64
+                } else {
+                    0.0
+                },
+            })
+            .collect())
+    }
+
+    /// 未来若干天的到期卡数（含今天）。
+    pub fn due_forecast(
+        &self,
+        days: u32,
+        now: i64,
+        tz_offset_min: i32,
+        packs: &[&str],
+    ) -> Result<Vec<DueBucket>> {
+        let shift = tz_offset_min as i64 * 60;
+        let today = (now + shift).div_euclid(86_400);
+
+        let mut buckets: std::collections::BTreeMap<i64, DueBucket> =
+            std::collections::BTreeMap::new();
+        for d in today..=today + days as i64 {
+            buckets.insert(
+                d,
+                DueBucket {
+                    date: ymd_from_days(d),
+                    due: 0,
+                },
+            );
+        }
+
+        let mut stmt = self
+            .conn
+            .prepare("SELECT r.due, c.pack FROM reviews r JOIN cards c ON c.id = r.card_id")?;
+        let rows = stmt
+            .query_map([], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?)))?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        for (due, pack) in rows {
+            if !packs.is_empty() && !packs.contains(&pack.as_str()) {
+                continue;
+            }
+            let day = (due + shift).div_euclid(86_400);
+            if let Some(b) = buckets.get_mut(&day) {
+                b.due += 1;
+            }
+        }
+        Ok(buckets.into_values().collect())
+    }
+
+    /// 一段时间内错得最多的词条。
+    pub fn weak_entries(&self, since: i64, packs: &[&str], limit: usize) -> Result<Vec<WeakEntry>> {
+        let mut stmt = self
+            .conn
+            .prepare("SELECT pack, entry_id, correct, at FROM attempts WHERE at >= ?1")?;
+        let rows = stmt
+            .query_map(params![since], |r| {
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, String>(1)?,
+                    r.get::<_, i64>(2)?,
+                    r.get::<_, i64>(3)?,
+                ))
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+
+        let mut map: std::collections::HashMap<(String, String), (i64, i64, i64)> =
+            std::collections::HashMap::new();
+        for (pack, entry_id, correct, at) in rows {
+            if !packs.is_empty() && !packs.contains(&pack.as_str()) {
+                continue;
+            }
+            let e = map.entry((pack, entry_id)).or_insert((0, 0, 0));
+            e.0 += 1;
+            if correct == 0 {
+                e.1 += 1;
+            }
+            e.2 = e.2.max(at);
+        }
+
+        let mut out: Vec<WeakEntry> = map
+            .into_iter()
+            .filter(|(_, (_, wrong, _))| *wrong > 0)
+            .map(|((_, entry_id), (total, wrong, last_at))| WeakEntry {
+                entry_id,
+                total,
+                wrong,
+                last_at,
+            })
+            .collect();
+        out.sort_by(|a, b| b.wrong.cmp(&a.wrong).then(b.last_at.cmp(&a.last_at)));
+        out.truncate(limit);
+        Ok(out)
+    }
+
+    /// 导出卡片复习状态（词面与释义由上层用词条表补）。
+    pub fn export_rows(&self, packs: &[&str]) -> Result<Vec<ExportRow>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT c.pack, c.entry_id, c.kind, r.stability, r.difficulty, r.reps, r.lapses,
+                    COALESCE(r.last_review, 0), r.due
+             FROM cards c JOIN reviews r ON r.card_id = c.id",
+        )?;
+        let rows = stmt
+            .query_map([], |r| {
+                Ok(ExportRow {
+                    pack: r.get(0)?,
+                    entry_id: r.get(1)?,
+                    kind: r.get(2)?,
+                    stability: r.get(3)?,
+                    difficulty: r.get(4)?,
+                    reps: r.get(5)?,
+                    lapses: r.get(6)?,
+                    last_review: r.get(7)?,
+                    due: r.get(8)?,
+                })
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows
+            .into_iter()
+            .filter(|r| packs.is_empty() || packs.contains(&r.pack.as_str()))
+            .collect())
+    }
+
+    /// 把整库备份成一个独立的 SQLite 文件（VACUUM INTO，写入过程中也是一致的）。
+    pub fn backup_to(&self, path: impl AsRef<std::path::Path>) -> Result<()> {
+        let path = path.as_ref();
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        if path.exists() {
+            std::fs::remove_file(path)?;
+        }
+        self.conn.execute(
+            "VACUUM INTO ?1",
+            params![path.to_string_lossy().into_owned()],
+        )?;
+        Ok(())
     }
 
     // ── 设置 ────────────────────────────────────────────────────────────
@@ -850,6 +1202,107 @@ mod tests {
     }
 
     #[test]
+    fn daily_accuracy_and_kind_breakdown() {
+        let s = store();
+        s.record_attempt("en", "en.w.1", None, "word", &grade_eq(), 1000, NOW)
+            .unwrap();
+        s.record_attempt("en", "en.w.2", None, "word", &grade_ne(), 2000, NOW + 60)
+            .unwrap();
+        s.record_attempt(
+            "en",
+            "en.s.1",
+            None,
+            "sentence",
+            &grade_eq(),
+            3000,
+            NOW + 86_400,
+        )
+        .unwrap();
+
+        let days = s.daily_accuracy(3, NOW + 86_400, 0).unwrap();
+        assert_eq!(days.len(), 3);
+        assert_eq!(days[2].attempts, 1);
+        assert_eq!(days[1].attempts, 2);
+        assert_eq!(days[1].correct, 1);
+
+        let kinds = s.kind_accuracy(0, &["en"]).unwrap();
+        assert_eq!(kinds.len(), 2);
+        assert!(kinds.iter().any(|k| k.kind == "word" && k.attempts == 2));
+        assert!(s.kind_accuracy(0, &["ko"]).unwrap().is_empty());
+    }
+
+    #[test]
+    fn due_forecast_and_weak_entries() {
+        let s = store();
+        let id = s.add_card("en", "en.w.1", CardKind::Word, NOW).unwrap();
+        s.review_card(id, Rating::Good, NOW, &Scheduler::default())
+            .unwrap();
+
+        let forecast = s.due_forecast(3, NOW, 0, &["en"]).unwrap();
+        assert_eq!(forecast.len(), 4);
+        assert_eq!(forecast.iter().map(|b| b.due).sum::<i64>(), 1);
+        assert!(s
+            .due_forecast(3, NOW, 0, &["ko"])
+            .unwrap()
+            .iter()
+            .all(|b| b.due == 0));
+
+        for i in 0..3 {
+            let g = if i < 2 { grade_ne() } else { grade_eq() };
+            s.record_attempt("en", "en.w.1", Some(id), "word", &g, 900, NOW + i)
+                .unwrap();
+        }
+        s.record_attempt("en", "en.w.2", None, "word", &grade_eq(), 900, NOW)
+            .unwrap();
+
+        let weak = s.weak_entries(0, &["en"], 10).unwrap();
+        assert_eq!(weak.len(), 1);
+        assert_eq!(weak[0].entry_id, "en.w.1");
+        assert_eq!(weak[0].wrong, 2);
+        assert_eq!(weak[0].total, 3);
+
+        let rows = s.export_rows(&["en"]).unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].entry_id, "en.w.1");
+        assert!(rows[0].stability > 0.0);
+        assert!(s.export_rows(&["ko"]).unwrap().is_empty());
+    }
+
+    #[test]
+    fn backup_writes_a_readable_copy() {
+        let s = store();
+        s.add_card("en", "en.w.1", CardKind::Word, NOW).unwrap();
+        let dir = std::env::temp_dir().join(format!("ealearn-backup-test-{}", std::process::id()));
+        let path = dir.join("e.db");
+        s.backup_to(&path).unwrap();
+        assert!(path.is_file());
+
+        let copy = Store::open(&path).unwrap();
+        assert_eq!(copy.cards("en").unwrap().len(), 1);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    fn grade_eq() -> ealearn_core::exercise::Grade {
+        let ex = Exercise::WordFromAudio {
+            entry: "e".into(),
+            audio: "a.wav".into(),
+            options: vec!["a".into(), "b".into()],
+            answer: 0,
+        };
+        ex.grade(&Answer::Choice { index: 0 }).unwrap()
+    }
+
+    fn grade_ne() -> ealearn_core::exercise::Grade {
+        let ex = Exercise::WordFromAudio {
+            entry: "e".into(),
+            audio: "a.wav".into(),
+            options: vec!["a".into(), "b".into()],
+            answer: 0,
+        };
+        ex.grade(&Answer::Choice { index: 1 }).unwrap()
+    }
+
+    #[test]
     fn custom_entries_roundtrip_and_dedupe() {
         let s = store();
         let id = s
@@ -876,7 +1329,12 @@ mod tests {
     fn bulk_import_is_idempotent() {
         let s = store();
         let rows = vec![
-            ("ghost".to_string(), Some("玩消失".to_string()), "slang".to_string(), "daily".to_string()),
+            (
+                "ghost".to_string(),
+                Some("玩消失".to_string()),
+                "slang".to_string(),
+                "daily".to_string(),
+            ),
             ("vibe".to_string(), None, String::new(), "daily".to_string()),
         ];
         let first = s.bulk_add_custom_entries("en", &rows, NOW).unwrap();
@@ -884,15 +1342,73 @@ mod tests {
         assert!(first.iter().all(|(_, created)| *created));
 
         let ids: Vec<String> = first.iter().map(|(id, _)| id.clone()).collect();
-        assert_eq!(s.bulk_add_cards("en", &ids, CardKind::Word, NOW).unwrap(), 2);
+        assert_eq!(
+            s.bulk_add_cards("en", &ids, CardKind::Word, NOW).unwrap(),
+            2
+        );
         // 再来一次不新增卡
-        assert_eq!(s.bulk_add_cards("en", &ids, CardKind::Word, NOW).unwrap(), 0);
+        assert_eq!(
+            s.bulk_add_cards("en", &ids, CardKind::Word, NOW).unwrap(),
+            0
+        );
 
         let second = s.bulk_add_custom_entries("en", &rows, NOW).unwrap();
         assert!(second.iter().all(|(_, created)| !created));
         assert_eq!(second[0].0, first[0].0, "重复导入应复用同一条");
         assert_eq!(s.custom_entries("en").unwrap().len(), 2);
         assert_eq!(s.custom_entries("en").unwrap()[0].book, "daily");
+    }
+
+    #[test]
+    fn clear_progress_keeps_imported_content() {
+        let s = store();
+        s.add_card("en", "en.w.0001", CardKind::Word, NOW).unwrap();
+        let id = s
+            .add_custom_entry("en", "ghost", Some("玩消失"), "", "", NOW)
+            .unwrap();
+        s.add_focus(25, true, NOW).unwrap();
+        s.set_setting("tts_voice:en", "piper:en_US-lessac").unwrap();
+
+        s.clear_progress().unwrap();
+        assert_eq!(s.card_count().unwrap(), 0);
+        assert_eq!(s.custom_entries("en").unwrap().len(), 1);
+        assert_eq!(s.get_setting("tts_voice:en").unwrap().is_some(), true);
+        assert!(id.starts_with("custom."));
+    }
+
+    #[test]
+    fn clear_all_wipes_everything() {
+        let s = store();
+        s.add_custom_entry("en", "ghost", None, "", "", NOW)
+            .unwrap();
+        s.add_custom_article("en", "t", "b", "[]", NOW).unwrap();
+        s.set_setting("k", "v").unwrap();
+
+        s.clear_all().unwrap();
+        assert_eq!(s.custom_entries("en").unwrap().len(), 0);
+        assert_eq!(s.custom_articles("en").unwrap().len(), 0);
+        assert_eq!(s.get_setting("k").unwrap(), None);
+        assert!(s.packs().unwrap().is_empty());
+    }
+
+    #[test]
+    fn custom_articles_roundtrip() {
+        let s = store();
+        let id = s
+            .add_custom_article(
+                "en",
+                "标题",
+                "正文",
+                r#"[{"prompt":"q","options":["a","b"],"answer":1}]"#,
+                NOW,
+            )
+            .unwrap();
+        assert!(id.starts_with("custom.article."));
+        let list = s.custom_articles("en").unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].title, "标题");
+        s.delete_custom_article(&id).unwrap();
+        assert!(s.custom_articles("en").unwrap().is_empty());
     }
 
     #[test]

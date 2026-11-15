@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=EaLearn
+GenericName=Language Learning
+Comment=离线优先的语言学习应用：背单词、听力、拼句、阅读与自由聊
+Exec=ealearn %U
+Icon=ealearn
+Terminal=false
+Categories=Education;Languages;
+Keywords=language;vocabulary;srs;learn;背单词;语言;
+StartupNotify=true
+StartupWMClass=ealearn

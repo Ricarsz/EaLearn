@@ -118,6 +118,23 @@ export type Dialog = {
   tags?: string[];
 };
 
+export type Question = {
+  prompt: string;
+  options: string[];
+  answer: number;
+  explain?: string;
+};
+
+export type Article = {
+  id: string;
+  title: string;
+  body: string;
+  tokens?: Token[];
+  questions?: Question[];
+  tags?: string[];
+  difficulty?: number;
+};
+
 export type Entry = {
   id: string;
   surface: string;
@@ -191,11 +208,17 @@ export type BookInfo = {
 export type RemoteBook = {
   id: string;
   lang: string;
+  /** words / sentences / article；老索引没有这个字段，按 words 处理 */
+  kind?: string;
   name: string;
   url: string;
+  /** 备用地址，主地址不可达时依次尝试 */
+  mirrors?: string[];
   count: number;
   license: string;
   note: string;
+  /** 本地已经导入多少条；>0 表示已下载 */
+  imported: number;
 };
 
 export type ImportResult = { added: number; updated: number; skipped: string[] };
@@ -207,7 +230,27 @@ export type DayActivity = {
   focus_minutes: number;
 };
 
+export type DayAccuracy = { date: string; attempts: number; correct: number };
+export type KindAccuracy = { kind: string; attempts: number; correct: number; avg_ms: number };
+export type DueBucket = { date: string; due: number };
+export type WeakEntry = {
+  entry_id: string;
+  surface: string;
+  gloss: string | null;
+  total: number;
+  wrong: number;
+  last_at: number;
+};
+
 export type VoiceInfo = { id: string; label: string; engine: string; ready: boolean };
+
+export type VoiceOption = {
+  id: string;
+  name: string;
+  quality: string;
+  size_mb: number;
+  installed: boolean;
+};
 
 export type DialogSummary = { id: string; title: string; theme: string; nodes: number };
 
@@ -224,6 +267,7 @@ export const api = {
     invoke<number>("due_cards", { lang, limit }),
   listDialogs: (lang: string) => invoke<DialogSummary[]>("list_dialogs", { lang }),
   getDialog: (lang: string, id: string) => invoke<Dialog>("get_dialog", { lang, id }),
+  getArticle: (lang: string, id: string) => invoke<Article>("get_article", { lang, id }),
   lookup: (lang: string, entryId: string) =>
     invoke<Token[]>("lookup", { lang, entryId }),
   define: (lang: string, word: string) =>
@@ -239,6 +283,8 @@ export const api = {
   chatHistory: (session: string, limit: number) =>
     invoke<[string, string][]>("chat_history", { session, limit }),
   ttsVoices: (lang: string) => invoke<VoiceInfo[]>("tts_voices", { lang }),
+  voiceCatalog: (lang: string) => invoke<VoiceOption[]>("voice_catalog", { lang }),
+  installVoice: (id: string) => invoke<void>("install_voice", { id }),
   getVoice: (lang: string) => invoke<string | null>("get_voice", { lang }),
   setVoice: (lang: string, voice: string) => invoke<void>("set_voice", { lang, voice }),
   speak: (lang: string, text: string, entryId?: string, voice?: string) =>
@@ -249,16 +295,30 @@ export const api = {
     invoke<void>("delete_custom_entry", { lang, entryId }),
   importWords: (lang: string, text: string, book?: string) =>
     invoke<ImportResult>("import_words", { lang, text, book }),
+  importArticle: (lang: string, text: string) => invoke<string>("import_article", { lang, text }),
   listBooks: () => invoke<BookInfo[]>("list_books"),
   importBook: (id: string) => invoke<ImportResult>("import_book", { id }),
   remoteBooks: (indexUrl?: string) =>
     invoke<RemoteBook[]>("remote_books", { indexUrl }),
   booksIndexUrl: () => invoke<string>("books_index_url"),
   setBooksIndexUrl: (url: string) => invoke<void>("set_books_index_url", { url }),
-  installRemoteBook: (lang: string, name: string, url: string) =>
-    invoke<ImportResult>("install_remote_book", { lang, name, url }),
+  installRemoteBook: (lang: string, name: string, url: string, kind?: string, mirrors?: string[]) =>
+    invoke<ImportResult>("install_remote_book", { lang, name, url, kind, mirrors }),
   recordFocus: (minutes: number, completed: boolean) =>
     invoke<void>("record_focus", { minutes, completed }),
   activity: (days: number, tzOffsetMin: number) =>
     invoke<DayActivity[]>("activity", { days, tzOffsetMin }),
+  dailyAccuracy: (days: number, tzOffsetMin: number) =>
+    invoke<DayAccuracy[]>("daily_accuracy", { days, tzOffsetMin }),
+  kindAccuracy: (days: number, lang?: string) =>
+    invoke<KindAccuracy[]>("kind_accuracy", { days, lang }),
+  dueForecast: (days: number, tzOffsetMin: number, lang?: string) =>
+    invoke<DueBucket[]>("due_forecast", { days, tzOffsetMin, lang }),
+  weakEntries: (lang: string, days: number, limit: number) =>
+    invoke<WeakEntry[]>("weak_entries", { lang, days, limit }),
+  exportCards: (lang: string) => invoke<string>("export_cards", { lang }),
+  backupDb: () => invoke<string>("backup_db"),
+  getSetting: (key: string) => invoke<string | null>("get_setting", { key }),
+  setSetting: (key: string, value: string) => invoke<void>("set_setting", { key, value }),
+  resetData: (scope: "progress" | "all") => invoke<void>("reset_data", { scope }),
 };

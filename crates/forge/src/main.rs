@@ -5,6 +5,7 @@
 
 use std::process::ExitCode;
 
+use ealearn_core::entry::Entry;
 use ealearn_core::pack::Pack;
 use ealearn_core::validate::validate_pack;
 
@@ -24,6 +25,7 @@ fn main() -> ExitCode {
         ("voices", Some(lang)) => voices(lang),
         ("say", Some(spec)) => say(spec, &args[2..]),
         ("gen", Some("dialog")) => gen_dialog(&args[2..]),
+        ("corpus", Some(kind)) => corpus(kind, &args[2..]),
         ("check-import", Some(path)) => check_import(path),
         ("--help" | "-h" | "help", _) => {
             usage();
@@ -43,12 +45,16 @@ fn usage() {
   forge hash <pack-dir>            打印内容指纹，用于写进 manifest.json 的 content_hash
   forge annotate <lang> [text]     打印分词与标注；不给 text 则从 stdin 读
   forge tokens <lang> [text]       只输出 token 的 JSON 数组，供生成 pack 时内联
-  forge audio <pack-dir> [--voice espeak:en-us] [--force]
+  forge audio <pack-dir> [--voice piper:en_US-lessac] [--force]
                                    预合成词条与句子的音频，写回 pack 并更新指纹
-  forge voices <lang>              列出该语言可用的音色（espeak + 本机 piper 模型）
+  forge voices <lang>              列出该语言可用的音色（本机 piper 模型）
   forge say <voice> <文字> <输出.wav>
                                    用指定音色合成一句，排查音色问题时用
   forge check-import <file>        试解析一个词书文件，报告能识别多少词
+  forge corpus words <pack-dir> --from=<ecdict.csv> [--tag=cet4] [--limit=2000]
+                                   从 ECDICT 批量导入词条，按词频排序
+  forge corpus sentences <pack-dir> --from=<pairs.tsv> [--limit=200] [--max-words=14]
+                                   从 Tatoeba 句对批量导入句子（英文<TAB>中文）
   forge gen dialog <lang> <theme> [--count N] [--level L] [--nodes N]
                    [--out DIR] [--dry-run]
                                    让 LLM 生成剧本对话草稿，标注后写入 DIR
@@ -301,7 +307,12 @@ fn audio(dir: &str, rest: &[String]) -> ExitCode {
         .words
         .iter()
         .chain(pack.sentences.iter())
-        .filter_map(|e| e.audio.as_ref().and_then(|a| a.rsplit('/').next()).map(str::to_string))
+        .filter_map(|e| {
+            e.audio
+                .as_ref()
+                .and_then(|a| a.rsplit('/').next())
+                .map(str::to_string)
+        })
         .collect();
     let mut pruned = 0usize;
     if let Ok(entries) = std::fs::read_dir(&audio_dir) {
@@ -333,7 +344,11 @@ fn audio(dir: &str, rest: &[String]) -> ExitCode {
         pack.manifest.display,
         &hash[..12]
     );
-    if failed > 0 { ExitCode::from(1) } else { ExitCode::SUCCESS }
+    if failed > 0 {
+        ExitCode::from(1)
+    } else {
+        ExitCode::SUCCESS
+    }
 }
 
 fn write_items<T: serde::Serialize>(path: &std::path::Path, items: &[T]) -> std::io::Result<()> {
@@ -352,7 +367,7 @@ fn write_manifest(
 fn voices(lang: &str) -> ExitCode {
     let list = ealearn_tts::available(lang);
     if list.is_empty() {
-        eprintln!("{lang} 没有可用音色：确认已装 espeak-ng，或把 piper 模型放进模型目录");
+        eprintln!("{lang} 没有可用音色：把 piper 模型（onnx + onnx.json）放进模型目录");
         return ExitCode::from(1);
     }
     for v in &list {
@@ -396,6 +411,306 @@ fn say(spec: &str, rest: &[String]) -> ExitCode {
             ExitCode::from(1)
         }
     }
+}
+
+// ── 批量语料导入 ──────────────────────────────────────────────────────
+//
+// 词条和例句不该一条条写：ECDICT 给词条与释义（带考试标签、词频），
+// Tatoeba 给句对。这里只负责筛选、去重、标注，剩下的交给 `forge validate`。
+
+fn corpus(kind: &str, rest: &[String]) -> ExitCode {
+    let Some(dir) = rest.first().map(String::as_str) else {
+        eprintln!(
+            "用法: forge corpus words <pack-dir> --from=<ecdict.csv> [--tag=cet4] [--limit=2000]"
+        );
+        eprintln!("      forge corpus sentences <pack-dir> --from=<pairs.tsv> [--limit=200] [--max-words=14]");
+        return ExitCode::from(2);
+    };
+    let Some(from) = arg_of(rest, "from") else {
+        eprintln!("缺少 --from=<文件>");
+        return ExitCode::from(2);
+    };
+    let limit = arg_of(rest, "limit")
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1000usize);
+
+    match kind {
+        "words" => corpus_words(dir, &from, arg_of(rest, "tag").as_deref(), limit),
+        "sentences" => {
+            let max_words = arg_of(rest, "max-words")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(14usize);
+            corpus_sentences(dir, &from, limit, max_words)
+        }
+        other => {
+            eprintln!("未知的语料类型 {other}，只支持 words / sentences");
+            ExitCode::from(2)
+        }
+    }
+}
+
+fn arg_of(args: &[String], key: &str) -> Option<String> {
+    let prefix = format!("--{key}=");
+    args.iter()
+        .find_map(|a| a.strip_prefix(&prefix).map(str::to_string))
+}
+
+/// 从 ECDICT 的 CSV 里挑词。`--tag=cet4` 只取四级词，按词频从高到低排。
+fn corpus_words(dir: &str, from: &str, tag: Option<&str>, limit: usize) -> ExitCode {
+    let mut pack = match Pack::load(dir) {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("加载失败: {e}");
+            return ExitCode::from(1);
+        }
+    };
+    let lang = pack.manifest.lang.clone();
+    let Some(profile) = ealearn_lang::profile(&lang) else {
+        eprintln!("未实现的语言: {lang}");
+        return ExitCode::from(1);
+    };
+    let file = match std::fs::File::open(from) {
+        Ok(f) => f,
+        Err(e) => {
+            eprintln!("打开 {} 失败: {e}", from);
+            return ExitCode::from(1);
+        }
+    };
+
+    let mut rdr = csv::ReaderBuilder::new()
+        .flexible(true)
+        .from_reader(std::io::BufReader::new(file));
+    let headers = match rdr.headers() {
+        Ok(h) => h.clone(),
+        Err(e) => {
+            eprintln!("读取表头失败: {e}");
+            return ExitCode::from(1);
+        }
+    };
+    let idx = |name: &str| {
+        headers
+            .iter()
+            .position(|h| h.trim_start_matches('\u{feff}') == name)
+    };
+    let (Some(i_word), Some(i_trans), Some(i_tag), Some(i_frq), Some(i_bnc)) = (
+        idx("word"),
+        idx("translation"),
+        idx("tag"),
+        idx("frq"),
+        idx("bnc"),
+    ) else {
+        eprintln!("这不是 ECDICT 的 CSV：缺 word / translation / tag / frq / bnc 列");
+        return ExitCode::from(1);
+    };
+
+    let mut seen: std::collections::HashSet<String> = pack
+        .words
+        .iter()
+        .map(|e| e.surface.to_lowercase())
+        .collect();
+    let mut picked: Vec<(u32, String, String, Vec<String>)> = Vec::new();
+
+    for rec in rdr.records().flatten() {
+        let word = rec.get(i_word).unwrap_or("").trim();
+        if word.is_empty()
+            || word.split_whitespace().count() != 1
+            || !word.chars().any(|c| c.is_alphabetic())
+        {
+            continue;
+        }
+        let tags_field = rec.get(i_tag).unwrap_or("").trim();
+        if let Some(want) = tag {
+            if !tags_field.split_whitespace().any(|t| t == want) {
+                continue;
+            }
+        }
+        let Some(gloss) = tidy_gloss(rec.get(i_trans).unwrap_or("")) else {
+            continue;
+        };
+        if !seen.insert(word.to_lowercase()) {
+            continue;
+        }
+        let rank = rec
+            .get(i_frq)
+            .and_then(|v| v.parse::<u32>().ok())
+            .filter(|v| *v > 0)
+            .or_else(|| {
+                rec.get(i_bnc)
+                    .and_then(|v| v.parse::<u32>().ok())
+                    .filter(|v| *v > 0)
+            })
+            .unwrap_or(u32::MAX);
+        picked.push((
+            rank,
+            word.to_string(),
+            gloss,
+            tags_field.split_whitespace().map(str::to_string).collect(),
+        ));
+    }
+
+    picked.sort_by_key(|(rank, _, _, _)| *rank);
+    picked.truncate(limit);
+
+    let mut seq = next_seq(&pack.words, &lang, "w");
+    for (_, word, gloss, tags) in &picked {
+        let mut entry = Entry::new(format!("{lang}.w.{seq:04}"), word);
+        seq += 1;
+        entry.gloss = Some(gloss.clone());
+        entry.tags = tags.clone();
+        entry.tokens = profile.tokenize(word);
+        pack.words.push(entry);
+    }
+
+    if picked.is_empty() {
+        eprintln!("没有可导入的词（检查 --tag 与词表是否匹配）");
+        return ExitCode::from(1);
+    }
+    if let Err(e) = write_items(&pack.root.join("words.json"), &pack.words) {
+        eprintln!("写回 words.json 失败: {e}");
+        return ExitCode::from(1);
+    }
+    if let Err(e) = refresh_hash(&mut pack) {
+        eprintln!("{e}");
+        return ExitCode::from(1);
+    }
+    println!(
+        "{} · 导入 {} 词 · 现在 {} 词 · 音频用 forge audio 补",
+        pack.manifest.display,
+        picked.len(),
+        pack.words.len()
+    );
+    ExitCode::SUCCESS
+}
+
+/// 从「英文<TAB>中文」句对里挑句子。太短拼不出、太长看着累，按词数卡住。
+fn corpus_sentences(dir: &str, from: &str, limit: usize, max_words: usize) -> ExitCode {
+    let mut pack = match Pack::load(dir) {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("加载失败: {e}");
+            return ExitCode::from(1);
+        }
+    };
+    let lang = pack.manifest.lang.clone();
+    let Some(profile) = ealearn_lang::profile(&lang) else {
+        eprintln!("未实现的语言: {lang}");
+        return ExitCode::from(1);
+    };
+    let text = match std::fs::read_to_string(from) {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("读取 {} 失败: {e}", from);
+            return ExitCode::from(1);
+        }
+    };
+
+    let mut seen: std::collections::HashSet<String> = pack
+        .sentences
+        .iter()
+        .map(|e| e.surface.to_lowercase())
+        .collect();
+    let mut picked: Vec<(String, String)> = Vec::new();
+
+    for line in text.lines() {
+        let mut cols = line.split('\t');
+        let (Some(raw), Some(gloss)) = (cols.next(), cols.next()) else {
+            continue;
+        };
+        let sentence = raw.trim();
+        let gloss = gloss.trim();
+        if gloss.is_empty() || sentence.is_empty() {
+            continue;
+        }
+        // 只要这门语言自己的文字：英语句子里不该出现汉字
+        if lang == "en"
+            && sentence
+                .chars()
+                .any(|c| ('\u{4e00}'..='\u{9fff}').contains(&c))
+        {
+            continue;
+        }
+        let words = sentence.split_whitespace().count();
+        if words < 3 || words > max_words {
+            continue;
+        }
+        if !seen.insert(sentence.to_lowercase()) {
+            continue;
+        }
+        picked.push((sentence.to_string(), gloss.to_string()));
+        if picked.len() >= limit {
+            break;
+        }
+    }
+
+    if picked.is_empty() {
+        eprintln!("没有合格句子（检查 --max-words 与文件格式）");
+        return ExitCode::from(1);
+    }
+
+    let mut seq = next_seq(&pack.sentences, &lang, "s");
+    for (sentence, gloss) in &picked {
+        let mut entry = Entry::new(format!("{lang}.s.{seq:04}"), sentence);
+        seq += 1;
+        entry.gloss = Some(gloss.clone());
+        entry.tokens = profile.tokenize(sentence);
+        pack.sentences.push(entry);
+    }
+
+    if let Err(e) = write_items(&pack.root.join("sentences.json"), &pack.sentences) {
+        eprintln!("写回 sentences.json 失败: {e}");
+        return ExitCode::from(1);
+    }
+    if let Err(e) = refresh_hash(&mut pack) {
+        eprintln!("{e}");
+        return ExitCode::from(1);
+    }
+    println!(
+        "{} · 导入 {} 句 · 现在 {} 句 · 音频用 forge audio 补",
+        pack.manifest.display,
+        picked.len(),
+        pack.sentences.len()
+    );
+    ExitCode::SUCCESS
+}
+
+/// 释义压成一行：多行用「；」连，超长截断。
+fn tidy_gloss(raw: &str) -> Option<String> {
+    // ECDICT 把多行释义写成字面量 `\n`，先还原成换行再拼
+    let text = raw.replace("\\n", "\n");
+    let joined = text
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .collect::<Vec<_>>()
+        .join("；");
+    let mut s = joined.split_whitespace().collect::<Vec<_>>().join(" ");
+    if s.is_empty() {
+        return None;
+    }
+    if s.chars().count() > 80 {
+        s = s.chars().take(80).collect::<String>() + "…";
+    }
+    Some(s)
+}
+
+fn next_seq(entries: &[Entry], lang: &str, kind: &str) -> usize {
+    let prefix = format!("{lang}.{kind}.");
+    entries
+        .iter()
+        .filter_map(|e| e.id.strip_prefix(&prefix)?.parse::<usize>().ok())
+        .max()
+        .unwrap_or(0)
+        + 1
+}
+
+fn refresh_hash(pack: &mut Pack) -> Result<String, String> {
+    let hash = pack
+        .content_hash()
+        .map_err(|e| format!("计算指纹失败: {e}"))?;
+    pack.manifest.content_hash = Some(hash.clone());
+    write_manifest(&pack.root.join("manifest.json"), &pack.manifest)
+        .map_err(|e| format!("写回 manifest.json 失败: {e}"))?;
+    Ok(hash)
 }
 
 // ── LLM 生成剧本对话 ──────────────────────────────────────────────────
@@ -479,7 +794,10 @@ fn gen_dialog(rest: &[String]) -> ExitCode {
             temperature: 0.9,
             timeout_secs: 120,
         };
-        let runtime = match tokio::runtime::Builder::new_current_thread().enable_all().build() {
+        let runtime = match tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+        {
             Ok(rt) => rt,
             Err(e) => {
                 eprintln!("创建运行时失败: {e}");
@@ -511,8 +829,11 @@ fn gen_dialog(rest: &[String]) -> ExitCode {
                         continue;
                     }
                     node.tokens = profile.tokenize(&node.text);
-                    let report =
-                        ealearn_core::validate::check_coverage(&format!("{id}/{}", node.id), &node.text, &node.tokens);
+                    let report = ealearn_core::validate::check_coverage(
+                        &format!("{id}/{}", node.id),
+                        &node.text,
+                        &node.tokens,
+                    );
                     for issue in report.errors() {
                         eprintln!("[标注] {} — {}", issue.at, issue.message);
                     }
@@ -583,5 +904,9 @@ fn check_import(path: &str) -> ExitCode {
     for s in report.skipped.iter().take(5) {
         eprintln!("[跳过] {s}");
     }
-    if report.words.is_empty() { ExitCode::from(1) } else { ExitCode::SUCCESS }
+    if report.words.is_empty() {
+        ExitCode::from(1)
+    } else {
+        ExitCode::SUCCESS
+    }
 }

@@ -6,12 +6,14 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use ealearn_core::article::Article;
 use ealearn_core::dialog::Dialog;
 use ealearn_core::entry::Token;
 use ealearn_core::exercise::{Answer, Exercise, Grade};
 use ealearn_core::pack::Pack;
-use ealearn_core::plan::{self, Coverage};
+use ealearn_core::plan::{self, Coverage, Mode};
 use ealearn_core::srs::{CardState, Rating, Scheduler};
+use ealearn_core::validate::check_coverage;
 use ealearn_store::{CardKind, DayActivity, Stats, Store, StoreError};
 use serde::Serialize;
 use tauri::{Manager, State};
@@ -40,6 +42,19 @@ fn packs_dir(app: &tauri::AppHandle) -> PathBuf {
     if dev.is_dir() {
         return dev;
     }
+    // 打包安装后：随包安装的只读内容优先，其次系统级目录，最后落到用户数据目录。
+    if let Ok(res) = app.path().resource_dir() {
+        let packaged = res.join("packs");
+        if packaged.is_dir() {
+            return packaged;
+        }
+    }
+    for sys in ["/usr/share/ealearn/packs", "/usr/local/share/ealearn/packs"] {
+        let p = PathBuf::from(sys);
+        if p.is_dir() {
+            return p;
+        }
+    }
     app.path()
         .app_data_dir()
         .map(|d| d.join("packs"))
@@ -65,6 +80,59 @@ fn load_packs(dir: &Path) -> Vec<Pack> {
     out
 }
 
+/// 从磁盘加载所有 pack，并把库里导入的词条与文章合并进去。
+/// 启动和「清空数据」之后走同一条路径，保证内存与磁盘一致。
+fn build_packs(app: &tauri::AppHandle, store: &Store) -> Result<HashMap<String, Pack>, String> {
+    let at = now();
+    let mut map = HashMap::new();
+    for mut pack in load_packs(&packs_dir(app)) {
+        let lang = pack.manifest.lang.clone();
+        store
+            .upsert_pack(
+                &lang,
+                &pack.manifest.display,
+                &pack.manifest.version,
+                pack.manifest.content_hash.as_deref(),
+                true,
+                at,
+            )
+            .map_err(err)?;
+        attach_custom(store, &mut pack, &lang);
+        map.insert(lang, pack);
+    }
+    Ok(map)
+}
+
+fn attach_custom(store: &Store, pack: &mut Pack, lang: &str) {
+    let Some(profile) = ealearn_lang::profile(lang) else {
+        return;
+    };
+    if let Ok(list) = store.custom_entries(lang) {
+        for c in list {
+            let mut entry = ealearn_core::entry::Entry::new(&c.id, &c.surface);
+            entry.gloss = c.gloss;
+            entry.tags = c.tags;
+            entry.tokens = profile.tokenize(&c.surface);
+            pack.words.push(entry);
+        }
+    }
+    if let Ok(list) = store.custom_articles(lang) {
+        for a in list {
+            let questions = serde_json::from_str(&a.questions).unwrap_or_default();
+            let tokens = profile.tokenize(&a.body);
+            pack.articles.push(Article {
+                id: a.id,
+                title: a.title,
+                body: a.body,
+                tokens,
+                questions,
+                tags: vec!["custom".into()],
+                difficulty: None,
+            });
+        }
+    }
+}
+
 #[derive(Serialize)]
 pub struct PackSummary {
     lang: String,
@@ -84,6 +152,13 @@ pub struct CardView {
     kind: CardKind,
     state: CardState,
     label: String,
+}
+
+/// 一节练习。`review` 是其中来自到期复习卡的题数，前端用来显示「复习 N 题」。
+#[derive(Serialize)]
+pub struct SessionPlan {
+    exercises: Vec<Exercise>,
+    review: usize,
 }
 
 #[derive(Serialize)]
@@ -137,12 +212,83 @@ fn start_session(
     lang: String,
     limit: usize,
     seed: u64,
-) -> Result<Vec<Exercise>, String> {
+    mode: Option<String>,
+) -> Result<SessionPlan, String> {
     let packs = state.packs.lock().map_err(err)?;
     let pack = packs
         .get(&lang)
         .ok_or_else(|| format!("未加载的语言包: {lang}"))?;
-    Ok(plan::plan(pack, limit.clamp(1, 40), seed))
+    let limit = limit.clamp(1, 40);
+    let mode_str = mode.as_deref().unwrap_or("mixed");
+    let mode = Mode::parse(mode_str);
+
+    // 错题重练：拿最近错的词条重新出题，不掺新素材。
+    if mode_str == "weak" {
+        let store = state.store.lock().map_err(err)?;
+        let since = now() - 30 * 86_400;
+        let weak = store
+            .weak_entries(since, &[lang.as_str()], limit)
+            .map_err(err)?;
+        let kinds: HashMap<String, String> = store
+            .cards(&lang)
+            .map_err(err)?
+            .into_iter()
+            .map(|c| (c.entry_id.clone(), c.kind.as_str().to_string()))
+            .collect();
+        drop(store);
+        let exercises = weak
+            .iter()
+            .filter_map(|w| {
+                let kind = kinds.get(&w.entry_id).map(String::as_str).unwrap_or("word");
+                plan::exercise_for(pack, &w.entry_id, kind, seed ^ w.last_at as u64)
+            })
+            .collect();
+        return Ok(SessionPlan {
+            exercises,
+            review: 0,
+        });
+    }
+
+    if mode != Mode::Mixed {
+        return Ok(SessionPlan {
+            exercises: plan::plan_mode(pack, limit, seed, mode),
+            review: 0,
+        });
+    }
+
+    // 混合模式：到期卡先排，剩下的位置再用新素材补满。
+    // 复习队列只按卡种挑题型，不记历史——同一张卡下次可能换一种练法。
+    let due: Vec<plan::DueItem> = {
+        let store = state.store.lock().map_err(err)?;
+        store
+            .due_cards(now(), limit, &[&lang])
+            .map_err(err)?
+            .into_iter()
+            .map(|c| plan::DueItem {
+                entry_id: c.entry_id,
+                kind: c.kind.as_str().to_string(),
+            })
+            .collect()
+    };
+
+    let (exercises, review) = plan::plan_review_first(pack, limit, seed, &due);
+    Ok(SessionPlan { exercises, review })
+}
+
+/// 阅读题需要正文。正文与题目分开取，练习页先渲染文章再出题。
+#[tauri::command]
+fn get_article(
+    state: State<'_, AppState>,
+    lang: String,
+    id: String,
+) -> Result<ealearn_core::article::Article, String> {
+    let packs = state.packs.lock().map_err(err)?;
+    let pack = packs
+        .get(&lang)
+        .ok_or_else(|| format!("未加载的语言包: {lang}"))?;
+    pack.article(&id)
+        .cloned()
+        .ok_or_else(|| format!("没有这篇文章: {id}"))
 }
 
 #[tauri::command]
@@ -204,6 +350,16 @@ fn submit_answer(
                     .unwrap_or_else(|| entry_id.to_string()),
             });
         }
+    } else {
+        // 文章题与情景题没有词条，也要记一次作答，否则正确率与打卡漏统计。
+        let subject = match &exercise {
+            Exercise::ArticleMcq { article, .. } => format!("article:{article}"),
+            Exercise::ChatScenario { dialog } => format!("dialog:{dialog}"),
+            _ => format!("{}:-", exercise.kind()),
+        };
+        store
+            .record_attempt(&lang, &subject, None, exercise.kind(), &grade, elapsed_ms, at)
+            .map_err(err)?;
     }
 
     Ok(SubmitResult {
@@ -692,6 +848,159 @@ async fn speak(
     Ok(to_data_url(&bytes))
 }
 
+// ── 音色目录 ──────────────────────────────────────────────────────────
+
+const PIPER_VOICES_INDEX: &str =
+    "https://huggingface.co/rhasspy/piper-voices/raw/main/voices.json";
+
+#[derive(Serialize)]
+pub struct VoiceOption {
+    id: String,
+    name: String,
+    quality: String,
+    size_mb: u64,
+    installed: bool,
+}
+
+/// piper 官方索引里没有、但同样能直接用的社区音色。
+struct ExtraVoice {
+    key: &'static str,
+    label: &'static str,
+    lang: &'static str,
+    /// 不含扩展名；下载 `<base>.onnx` 与 `<base>.onnx.json`
+    base_url: &'static str,
+    size_mb: u64,
+}
+
+const EXTRA_VOICES: &[ExtraVoice] = &[ExtraVoice {
+    key: "ko_KR-yjin-female",
+    label: "YJin 韩国女声",
+    lang: "ko",
+    base_url: "https://huggingface.co/YJin1983/piper_ko_female_v1/resolve/main/piper_ko_female_v1",
+    size_mb: 61,
+}];
+
+async fn piper_index() -> Result<serde_json::Value, String> {
+    reqwest::Client::new()
+        .get(PIPER_VOICES_INDEX)
+        .timeout(std::time::Duration::from_secs(40))
+        .send()
+        .await
+        .map_err(|e| format!("拉取音色索引失败: {e}"))?
+        .json()
+        .await
+        .map_err(|e| format!("解析音色索引失败: {e}"))
+}
+
+/// 列出 piper 官方索引里这门语言的音色，标出本机是否已有。
+#[tauri::command]
+async fn voice_catalog(lang: String) -> Result<Vec<VoiceOption>, String> {
+    let idx = piper_index().await?;
+    let map = idx.as_object().ok_or("音色索引格式不对")?;
+    let dir = ealearn_tts::model_dir();
+    let mut out = Vec::new();
+    for (key, entry) in map {
+        let code = entry
+            .pointer("/language/family")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        if code != lang {
+            continue;
+        }
+        let quality = entry
+            .get("quality")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        let size = entry
+            .get("files")
+            .and_then(|f| f.as_object())
+            .and_then(|f| {
+                f.iter()
+                    .find(|(p, _)| p.ends_with(".onnx"))
+                    .and_then(|(_, v)| v.get("size_bytes"))
+                    .and_then(|v| v.as_u64())
+            })
+            .unwrap_or(0);
+        out.push(VoiceOption {
+            id: format!("piper:{key}"),
+            name: entry
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or(key)
+                .to_string(),
+            quality: quality.to_string(),
+            size_mb: size / 1_048_576,
+            installed: dir.join(format!("{key}.onnx")).exists(),
+        });
+    }
+    out.sort_by(|a, b| a.id.cmp(&b.id));
+    for extra in EXTRA_VOICES.iter().filter(|v| v.lang == lang) {
+        out.push(VoiceOption {
+            id: format!("piper:{}", extra.key),
+            name: extra.label.to_string(),
+            quality: "community".to_string(),
+            size_mb: extra.size_mb,
+            installed: dir.join(format!("{}.onnx", extra.key)).exists(),
+        });
+    }
+    Ok(out)
+}
+
+/// 下载一个音色（onnx + onnx.json）到模型目录。
+#[tauri::command]
+async fn install_voice(id: String) -> Result<(), String> {
+    let key = id
+        .strip_prefix("piper:")
+        .ok_or_else(|| format!("音色 id 不对: {id}"))?
+        .to_string();
+    let dir = ealearn_tts::model_dir();
+    std::fs::create_dir_all(&dir).map_err(err)?;
+    let client = reqwest::Client::new();
+
+    // 社区音色：文件名与上游不同，按 key 命名存好，引擎按 stem 就能找到。
+    if let Some(extra) = EXTRA_VOICES.iter().find(|v| v.key == key) {
+        for ext in [".onnx", ".onnx.json"] {
+            let url = format!("{}{ext}", extra.base_url);
+            let bytes = fetch_bytes(&client, &url).await?;
+            std::fs::write(dir.join(format!("{key}{ext}")), &bytes).map_err(err)?;
+        }
+        return Ok(());
+    }
+
+    let idx = piper_index().await?;
+    let entry = idx.get(&key).ok_or_else(|| format!("索引里没有 {key}"))?;
+    let files = entry
+        .get("files")
+        .and_then(|f| f.as_object())
+        .ok_or_else(|| format!("{key} 缺少文件信息"))?;
+
+    for path in files.keys() {
+        if !(path.ends_with(".onnx") || path.ends_with(".onnx.json")) {
+            continue;
+        }
+        let url = format!("https://huggingface.co/rhasspy/piper-voices/resolve/main/{path}");
+        let bytes = fetch_bytes(&client, &url).await?;
+        let name = path.rsplit('/').next().unwrap_or("voice.onnx");
+        std::fs::write(dir.join(name), &bytes).map_err(err)?;
+    }
+    Ok(())
+}
+
+async fn fetch_bytes(client: &reqwest::Client, url: &str) -> Result<Vec<u8>, String> {
+    let resp = client
+        .get(url)
+        .timeout(std::time::Duration::from_secs(300))
+        .send()
+        .await
+        .map_err(|e| format!("下载失败: {e}"))?
+        .error_for_status()
+        .map_err(|e| format!("下载失败: {e}"))?;
+    resp.bytes()
+        .await
+        .map(|b| b.to_vec())
+        .map_err(|e| format!("读取失败: {e}"))
+}
+
 // ── 词库与导入 ────────────────────────────────────────────────────────
 
 #[derive(Serialize)]
@@ -745,12 +1054,20 @@ fn list_cards(state: State<'_, AppState>, lang: String) -> Result<Vec<CardListIt
         .map(|c| (c.id, c.book))
         .collect();
 
+    // 导入几千个词之后线性查找会拖慢词库页，先建一次 id → 词条 的索引。
+    let index: std::collections::HashMap<&str, &ealearn_core::entry::Entry> = pack
+        .words
+        .iter()
+        .chain(pack.sentences.iter())
+        .map(|e| (e.id.as_str(), e))
+        .collect();
+
     Ok(store
         .cards(&lang)
         .map_err(err)?
         .into_iter()
         .map(|c| {
-            let entry = pack.entry(&c.entry_id);
+            let entry = index.get(c.entry_id.as_str()).copied();
             CardListItem {
                 card_id: c.card_id,
                 entry_id: c.entry_id.clone(),
@@ -828,9 +1145,21 @@ fn do_import(
         .collect();
     let stored = store.bulk_add_custom_entries(lang, &rows, at).map_err(err)?;
 
-    let card_ids: Vec<String> = stored.iter().map(|(id, _)| id.clone()).collect();
+    // 多词短语按句子卡入队，练的时候走拼句；单词才是词卡。
+    let mut word_ids: Vec<String> = Vec::new();
+    let mut sentence_ids: Vec<String> = Vec::new();
+    for ((id, _), w) in stored.iter().zip(report.words.iter()) {
+        if w.surface.split_whitespace().count() > 1 {
+            sentence_ids.push(id.clone());
+        } else {
+            word_ids.push(id.clone());
+        }
+    }
     store
-        .bulk_add_cards(lang, &card_ids, CardKind::Word, at)
+        .bulk_add_cards(lang, &word_ids, CardKind::Word, at)
+        .map_err(err)?;
+    store
+        .bulk_add_cards(lang, &sentence_ids, CardKind::Sentence, at)
         .map_err(err)?;
 
     // 合并进内存里的 pack，练习组卷才能立刻用上
@@ -878,6 +1207,76 @@ fn import_words(
     do_import(&state, &lang, &text, book.as_deref().unwrap_or(""))
 }
 
+/// 导入一篇自定义阅读文章：`#` 标题、`?` 题干、`-` 选项、`=` 答案，其余是正文。
+///
+/// 正文用语言 profile 分词并做对齐校验——正文里的标注必须和原文逐字节一致，
+/// 否则宁可不收，避免点词查义点到错的地方。
+#[tauri::command]
+fn import_article(state: State<'_, AppState>, lang: String, text: String) -> Result<String, String> {
+    import_article_text(&state, &lang, &text)
+}
+
+fn import_article_text(state: &AppState, lang: &str, text: &str) -> Result<String, String> {
+    let parsed =
+        ealearn_core::import::parse_article(text).map_err(|e| format!("格式有问题：{e}"))?;
+    let profile =
+        ealearn_lang::profile(lang).ok_or_else(|| format!("未实现的语言: {lang}"))?;
+    let tokens = profile.tokenize(&parsed.body);
+    let report = check_coverage("article", &parsed.body, &tokens);
+    if !report.is_ok() {
+        let msg = report
+            .errors()
+            .next()
+            .map(|i| i.message.clone())
+            .unwrap_or_default();
+        return Err(format!("正文分词没对齐：{msg}"));
+    }
+
+    let questions = serde_json::to_string(&parsed.questions).map_err(err)?;
+    let mut packs = state.packs.lock().map_err(err)?;
+    let store = state.store.lock().map_err(err)?;
+    let id = store
+        .add_custom_article(lang, &parsed.title, &parsed.body, &questions, now())
+        .map_err(err)?;
+    if let Some(pack) = packs.get_mut(lang) {
+        pack.articles.push(Article {
+            id: id.clone(),
+            title: parsed.title,
+            body: parsed.body,
+            tokens,
+            questions: parsed.questions,
+            tags: vec!["custom".into()],
+            difficulty: None,
+        });
+    }
+    Ok(id)
+}
+
+#[tauri::command]
+fn reset_data(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    scope: String,
+) -> Result<(), String> {
+    {
+        let store = state.store.lock().map_err(err)?;
+        match scope.as_str() {
+            "progress" => store.clear_progress().map_err(err)?,
+            "all" => store.clear_all().map_err(err)?,
+            other => return Err(format!("未知的清理范围: {other}")),
+        }
+    }
+
+    // 清掉的自定义词条与文章不能还留在内存里的 pack 中
+    let rebuilt = {
+        let store = state.store.lock().map_err(err)?;
+        build_packs(&app, &store)?
+    };
+    let mut packs = state.packs.lock().map_err(err)?;
+    *packs = rebuilt;
+    Ok(())
+}
+
 // ── 单词书 ────────────────────────────────────────────────────────────
 
 fn books_dir(app: &tauri::AppHandle) -> PathBuf {
@@ -902,14 +1301,23 @@ const DEFAULT_BOOKS_INDEX: &str =
 pub struct RemoteBook {
     id: String,
     lang: String,
+    /// words / sentences / article；老索引没有这个字段，按 words 处理
+    #[serde(default)]
+    kind: Option<String>,
     name: String,
     url: String,
+    /// 备用地址（镜像）：主地址失败时依次尝试
+    #[serde(default)]
+    mirrors: Vec<String>,
     #[serde(default)]
     count: usize,
     #[serde(default)]
     license: String,
     #[serde(default)]
     note: String,
+    /// 本地已经导入多少条（按语言 + 书名匹配），用来显示「已下载」
+    #[serde(default)]
+    imported: usize,
 }
 
 #[derive(serde::Deserialize)]
@@ -918,35 +1326,103 @@ struct BooksIndex {
     books: Vec<RemoteBook>,
 }
 
+/// 读取索引：http(s) 走网络，其余当路径（相对路径按 `books/` 解析）。
+async fn load_index(app: &tauri::AppHandle, source: &str) -> Result<BooksIndex, String> {
+    if source.starts_with("http://") || source.starts_with("https://") {
+        let resp = reqwest::Client::new()
+            .get(source)
+            .timeout(std::time::Duration::from_secs(20))
+            .send()
+            .await
+            .map_err(|e| format!("拉取索引失败: {e}"))?;
+        if !resp.status().is_success() {
+            return Err(format!("索引返回 {}", resp.status()));
+        }
+        return resp.json().await.map_err(|e| format!("解析索引失败: {e}"));
+    }
+
+    let raw = source.strip_prefix("file://").unwrap_or(source);
+    let path = PathBuf::from(raw);
+    let path = if path.is_absolute() {
+        path
+    } else {
+        books_dir(app).join(path)
+    };
+    let text =
+        std::fs::read_to_string(&path).map_err(|e| format!("读取 {} 失败: {e}", path.display()))?;
+    serde_json::from_str(&text).map_err(|e| format!("解析 {} 失败: {e}", path.display()))
+}
+
 /// 在线单词书索引。索引只是一个 JSON 文件，加书不用发版。
+///
+/// 地址可以是 http(s) URL、绝对路径，或相对 `books/` 的文件名。开发时仓库里的
+/// `books/index.json` 优先——改词书列表不必先推到仓库。
 #[tauri::command]
 async fn remote_books(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     index_url: Option<String>,
 ) -> Result<Vec<RemoteBook>, String> {
-    let url = match index_url.filter(|u| !u.trim().is_empty()) {
-        Some(u) => u,
+    let stored = match index_url.filter(|u| !u.trim().is_empty()) {
+        Some(u) => Some(u),
         None => {
             let store = state.store.lock().map_err(err)?;
             store
                 .get_setting(KEY_BOOKS_INDEX)
                 .map_err(err)?
                 .filter(|u| !u.trim().is_empty())
-                .unwrap_or_else(|| DEFAULT_BOOKS_INDEX.to_string())
+        }
+    };
+    let source = match stored {
+        Some(s) => s,
+        None => {
+            let local = books_dir(&app).join("index.json");
+            if local.is_file() {
+                local.to_string_lossy().into_owned()
+            } else {
+                DEFAULT_BOOKS_INDEX.to_string()
+            }
         }
     };
 
-    let resp = reqwest::Client::new()
-        .get(&url)
-        .timeout(std::time::Duration::from_secs(20))
-        .send()
-        .await
-        .map_err(|e| format!("拉取索引失败: {e}"))?;
-    if !resp.status().is_success() {
-        return Err(format!("索引返回 {}", resp.status()));
+    // 索引地址可以写成多行（逗号分隔也行）：第一个失败就换下一个。
+    let mut index = None;
+    let mut last_err = String::new();
+    for candidate in source
+        .split(['\n', ','])
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
+        match load_index(&app, candidate).await {
+            Ok(i) => {
+                index = Some(i);
+                break;
+            }
+            Err(e) => last_err = e,
+        }
     }
-    let index: BooksIndex = resp.json().await.map_err(|e| format!("解析索引失败: {e}"))?;
-    Ok(index.books)
+    let index = index.ok_or_else(|| format!("读取索引失败：{last_err}"))?;
+
+    // 标出哪些书已经导入过：按 (语言, 书名) 数本地词条。
+    let mut books = index.books;
+    let store = state.store.lock().map_err(err)?;
+    let mut counts: HashMap<(String, String), usize> = HashMap::new();
+    let langs: std::collections::HashSet<String> = books.iter().map(|b| b.lang.clone()).collect();
+    for lang in langs {
+        for c in store.custom_entries(&lang).unwrap_or_default() {
+            if c.book.is_empty() {
+                continue;
+            }
+            *counts.entry((lang.clone(), c.book)).or_default() += 1;
+        }
+    }
+    for b in &mut books {
+        b.imported = counts
+            .get(&(b.lang.clone(), b.name.clone()))
+            .copied()
+            .unwrap_or(0);
+    }
+    Ok(books)
 }
 
 #[tauri::command]
@@ -967,22 +1443,82 @@ fn set_books_index_url(state: State<'_, AppState>, url: String) -> Result<(), St
 /// 下载并导入一本在线单词书。
 #[tauri::command]
 async fn install_remote_book(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     lang: String,
     name: String,
     url: String,
+    kind: Option<String>,
+    mirrors: Option<Vec<String>>,
 ) -> Result<ImportResult, String> {
-    let resp = reqwest::Client::new()
-        .get(&url)
-        .timeout(std::time::Duration::from_secs(60))
-        .send()
-        .await
-        .map_err(|e| format!("下载失败: {e}"))?;
-    if !resp.status().is_success() {
-        return Err(format!("下载返回 {}", resp.status()));
+    let mut candidates: Vec<String> = vec![url];
+    candidates.extend(mirrors.unwrap_or_default());
+    candidates.retain(|u| !u.trim().is_empty());
+    candidates.dedup();
+
+    let client = reqwest::Client::new();
+    let mut last_err = String::from("没有可用的下载地址");
+    let mut text = None;
+    for candidate in &candidates {
+        // 本地路径（不含协议）按 `books/` 解析，方便先在本机试内容再推仓库。
+        if !candidate.starts_with("http://") && !candidate.starts_with("https://") {
+            let raw = candidate.strip_prefix("file://").unwrap_or(candidate);
+            let path = PathBuf::from(raw);
+            let path = if path.is_absolute() {
+                path
+            } else {
+                books_dir(&app).join(path)
+            };
+            match std::fs::read_to_string(&path) {
+                Ok(t) => {
+                    text = Some(t);
+                    break;
+                }
+                Err(e) => {
+                    last_err = format!("读取 {} 失败: {e}", path.display());
+                    continue;
+                }
+            }
+        }
+
+        let resp = match client
+            .get(candidate)
+            .timeout(std::time::Duration::from_secs(60))
+            .send()
+            .await
+        {
+            Ok(r) if r.status().is_success() => r,
+            Ok(r) => {
+                last_err = format!("{candidate} 返回 {}", r.status());
+                continue;
+            }
+            Err(e) => {
+                last_err = format!("{candidate} 下载失败: {e}");
+                continue;
+            }
+        };
+        match resp.text().await {
+            Ok(t) => {
+                text = Some(t);
+                break;
+            }
+            Err(e) => last_err = format!("{candidate} 读取失败: {e}"),
+        }
     }
-    let text = resp.text().await.map_err(|e| format!("读取失败: {e}"))?;
-    do_import(&state, &lang, &text, &name)
+    let text = text.ok_or(last_err)?;
+
+    // 句库与词库走同一套解析；文章是文本格式，单独走文章解析。
+    match kind.as_deref().unwrap_or("words") {
+        "article" | "articles" => {
+            import_article_text(&state, &lang, &text)?;
+            Ok(ImportResult {
+                added: 1,
+                updated: 0,
+                skipped: Vec::new(),
+            })
+        }
+        _ => do_import(&state, &lang, &text, &name),
+    }
 }
 
 #[derive(Serialize)]
@@ -1074,6 +1610,187 @@ fn activity(
         .map_err(err)
 }
 
+#[tauri::command]
+fn daily_accuracy(
+    state: State<'_, AppState>,
+    days: u32,
+    tz_offset_min: i32,
+) -> Result<Vec<ealearn_store::DayAccuracy>, String> {
+    let store = state.store.lock().map_err(err)?;
+    store
+        .daily_accuracy(days.clamp(1, 400), now(), tz_offset_min)
+        .map_err(err)
+}
+
+#[tauri::command]
+fn kind_accuracy(
+    state: State<'_, AppState>,
+    days: u32,
+    lang: Option<String>,
+) -> Result<Vec<ealearn_store::KindAccuracy>, String> {
+    let store = state.store.lock().map_err(err)?;
+    let since = now() - days.clamp(1, 400) as i64 * 86_400;
+    let packs: Vec<&str> = lang.as_deref().into_iter().collect();
+    store.kind_accuracy(since, &packs).map_err(err)
+}
+
+#[tauri::command]
+fn due_forecast(
+    state: State<'_, AppState>,
+    days: u32,
+    tz_offset_min: i32,
+    lang: Option<String>,
+) -> Result<Vec<ealearn_store::DueBucket>, String> {
+    let store = state.store.lock().map_err(err)?;
+    let packs: Vec<&str> = lang.as_deref().into_iter().collect();
+    store
+        .due_forecast(days.clamp(1, 90), now(), tz_offset_min, &packs)
+        .map_err(err)
+}
+
+#[derive(Serialize)]
+pub struct WeakEntryView {
+    entry_id: String,
+    surface: String,
+    gloss: Option<String>,
+    total: i64,
+    wrong: i64,
+    last_at: i64,
+}
+
+/// 错得最多的词条，带词面与释义。
+#[tauri::command]
+fn weak_entries(
+    state: State<'_, AppState>,
+    lang: String,
+    days: u32,
+    limit: usize,
+) -> Result<Vec<WeakEntryView>, String> {
+    let packs = state.packs.lock().map_err(err)?;
+    let pack = packs
+        .get(&lang)
+        .ok_or_else(|| format!("未加载的语言包: {lang}"))?;
+    let store = state.store.lock().map_err(err)?;
+    let since = now() - days.clamp(1, 400) as i64 * 86_400;
+    let rows = store
+        .weak_entries(since, &[lang.as_str()], limit.clamp(1, 500))
+        .map_err(err)?;
+
+    let index: HashMap<&str, &ealearn_core::entry::Entry> = pack
+        .words
+        .iter()
+        .chain(pack.sentences.iter())
+        .map(|e| (e.id.as_str(), e))
+        .collect();
+
+    Ok(rows
+        .into_iter()
+        .map(|r| {
+            let entry = index.get(r.entry_id.as_str()).copied();
+            WeakEntryView {
+                surface: entry
+                    .map(|e| e.surface.clone())
+                    .unwrap_or_else(|| r.entry_id.clone()),
+                gloss: entry.and_then(|e| e.gloss.clone()),
+                entry_id: r.entry_id,
+                total: r.total,
+                wrong: r.wrong,
+                last_at: r.last_at,
+            }
+        })
+        .collect())
+}
+
+/// 导出卡片复习状态为 CSV（Anki 可直接导入「正面/背面」两列）。
+/// 返回写出的文件路径；`dir` 为空时写到应用数据目录的 exports/。
+#[tauri::command]
+fn export_cards(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    lang: String,
+    dir: Option<String>,
+) -> Result<String, String> {
+    let packs = state.packs.lock().map_err(err)?;
+    let pack = packs
+        .get(&lang)
+        .ok_or_else(|| format!("未加载的语言包: {lang}"))?;
+    let store = state.store.lock().map_err(err)?;
+    let rows = store.export_rows(&[lang.as_str()]).map_err(err)?;
+
+    let index: HashMap<&str, &ealearn_core::entry::Entry> = pack
+        .words
+        .iter()
+        .chain(pack.sentences.iter())
+        .map(|e| (e.id.as_str(), e))
+        .collect();
+
+    let mut csv = String::from("word,gloss,kind,stability,difficulty,reps,lapses,due,last_review\n");
+    for r in rows {
+        let entry = index.get(r.entry_id.as_str()).copied();
+        let word = entry.map(|e| e.surface.clone()).unwrap_or_else(|| r.entry_id.clone());
+        let gloss = entry.and_then(|e| e.gloss.clone()).unwrap_or_default();
+        csv.push_str(&format!(
+            "{},{},{},{:.2},{:.2},{},{},{},{}\n",
+            csv_cell(&word),
+            csv_cell(&gloss),
+            csv_cell(&r.kind),
+            r.stability,
+            r.difficulty,
+            r.reps,
+            r.lapses,
+            ymd(r.due),
+            if r.last_review > 0 { ymd(r.last_review) } else { String::new() }
+        ));
+    }
+
+    let base = dir
+        .filter(|d| !d.trim().is_empty())
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| app.path().app_data_dir().unwrap_or_default().join("exports"));
+    std::fs::create_dir_all(&base).map_err(err)?;
+    let path = base.join(format!("ealearn-{lang}-{}.csv", ymd(now())));
+    std::fs::write(&path, csv).map_err(err)?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
+fn csv_cell(s: &str) -> String {
+    if s.contains([',', '"', '\n']) {
+        format!("\"{}\"", s.replace('"', "\"\""))
+    } else {
+        s.to_string()
+    }
+}
+
+fn ymd(ts: i64) -> String {
+    // 只用于导出文件的日期列，按 UTC 近似即可。
+    let days = ts.div_euclid(86_400);
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    format!("{y:04}-{m:02}-{d:02}")
+}
+
+/// 把整库备份到应用数据目录的 exports/，返回文件路径。
+#[tauri::command]
+fn backup_db(app: tauri::AppHandle, state: State<'_, AppState>) -> Result<String, String> {
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(err)?
+        .join("exports");
+    let path = dir.join(format!("ealearn-{}.db", ymd(now())));
+    let store = state.store.lock().map_err(err)?;
+    store.backup_to(&path).map_err(err)?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -1081,30 +1798,7 @@ pub fn run() {
             std::fs::create_dir_all(&data_dir)?;
 
             let store = Store::open(data_dir.join("ealearn.db")).map_err(boxed)?;
-            let packs = load_packs(&packs_dir(app.handle()));
-
-            let at = now();
-            let mut map = HashMap::new();
-            for mut pack in packs {
-                let lang = pack.manifest.lang.clone();
-                let display = pack.manifest.display.clone();
-                let version = pack.manifest.version.clone();
-                let hash = pack.manifest.content_hash.clone();
-                store
-                    .upsert_pack(&lang, &display, &version, hash.as_deref(), true, at)
-                    .map_err(boxed)?;
-
-                if let Some(profile) = ealearn_lang::profile(&lang) {
-                    for c in store.custom_entries(&lang).map_err(boxed)? {
-                        let mut entry = ealearn_core::entry::Entry::new(&c.id, &c.surface);
-                        entry.gloss = c.gloss.clone();
-                        entry.tags = c.tags.clone();
-                        entry.tokens = profile.tokenize(&c.surface);
-                        pack.words.push(entry);
-                    }
-                }
-                map.insert(lang, pack);
-            }
+            let map = build_packs(app.handle(), &store).map_err(boxed)?;
 
             app.manage(AppState {
                 store: Mutex::new(store),
@@ -1115,6 +1809,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             list_packs,
             start_session,
+            get_article,
             submit_answer,
             add_card,
             stats,
@@ -1132,6 +1827,14 @@ pub fn run() {
             chat_send,
             chat_history,
             tts_voices,
+            voice_catalog,
+            install_voice,
+            daily_accuracy,
+            kind_accuracy,
+            due_forecast,
+            weak_entries,
+            export_cards,
+            backup_db,
             get_voice,
             set_voice,
             speak,
@@ -1139,6 +1842,8 @@ pub fn run() {
             delete_custom_entry,
             delete_card,
             import_words,
+            import_article,
+            reset_data,
             list_books,
             import_book,
             remote_books,

@@ -17,3 +17,4 @@ ealearn-llm = { path = "../llm" }
 tokio = { version = "1", features = ["rt", "macros"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
+csv = "1"

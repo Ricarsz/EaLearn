@@ -1,0 +1,37 @@
+# Arch 打包：源码来自 GitHub tag，构建前端 + Rust 发布版，安装到系统目录。
+# 用法（在仓库根目录）：
+#   cd packaging && makepkg -f && paru -U ealearn-1.0.0-1-x86_64.pkg.tar.zst
+pkgname=ealearn
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="离线优先的语言学习桌面应用：背单词、听力、拼句、阅读与自由聊"
+arch=('x86_64')
+url="https://github.com/Ricarsz/EaLearn"
+license=('MIT')
+depends=('webkit2gtk-4.1' 'gtk3' 'hicolor-icon-theme')
+makedepends=('cargo' 'rust' 'nodejs' 'pnpm')
+source=("EaLearn::git+${url}#tag=v${pkgver}")
+sha256sums=('SKIP')
+
+build() {
+  cd "$srcdir/EaLearn"
+  pnpm --dir app install --frozen-lockfile
+  pnpm --dir app build
+  cargo build --release --locked --manifest-path src-tauri/Cargo.toml
+}
+
+package() {
+  cd "$srcdir/EaLearn"
+
+  install -Dm755 src-tauri/target/release/ealearn-app "$pkgdir/usr/bin/ealearn"
+  install -Dm644 packaging/ealearn.desktop "$pkgdir/usr/share/applications/ealearn.desktop"
+
+  install -Dm644 src-tauri/icons/32x32.png "$pkgdir/usr/share/icons/hicolor/32x32/apps/ealearn.png"
+  install -Dm644 src-tauri/icons/128x128.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/ealearn.png"
+  install -Dm644 src-tauri/icons/128x128@2x.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/ealearn.png"
+  install -Dm644 src-tauri/icons/icon.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/ealearn.png"
+
+  install -d "$pkgdir/usr/share/ealearn"
+  cp -r packs "$pkgdir/usr/share/ealearn/packs"
+  cp LICENSE README.md "$pkgdir/usr/share/ealearn/"
+}

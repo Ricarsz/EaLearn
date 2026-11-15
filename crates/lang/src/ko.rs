@@ -295,22 +295,99 @@ fn decompose(ch: char) -> Option<(usize, usize, usize)> {
 
 /// 罗马字转写。
 ///
-/// 已实现：音节分解、연음（받침 移到后一音节初声 ㅇ）、ㅎ 收音在元音前脱落。
-/// 未实现：비음화 / 유음화 / 구개음화 等音变（감사합니다 会得到 gamsahapnida
-/// 而不是 gamsahamnida）。补这些规则时同时更新本函数的测试。
+/// 已实现：音节分解、연음、ㅎ 脱落、ㅎ 激音化、구개음화、비음화、유음화、
+/// ㄹ 的鼻音化（종로 → jongno）。更细的例外（ㅎ 弱化、첨가음）没有覆盖。
 pub fn romanize(text: &str) -> String {
     let chars: Vec<char> = text.chars().collect();
+    let n = chars.len();
     let parts: Vec<Option<(usize, usize, usize)>> = chars.iter().map(|c| decompose(*c)).collect();
-    let mut absorbed = vec![false; chars.len()];
-    let mut carried: Vec<&'static str> = vec![""; chars.len()];
 
-    for i in 0..chars.len().saturating_sub(1) {
-        if let (Some((_, _, fin)), Some((next_ini, _, _))) = (parts[i], parts[i + 1]) {
-            if fin != 0 && next_ini == 11 {
-                // ㅎ 收音在元音前不发音；其余收音连读过去
-                carried[i + 1] = if fin == 27 { "" } else { FINAL_MOVED[fin] };
-                absorbed[i] = true;
+    // 每个音节最终用的初声/终声；Some("") 表示这个音被吞掉。
+    let mut ini_out: Vec<Option<&'static str>> = vec![None; n];
+    let mut fin_out: Vec<Option<&'static str>> = vec![None; n];
+    let mut carried: Vec<&'static str> = vec![""; n];
+    let mut absorbed = vec![false; n];
+
+    for i in 0..n.saturating_sub(1) {
+        let (Some((_, _, fin)), Some((next_ini, next_med, _))) = (parts[i], parts[i + 1]) else {
+            continue;
+        };
+        if fin == 0 {
+            continue;
+        }
+        let fin_s = FINAL[fin];
+        let next_s = INITIAL[next_ini];
+        let next_vowel = next_ini == 11; // ㅇ 初声
+        let next_i = next_med == 20; // 中声 ㅣ
+
+        // 구개음화：ㄷ/ㅌ + 이 → 지/치（같이 → gachi，해돋이 → haedoji）
+        if (fin == 7 || fin == 25) && next_vowel && next_i {
+            fin_out[i] = Some("");
+            ini_out[i + 1] = Some(if fin == 7 { "j" } else { "ch" });
+            continue;
+        }
+
+        // ㅎ 收音：后接 ㄱ/ㄷ/ㅈ/ㅅ 时并成激音，后接 ㄴ/ㅁ 时消失（좋다 → jota）
+        if fin == 27 {
+            fin_out[i] = Some("");
+            match next_s {
+                "g" => ini_out[i + 1] = Some("k"),
+                "d" => ini_out[i + 1] = Some("t"),
+                "j" => ini_out[i + 1] = Some("ch"),
+                "s" => ini_out[i + 1] = Some("ss"),
+                _ => {}
             }
+            continue;
+        }
+
+        // 后一个音节是 ㅎ 初声：ㄱ/ㄷ/ㅂ + ㅎ → 激音（축하 → chuka）
+        if next_s == "h" && matches!(fin_s, "k" | "t" | "p") {
+            fin_out[i] = Some(fin_s);
+            ini_out[i + 1] = Some("");
+            continue;
+        }
+
+        // 유음화：ㄴ+ㄹ / ㄹ+ㄴ → ㄹㄹ（신라 → silla，설날 → seollal）
+        if fin_s == "n" && next_s == "r" {
+            fin_out[i] = Some("l");
+            ini_out[i + 1] = Some("l");
+            continue;
+        }
+        if fin_s == "l" && next_s == "r" {
+            ini_out[i + 1] = Some("l");
+            continue;
+        }
+        if fin_s == "l" && next_s == "n" {
+            ini_out[i + 1] = Some("l");
+            continue;
+        }
+
+        // ㄹ 的鼻音化：ㅁ/ㅇ + ㄹ → ㄴ；ㄱ/ㄷ/ㅂ 先鼻音化再加 ㄴ（종로 → jongno）
+        if next_s == "r" {
+            match fin_s {
+                "m" | "ng" => {
+                    ini_out[i + 1] = Some("n");
+                    continue;
+                }
+                "k" | "t" | "p" => {
+                    fin_out[i] = Some(nasal_of(fin_s));
+                    ini_out[i + 1] = Some("n");
+                    continue;
+                }
+                _ => {}
+            }
+        }
+
+        // 비음화：ㄱ/ㄷ/ㅂ + ㄴ/ㅁ → ㅇ/ㄴ/ㅁ（감사합니다 → gamsahamnida）
+        if matches!(next_s, "n" | "m") && matches!(fin_s, "k" | "t" | "p") {
+            fin_out[i] = Some(nasal_of(fin_s));
+            continue;
+        }
+
+        // 연음：收音移到后一音节的 ㅇ 初声位置
+        if next_vowel {
+            carried[i + 1] = FINAL_MOVED[fin];
+            absorbed[i] = true;
         }
     }
 
@@ -321,13 +398,21 @@ pub fn romanize(text: &str) -> String {
             continue;
         };
         out.push_str(carried[i]);
-        out.push_str(INITIAL[ini]);
+        out.push_str(ini_out[i].unwrap_or(INITIAL[ini]));
         out.push_str(MEDIAL[med]);
         if !absorbed[i] {
-            out.push_str(FINAL[fin]);
+            out.push_str(fin_out[i].unwrap_or(FINAL[fin]));
         }
     }
     out
+}
+
+fn nasal_of(fin: &str) -> &'static str {
+    match fin {
+        "k" => "ng",
+        "t" => "n",
+        _ => "m",
+    }
 }
 
 #[cfg(test)]
@@ -377,6 +462,25 @@ mod tests {
         assert_eq!(romanize("밥을"), "babeul");
         assert_eq!(romanize("서울"), "seoul");
         assert_eq!(romanize("안녕하세요"), "annyeonghaseyo");
+    }
+
+    #[test]
+    fn sound_changes_are_applied() {
+        // 비음화
+        assert_eq!(romanize("감사합니다"), "gamsahamnida");
+        assert_eq!(romanize("한국말"), "hangungmal");
+        // 유음화
+        assert_eq!(romanize("신라"), "silla");
+        assert_eq!(romanize("설날"), "seollal");
+        // ㄹ 鼻音化
+        assert_eq!(romanize("종로"), "jongno");
+        assert_eq!(romanize("담력"), "damnyeok");
+        // 구개음화
+        assert_eq!(romanize("같이"), "gachi");
+        assert_eq!(romanize("해돋이"), "haedoji");
+        // ㅎ 激音化
+        assert_eq!(romanize("축하"), "chuka");
+        assert_eq!(romanize("좋다"), "jota");
     }
 
     #[test]

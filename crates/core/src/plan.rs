@@ -142,7 +142,7 @@ pub fn coverage(pack: &Pack) -> Coverage {
         if !e.surface.trim().is_empty() && e.surface.split_whitespace().count() <= 3 {
             c.recall += 1;
         }
-        if e.audio.is_some() && is_choice_word(e) {
+        if is_choice_word(e) {
             c.word_from_audio += 1;
         }
     }
@@ -227,6 +227,55 @@ pub fn plan(pack: &Pack, limit: usize, seed: u64) -> Vec<Exercise> {
     out
 }
 
+/// 到期复习项。把 store 的一行压成 core 需要的最小形状，组卷不必认识 SQLite。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DueItem {
+    pub entry_id: String,
+    /// 卡种：word / sentence / slang / grammar
+    pub kind: String,
+}
+
+/// 混合组卷：到期卡先排，剩下的位置用新素材补满。
+///
+/// 返回（题目，其中来自复习卡的数量）。同一条内容的同一种题型在一节里只出一次；
+/// 到期卡没有可练素材时直接跳过，不占位置也不计入复习数。
+pub fn plan_review_first(
+    pack: &Pack,
+    limit: usize,
+    seed: u64,
+    due: &[DueItem],
+) -> (Vec<Exercise>, usize) {
+    let key = |e: &Exercise| (e.entry_id().unwrap_or("-").to_string(), e.kind());
+    let mut seen = std::collections::HashSet::new();
+    let mut out: Vec<Exercise> = Vec::new();
+    let mut review = 0usize;
+
+    for item in due {
+        if out.len() >= limit {
+            break;
+        }
+        let Some(ex) = exercise_for(pack, &item.entry_id, &item.kind, seed) else {
+            continue;
+        };
+        if !seen.insert(key(&ex)) {
+            continue;
+        }
+        out.push(ex);
+        review += 1;
+    }
+
+    for ex in plan(pack, limit, seed) {
+        if out.len() >= limit {
+            break;
+        }
+        if seen.insert(key(&ex)) {
+            out.push(ex);
+        }
+    }
+
+    (out, review)
+}
+
 /// 按卡片类型挑最合适的题型。
 ///
 /// 到期卡必须能练到：句子卡出拼句；词卡优先听音（有音频时最贴近复习目标），
@@ -250,7 +299,9 @@ fn build(entry: &Entry, pack: &Pack, kind: ExerciseKind, seed: u64) -> Option<Ex
             if !is_choice_word(entry) {
                 return None;
             }
-            let audio = entry.audio.clone()?;
+            // 没有预生成音频也能出题：播放时走运行时 TTS 并缓存，导入的词条因此
+            // 也能进听力，不必等 `forge audio` 重跑。
+            let audio = entry.audio.clone().unwrap_or_default();
             let (options, answer) = choice_set(pack, entry, 4, s)?;
             Some(Exercise::WordFromAudio {
                 entry: entry.id.clone(),
@@ -386,7 +437,8 @@ mod tests {
     #[test]
     fn coverage_counts_available_material() {
         let c = coverage(&pack());
-        assert_eq!(c.word_from_audio, 1);
+        // 五个单词都能出听音题（不要求预生成音频）
+        assert_eq!(c.word_from_audio, 5);
         assert_eq!(c.build_sentence, 1);
         assert_eq!(c.article_mcq, 1);
     }
@@ -408,9 +460,12 @@ mod tests {
         let (options, answer, entry_id) = ex
             .iter()
             .find_map(|e| match e {
-                Exercise::WordFromAudio { options, answer, entry, .. } => {
-                    Some((options.clone(), *answer, entry.clone()))
-                }
+                Exercise::WordFromAudio {
+                    options,
+                    answer,
+                    entry,
+                    ..
+                } => Some((options.clone(), *answer, entry.clone())),
                 _ => None,
             })
             .expect("没有出听音题");
@@ -445,11 +500,20 @@ mod tests {
     fn card_kind_picks_the_closest_exercise() {
         let p = pack();
         // w1 有音频 → 听音优先
-        assert_eq!(exercise_for(&p, "w1", "word", 1).unwrap().kind(), "word-from-audio");
-        // w2 没有音频 → 退回背诵
-        assert_eq!(exercise_for(&p, "w2", "word", 1).unwrap().kind(), "recall");
+        assert_eq!(
+            exercise_for(&p, "w1", "word", 1).unwrap().kind(),
+            "word-from-audio"
+        );
+        // w2 没有预生成音频，听音仍然可用（运行时合成）
+        assert_eq!(
+            exercise_for(&p, "w2", "word", 1).unwrap().kind(),
+            "word-from-audio"
+        );
         // 句子卡 → 拼句
-        assert_eq!(exercise_for(&p, "s1", "sentence", 1).unwrap().kind(), "build-sentence");
+        assert_eq!(
+            exercise_for(&p, "s1", "sentence", 1).unwrap().kind(),
+            "build-sentence"
+        );
         // 不存在的词条不该造出题
         assert!(exercise_for(&p, "nope", "word", 1).is_none());
     }
@@ -482,14 +546,72 @@ mod tests {
     }
 
     #[test]
-    fn missing_audio_falls_back_to_recall() {
+    fn review_cards_come_first_and_are_counted() {
+        let p = pack();
+        let due = vec![DueItem {
+            entry_id: "s1".into(),
+            kind: "sentence".into(),
+        }];
+        let (ex, review) = plan_review_first(&p, 6, 7, &due);
+        assert_eq!(review, 1);
+        assert_eq!(ex[0].kind(), "build-sentence");
+        assert_eq!(ex[0].entry_id(), Some("s1"));
+        assert_eq!(ex.len(), 6);
+
+        // 同一条内容的同一种题型在一节里只出一次
+        let keys: Vec<(String, &'static str)> = ex
+            .iter()
+            .map(|e| (e.entry_id().unwrap_or("-").to_string(), e.kind()))
+            .collect();
+        let unique: std::collections::HashSet<_> = keys.iter().collect();
+        assert_eq!(unique.len(), keys.len(), "同一节里重复出题: {keys:?}");
+    }
+
+    #[test]
+    fn review_without_material_is_skipped() {
+        let p = pack();
+        let due = vec![
+            DueItem {
+                entry_id: "nope".into(),
+                kind: "word".into(),
+            },
+            DueItem {
+                entry_id: "w2".into(),
+                kind: "word".into(),
+            },
+        ];
+        let (ex, review) = plan_review_first(&p, 3, 1, &due);
+        assert_eq!(review, 1, "只有 w2 有可练素材");
+        assert!(ex.iter().all(|e| e.entry_id() != Some("nope")));
+        assert_eq!(ex[0].entry_id(), Some("w2"));
+    }
+
+    #[test]
+    fn review_respects_limit() {
+        let p = pack();
+        let due: Vec<DueItem> = (0..5)
+            .map(|i| DueItem {
+                entry_id: format!("w{i}"),
+                kind: "word".into(),
+            })
+            .collect();
+        let (ex, review) = plan_review_first(&p, 2, 3, &due);
+        assert_eq!(ex.len(), 2);
+        assert_eq!(review, 2);
+    }
+
+    #[test]
+    fn audio_questions_work_without_pregenerated_files() {
         let mut p = pack();
         for w in &mut p.words {
             w.audio = None;
         }
-        assert_eq!(coverage(&p).word_from_audio, 0);
+        // 没有预生成音频不影响出题：播放时按需合成并缓存
+        assert_eq!(coverage(&p).word_from_audio, 5);
         let kinds: Vec<&str> = plan(&p, 10, 1).iter().map(|e| e.kind()).collect();
-        assert!(!kinds.contains(&"word-from-audio"));
-        assert!(kinds.contains(&"recall"));
+        assert!(kinds.contains(&"word-from-audio"));
+        let audio = plan_mode(&p, 10, 1, Mode::Audio);
+        assert!(!audio.is_empty());
+        assert!(audio.iter().all(|e| e.kind() == "word-from-audio"));
     }
 }

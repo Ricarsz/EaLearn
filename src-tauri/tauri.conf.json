@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "EaLearn",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "top.chase141.ealearn",
   "build": {
     "beforeDevCommand": "pnpm --dir ../app dev",
@@ -25,7 +25,22 @@
     }
   },
   "bundle": {
-    "active": false,
-    "targets": "all"
+    "active": true,
+    "targets": ["deb", "rpm", "appimage"],
+    "resources": {
+      "../packs/": "packs/"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/64x64.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Education",
+    "shortDescription": "语言学习：背单词、听力、拼句、阅读与自由聊",
+    "longDescription": "EaLearn 是一个离线优先的语言学习桌面应用：FSRS 复习、四种题型、情景对话与 LLM 自由聊，内容以独立语言包分发。"
   }
 }

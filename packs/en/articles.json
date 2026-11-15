@@ -308,5 +308,3344 @@
         "explain": "原文：never learns what went wrong。"
       }
     ]
+  },
+  {
+    "id": "en.a.0002",
+    "title": "Why We're Bad at Small Talk",
+    "body": "Small talk gets a bad reputation. Most people say they hate it, yet almost everyone does it every day. The problem is not the weather or the traffic; it is the fear of saying something boring. So we keep the conversation on safe ground, and it dies in a few sentences.\n\nResearchers who study conversation found something simple: people enjoy talking about themselves far more than they expect to. A question like \"what was the best part of your week\" works better than \"how are you\", because it asks for a story instead of a status report.\n\nThe goal of small talk is not to impress anyone. It is to find one thing worth following up on, and then follow up on it.",
+    "tokens": [
+      {
+        "surface": "Small",
+        "lemma": "small",
+        "span": [
+          0,
+          5
+        ]
+      },
+      {
+        "surface": "talk",
+        "lemma": "talk",
+        "span": [
+          6,
+          10
+        ]
+      },
+      {
+        "surface": "gets",
+        "lemma": "get",
+        "span": [
+          11,
+          15
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          16,
+          17
+        ]
+      },
+      {
+        "surface": "bad",
+        "lemma": "bad",
+        "span": [
+          18,
+          21
+        ]
+      },
+      {
+        "surface": "reputation",
+        "lemma": "reputation",
+        "span": [
+          22,
+          32
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          32,
+          33
+        ]
+      },
+      {
+        "surface": "Most",
+        "lemma": "most",
+        "span": [
+          34,
+          38
+        ]
+      },
+      {
+        "surface": "people",
+        "lemma": "person",
+        "span": [
+          39,
+          45
+        ]
+      },
+      {
+        "surface": "say",
+        "lemma": "say",
+        "span": [
+          46,
+          49
+        ]
+      },
+      {
+        "surface": "they",
+        "lemma": "they",
+        "span": [
+          50,
+          54
+        ]
+      },
+      {
+        "surface": "hate",
+        "lemma": "hate",
+        "span": [
+          55,
+          59
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          60,
+          62
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          62,
+          63
+        ]
+      },
+      {
+        "surface": "yet",
+        "lemma": "yet",
+        "span": [
+          64,
+          67
+        ]
+      },
+      {
+        "surface": "almost",
+        "lemma": "almost",
+        "span": [
+          68,
+          74
+        ]
+      },
+      {
+        "surface": "everyone",
+        "lemma": "everyone",
+        "span": [
+          75,
+          83
+        ]
+      },
+      {
+        "surface": "does",
+        "lemma": "do",
+        "span": [
+          84,
+          88
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          89,
+          91
+        ]
+      },
+      {
+        "surface": "every",
+        "lemma": "every",
+        "span": [
+          92,
+          97
+        ]
+      },
+      {
+        "surface": "day",
+        "lemma": "day",
+        "span": [
+          98,
+          101
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          101,
+          102
+        ]
+      },
+      {
+        "surface": "The",
+        "lemma": "the",
+        "span": [
+          103,
+          106
+        ]
+      },
+      {
+        "surface": "problem",
+        "lemma": "problem",
+        "span": [
+          107,
+          114
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          115,
+          117
+        ]
+      },
+      {
+        "surface": "not",
+        "lemma": "not",
+        "span": [
+          118,
+          121
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          122,
+          125
+        ]
+      },
+      {
+        "surface": "weather",
+        "lemma": "weather",
+        "span": [
+          126,
+          133
+        ]
+      },
+      {
+        "surface": "or",
+        "lemma": "or",
+        "span": [
+          134,
+          136
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          137,
+          140
+        ]
+      },
+      {
+        "surface": "traffic",
+        "lemma": "traffic",
+        "span": [
+          141,
+          148
+        ]
+      },
+      {
+        "surface": ";",
+        "span": [
+          148,
+          149
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          150,
+          152
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          153,
+          155
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          156,
+          159
+        ]
+      },
+      {
+        "surface": "fear",
+        "lemma": "fear",
+        "span": [
+          160,
+          164
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          165,
+          167
+        ]
+      },
+      {
+        "surface": "saying",
+        "lemma": "say",
+        "span": [
+          168,
+          174
+        ]
+      },
+      {
+        "surface": "something",
+        "lemma": "someth",
+        "span": [
+          175,
+          184
+        ]
+      },
+      {
+        "surface": "boring",
+        "lemma": "bor",
+        "span": [
+          185,
+          191
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          191,
+          192
+        ]
+      },
+      {
+        "surface": "So",
+        "lemma": "so",
+        "span": [
+          193,
+          195
+        ]
+      },
+      {
+        "surface": "we",
+        "lemma": "we",
+        "span": [
+          196,
+          198
+        ]
+      },
+      {
+        "surface": "keep",
+        "lemma": "keep",
+        "span": [
+          199,
+          203
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          204,
+          207
+        ]
+      },
+      {
+        "surface": "conversation",
+        "lemma": "conversation",
+        "span": [
+          208,
+          220
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          221,
+          223
+        ]
+      },
+      {
+        "surface": "safe",
+        "lemma": "safe",
+        "span": [
+          224,
+          228
+        ]
+      },
+      {
+        "surface": "ground",
+        "lemma": "ground",
+        "span": [
+          229,
+          235
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          235,
+          236
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          237,
+          240
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          241,
+          243
+        ]
+      },
+      {
+        "surface": "dies",
+        "lemma": "die",
+        "span": [
+          244,
+          248
+        ]
+      },
+      {
+        "surface": "in",
+        "lemma": "in",
+        "span": [
+          249,
+          251
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          252,
+          253
+        ]
+      },
+      {
+        "surface": "few",
+        "lemma": "few",
+        "span": [
+          254,
+          257
+        ]
+      },
+      {
+        "surface": "sentences",
+        "lemma": "sentence",
+        "span": [
+          258,
+          267
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          267,
+          268
+        ]
+      },
+      {
+        "surface": "Researchers",
+        "lemma": "researcher",
+        "span": [
+          270,
+          281
+        ]
+      },
+      {
+        "surface": "who",
+        "lemma": "who",
+        "span": [
+          282,
+          285
+        ]
+      },
+      {
+        "surface": "study",
+        "lemma": "study",
+        "span": [
+          286,
+          291
+        ]
+      },
+      {
+        "surface": "conversation",
+        "lemma": "conversation",
+        "span": [
+          292,
+          304
+        ]
+      },
+      {
+        "surface": "found",
+        "lemma": "found",
+        "span": [
+          305,
+          310
+        ]
+      },
+      {
+        "surface": "something",
+        "lemma": "someth",
+        "span": [
+          311,
+          320
+        ]
+      },
+      {
+        "surface": "simple",
+        "lemma": "simple",
+        "span": [
+          321,
+          327
+        ]
+      },
+      {
+        "surface": ":",
+        "span": [
+          327,
+          328
+        ]
+      },
+      {
+        "surface": "people",
+        "lemma": "person",
+        "span": [
+          329,
+          335
+        ]
+      },
+      {
+        "surface": "enjoy",
+        "lemma": "enjoy",
+        "span": [
+          336,
+          341
+        ]
+      },
+      {
+        "surface": "talking",
+        "lemma": "talk",
+        "span": [
+          342,
+          349
+        ]
+      },
+      {
+        "surface": "about",
+        "lemma": "about",
+        "span": [
+          350,
+          355
+        ]
+      },
+      {
+        "surface": "themselves",
+        "lemma": "themselve",
+        "span": [
+          356,
+          366
+        ]
+      },
+      {
+        "surface": "far",
+        "lemma": "far",
+        "span": [
+          367,
+          370
+        ]
+      },
+      {
+        "surface": "more",
+        "lemma": "more",
+        "span": [
+          371,
+          375
+        ]
+      },
+      {
+        "surface": "than",
+        "lemma": "than",
+        "span": [
+          376,
+          380
+        ]
+      },
+      {
+        "surface": "they",
+        "lemma": "they",
+        "span": [
+          381,
+          385
+        ]
+      },
+      {
+        "surface": "expect",
+        "lemma": "expect",
+        "span": [
+          386,
+          392
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          393,
+          395
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          395,
+          396
+        ]
+      },
+      {
+        "surface": "A",
+        "lemma": "a",
+        "span": [
+          397,
+          398
+        ]
+      },
+      {
+        "surface": "question",
+        "lemma": "question",
+        "span": [
+          399,
+          407
+        ]
+      },
+      {
+        "surface": "like",
+        "lemma": "like",
+        "span": [
+          408,
+          412
+        ]
+      },
+      {
+        "surface": "\"",
+        "span": [
+          413,
+          414
+        ]
+      },
+      {
+        "surface": "what",
+        "lemma": "what",
+        "span": [
+          414,
+          418
+        ]
+      },
+      {
+        "surface": "was",
+        "lemma": "be",
+        "span": [
+          419,
+          422
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          423,
+          426
+        ]
+      },
+      {
+        "surface": "best",
+        "lemma": "good",
+        "span": [
+          427,
+          431
+        ]
+      },
+      {
+        "surface": "part",
+        "lemma": "part",
+        "span": [
+          432,
+          436
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          437,
+          439
+        ]
+      },
+      {
+        "surface": "your",
+        "lemma": "your",
+        "span": [
+          440,
+          444
+        ]
+      },
+      {
+        "surface": "week",
+        "lemma": "week",
+        "span": [
+          445,
+          449
+        ]
+      },
+      {
+        "surface": "\"",
+        "span": [
+          449,
+          450
+        ]
+      },
+      {
+        "surface": "works",
+        "lemma": "work",
+        "span": [
+          451,
+          456
+        ]
+      },
+      {
+        "surface": "better",
+        "lemma": "good",
+        "span": [
+          457,
+          463
+        ]
+      },
+      {
+        "surface": "than",
+        "lemma": "than",
+        "span": [
+          464,
+          468
+        ]
+      },
+      {
+        "surface": "\"",
+        "span": [
+          469,
+          470
+        ]
+      },
+      {
+        "surface": "how",
+        "lemma": "how",
+        "span": [
+          470,
+          473
+        ]
+      },
+      {
+        "surface": "are",
+        "lemma": "be",
+        "span": [
+          474,
+          477
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          478,
+          481
+        ]
+      },
+      {
+        "surface": "\"",
+        "span": [
+          481,
+          482
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          482,
+          483
+        ]
+      },
+      {
+        "surface": "because",
+        "lemma": "because",
+        "span": [
+          484,
+          491
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          492,
+          494
+        ]
+      },
+      {
+        "surface": "asks",
+        "lemma": "ask",
+        "span": [
+          495,
+          499
+        ]
+      },
+      {
+        "surface": "for",
+        "lemma": "for",
+        "span": [
+          500,
+          503
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          504,
+          505
+        ]
+      },
+      {
+        "surface": "story",
+        "lemma": "story",
+        "span": [
+          506,
+          511
+        ]
+      },
+      {
+        "surface": "instead",
+        "lemma": "instead",
+        "span": [
+          512,
+          519
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          520,
+          522
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          523,
+          524
+        ]
+      },
+      {
+        "surface": "status",
+        "lemma": "statu",
+        "span": [
+          525,
+          531
+        ]
+      },
+      {
+        "surface": "report",
+        "lemma": "report",
+        "span": [
+          532,
+          538
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          538,
+          539
+        ]
+      },
+      {
+        "surface": "The",
+        "lemma": "the",
+        "span": [
+          541,
+          544
+        ]
+      },
+      {
+        "surface": "goal",
+        "lemma": "goal",
+        "span": [
+          545,
+          549
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          550,
+          552
+        ]
+      },
+      {
+        "surface": "small",
+        "lemma": "small",
+        "span": [
+          553,
+          558
+        ]
+      },
+      {
+        "surface": "talk",
+        "lemma": "talk",
+        "span": [
+          559,
+          563
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          564,
+          566
+        ]
+      },
+      {
+        "surface": "not",
+        "lemma": "not",
+        "span": [
+          567,
+          570
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          571,
+          573
+        ]
+      },
+      {
+        "surface": "impress",
+        "lemma": "impress",
+        "span": [
+          574,
+          581
+        ]
+      },
+      {
+        "surface": "anyone",
+        "lemma": "anyone",
+        "span": [
+          582,
+          588
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          588,
+          589
+        ]
+      },
+      {
+        "surface": "It",
+        "lemma": "it",
+        "span": [
+          590,
+          592
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          593,
+          595
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          596,
+          598
+        ]
+      },
+      {
+        "surface": "find",
+        "lemma": "find",
+        "span": [
+          599,
+          603
+        ]
+      },
+      {
+        "surface": "one",
+        "lemma": "one",
+        "span": [
+          604,
+          607
+        ]
+      },
+      {
+        "surface": "thing",
+        "lemma": "thing",
+        "span": [
+          608,
+          613
+        ]
+      },
+      {
+        "surface": "worth",
+        "lemma": "worth",
+        "span": [
+          614,
+          619
+        ]
+      },
+      {
+        "surface": "following",
+        "lemma": "follow",
+        "span": [
+          620,
+          629
+        ]
+      },
+      {
+        "surface": "up",
+        "lemma": "up",
+        "span": [
+          630,
+          632
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          633,
+          635
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          635,
+          636
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          637,
+          640
+        ]
+      },
+      {
+        "surface": "then",
+        "lemma": "then",
+        "span": [
+          641,
+          645
+        ]
+      },
+      {
+        "surface": "follow",
+        "lemma": "follow",
+        "span": [
+          646,
+          652
+        ]
+      },
+      {
+        "surface": "up",
+        "lemma": "up",
+        "span": [
+          653,
+          655
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          656,
+          658
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          659,
+          661
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          661,
+          662
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "prompt": "文章认为闲聊无聊的主要原因是什么？",
+        "options": [
+          "天气和交通话题本身无聊",
+          "害怕说出无聊的话，只敢聊安全话题",
+          "人们不愿意谈自己"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "作者建议用什么方式开启对话？",
+        "options": [
+          "问对方这周最好的部分是什么",
+          "直接问对方的工作和收入",
+          "一直聊天气"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "en.a.0003",
+    "title": "The Hidden Cost of Delivery",
+    "body": "Ordering food has never been easier. A few taps, and dinner arrives in twenty minutes. What the app does not show you is the full price: the menu is often marked up, the delivery fee changes with the weather, and there is a service charge that appears only at checkout.\n\nFor restaurants, the platform takes a cut of every order. Some owners raise menu prices on the app to cover it, which means the customer pays twice: once for the food, once for the convenience.\n\nNone of this means you should delete the app. It means you should compare. Walking to the place nearby is sometimes cheaper and faster than waiting for a courier to cross the city in traffic.",
+    "tokens": [
+      {
+        "surface": "Ordering",
+        "lemma": "order",
+        "span": [
+          0,
+          8
+        ]
+      },
+      {
+        "surface": "food",
+        "lemma": "food",
+        "span": [
+          9,
+          13
+        ]
+      },
+      {
+        "surface": "has",
+        "lemma": "have",
+        "span": [
+          14,
+          17
+        ]
+      },
+      {
+        "surface": "never",
+        "lemma": "never",
+        "span": [
+          18,
+          23
+        ]
+      },
+      {
+        "surface": "been",
+        "lemma": "be",
+        "span": [
+          24,
+          28
+        ]
+      },
+      {
+        "surface": "easier",
+        "lemma": "easier",
+        "span": [
+          29,
+          35
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          35,
+          36
+        ]
+      },
+      {
+        "surface": "A",
+        "lemma": "a",
+        "span": [
+          37,
+          38
+        ]
+      },
+      {
+        "surface": "few",
+        "lemma": "few",
+        "span": [
+          39,
+          42
+        ]
+      },
+      {
+        "surface": "taps",
+        "lemma": "tap",
+        "span": [
+          43,
+          47
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          47,
+          48
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          49,
+          52
+        ]
+      },
+      {
+        "surface": "dinner",
+        "lemma": "dinner",
+        "span": [
+          53,
+          59
+        ]
+      },
+      {
+        "surface": "arrives",
+        "lemma": "arrive",
+        "span": [
+          60,
+          67
+        ]
+      },
+      {
+        "surface": "in",
+        "lemma": "in",
+        "span": [
+          68,
+          70
+        ]
+      },
+      {
+        "surface": "twenty",
+        "lemma": "twenty",
+        "span": [
+          71,
+          77
+        ]
+      },
+      {
+        "surface": "minutes",
+        "lemma": "minute",
+        "span": [
+          78,
+          85
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          85,
+          86
+        ]
+      },
+      {
+        "surface": "What",
+        "lemma": "what",
+        "span": [
+          87,
+          91
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          92,
+          95
+        ]
+      },
+      {
+        "surface": "app",
+        "lemma": "app",
+        "span": [
+          96,
+          99
+        ]
+      },
+      {
+        "surface": "does",
+        "lemma": "do",
+        "span": [
+          100,
+          104
+        ]
+      },
+      {
+        "surface": "not",
+        "lemma": "not",
+        "span": [
+          105,
+          108
+        ]
+      },
+      {
+        "surface": "show",
+        "lemma": "show",
+        "span": [
+          109,
+          113
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          114,
+          117
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          118,
+          120
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          121,
+          124
+        ]
+      },
+      {
+        "surface": "full",
+        "lemma": "full",
+        "span": [
+          125,
+          129
+        ]
+      },
+      {
+        "surface": "price",
+        "lemma": "price",
+        "span": [
+          130,
+          135
+        ]
+      },
+      {
+        "surface": ":",
+        "span": [
+          135,
+          136
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          137,
+          140
+        ]
+      },
+      {
+        "surface": "menu",
+        "lemma": "menu",
+        "span": [
+          141,
+          145
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          146,
+          148
+        ]
+      },
+      {
+        "surface": "often",
+        "lemma": "often",
+        "span": [
+          149,
+          154
+        ]
+      },
+      {
+        "surface": "marked",
+        "lemma": "mark",
+        "span": [
+          155,
+          161
+        ]
+      },
+      {
+        "surface": "up",
+        "lemma": "up",
+        "span": [
+          162,
+          164
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          164,
+          165
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          166,
+          169
+        ]
+      },
+      {
+        "surface": "delivery",
+        "lemma": "delivery",
+        "span": [
+          170,
+          178
+        ]
+      },
+      {
+        "surface": "fee",
+        "lemma": "fee",
+        "span": [
+          179,
+          182
+        ]
+      },
+      {
+        "surface": "changes",
+        "lemma": "change",
+        "span": [
+          183,
+          190
+        ]
+      },
+      {
+        "surface": "with",
+        "lemma": "with",
+        "span": [
+          191,
+          195
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          196,
+          199
+        ]
+      },
+      {
+        "surface": "weather",
+        "lemma": "weather",
+        "span": [
+          200,
+          207
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          207,
+          208
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          209,
+          212
+        ]
+      },
+      {
+        "surface": "there",
+        "lemma": "there",
+        "span": [
+          213,
+          218
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          219,
+          221
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          222,
+          223
+        ]
+      },
+      {
+        "surface": "service",
+        "lemma": "service",
+        "span": [
+          224,
+          231
+        ]
+      },
+      {
+        "surface": "charge",
+        "lemma": "charge",
+        "span": [
+          232,
+          238
+        ]
+      },
+      {
+        "surface": "that",
+        "lemma": "that",
+        "span": [
+          239,
+          243
+        ]
+      },
+      {
+        "surface": "appears",
+        "lemma": "appear",
+        "span": [
+          244,
+          251
+        ]
+      },
+      {
+        "surface": "only",
+        "lemma": "only",
+        "span": [
+          252,
+          256
+        ]
+      },
+      {
+        "surface": "at",
+        "lemma": "at",
+        "span": [
+          257,
+          259
+        ]
+      },
+      {
+        "surface": "checkout",
+        "lemma": "checkout",
+        "span": [
+          260,
+          268
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          268,
+          269
+        ]
+      },
+      {
+        "surface": "For",
+        "lemma": "for",
+        "span": [
+          271,
+          274
+        ]
+      },
+      {
+        "surface": "restaurants",
+        "lemma": "restaurant",
+        "span": [
+          275,
+          286
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          286,
+          287
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          288,
+          291
+        ]
+      },
+      {
+        "surface": "platform",
+        "lemma": "platform",
+        "span": [
+          292,
+          300
+        ]
+      },
+      {
+        "surface": "takes",
+        "lemma": "take",
+        "span": [
+          301,
+          306
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          307,
+          308
+        ]
+      },
+      {
+        "surface": "cut",
+        "lemma": "cut",
+        "span": [
+          309,
+          312
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          313,
+          315
+        ]
+      },
+      {
+        "surface": "every",
+        "lemma": "every",
+        "span": [
+          316,
+          321
+        ]
+      },
+      {
+        "surface": "order",
+        "lemma": "order",
+        "span": [
+          322,
+          327
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          327,
+          328
+        ]
+      },
+      {
+        "surface": "Some",
+        "lemma": "some",
+        "span": [
+          329,
+          333
+        ]
+      },
+      {
+        "surface": "owners",
+        "lemma": "owner",
+        "span": [
+          334,
+          340
+        ]
+      },
+      {
+        "surface": "raise",
+        "lemma": "raise",
+        "span": [
+          341,
+          346
+        ]
+      },
+      {
+        "surface": "menu",
+        "lemma": "menu",
+        "span": [
+          347,
+          351
+        ]
+      },
+      {
+        "surface": "prices",
+        "lemma": "price",
+        "span": [
+          352,
+          358
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          359,
+          361
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          362,
+          365
+        ]
+      },
+      {
+        "surface": "app",
+        "lemma": "app",
+        "span": [
+          366,
+          369
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          370,
+          372
+        ]
+      },
+      {
+        "surface": "cover",
+        "lemma": "cover",
+        "span": [
+          373,
+          378
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          379,
+          381
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          381,
+          382
+        ]
+      },
+      {
+        "surface": "which",
+        "lemma": "which",
+        "span": [
+          383,
+          388
+        ]
+      },
+      {
+        "surface": "means",
+        "lemma": "mean",
+        "span": [
+          389,
+          394
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          395,
+          398
+        ]
+      },
+      {
+        "surface": "customer",
+        "lemma": "customer",
+        "span": [
+          399,
+          407
+        ]
+      },
+      {
+        "surface": "pays",
+        "lemma": "pay",
+        "span": [
+          408,
+          412
+        ]
+      },
+      {
+        "surface": "twice",
+        "lemma": "twice",
+        "span": [
+          413,
+          418
+        ]
+      },
+      {
+        "surface": ":",
+        "span": [
+          418,
+          419
+        ]
+      },
+      {
+        "surface": "once",
+        "lemma": "once",
+        "span": [
+          420,
+          424
+        ]
+      },
+      {
+        "surface": "for",
+        "lemma": "for",
+        "span": [
+          425,
+          428
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          429,
+          432
+        ]
+      },
+      {
+        "surface": "food",
+        "lemma": "food",
+        "span": [
+          433,
+          437
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          437,
+          438
+        ]
+      },
+      {
+        "surface": "once",
+        "lemma": "once",
+        "span": [
+          439,
+          443
+        ]
+      },
+      {
+        "surface": "for",
+        "lemma": "for",
+        "span": [
+          444,
+          447
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          448,
+          451
+        ]
+      },
+      {
+        "surface": "convenience",
+        "lemma": "convenience",
+        "span": [
+          452,
+          463
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          463,
+          464
+        ]
+      },
+      {
+        "surface": "None",
+        "lemma": "none",
+        "span": [
+          466,
+          470
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          471,
+          473
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          474,
+          478
+        ]
+      },
+      {
+        "surface": "means",
+        "lemma": "mean",
+        "span": [
+          479,
+          484
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          485,
+          488
+        ]
+      },
+      {
+        "surface": "should",
+        "lemma": "should",
+        "span": [
+          489,
+          495
+        ]
+      },
+      {
+        "surface": "delete",
+        "lemma": "delete",
+        "span": [
+          496,
+          502
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          503,
+          506
+        ]
+      },
+      {
+        "surface": "app",
+        "lemma": "app",
+        "span": [
+          507,
+          510
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          510,
+          511
+        ]
+      },
+      {
+        "surface": "It",
+        "lemma": "it",
+        "span": [
+          512,
+          514
+        ]
+      },
+      {
+        "surface": "means",
+        "lemma": "mean",
+        "span": [
+          515,
+          520
+        ]
+      },
+      {
+        "surface": "you",
+        "lemma": "you",
+        "span": [
+          521,
+          524
+        ]
+      },
+      {
+        "surface": "should",
+        "lemma": "should",
+        "span": [
+          525,
+          531
+        ]
+      },
+      {
+        "surface": "compare",
+        "lemma": "compare",
+        "span": [
+          532,
+          539
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          539,
+          540
+        ]
+      },
+      {
+        "surface": "Walking",
+        "lemma": "walk",
+        "span": [
+          541,
+          548
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          549,
+          551
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          552,
+          555
+        ]
+      },
+      {
+        "surface": "place",
+        "lemma": "place",
+        "span": [
+          556,
+          561
+        ]
+      },
+      {
+        "surface": "nearby",
+        "lemma": "nearby",
+        "span": [
+          562,
+          568
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          569,
+          571
+        ]
+      },
+      {
+        "surface": "sometimes",
+        "lemma": "sometime",
+        "span": [
+          572,
+          581
+        ]
+      },
+      {
+        "surface": "cheaper",
+        "lemma": "cheaper",
+        "span": [
+          582,
+          589
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          590,
+          593
+        ]
+      },
+      {
+        "surface": "faster",
+        "lemma": "faster",
+        "span": [
+          594,
+          600
+        ]
+      },
+      {
+        "surface": "than",
+        "lemma": "than",
+        "span": [
+          601,
+          605
+        ]
+      },
+      {
+        "surface": "waiting",
+        "lemma": "wait",
+        "span": [
+          606,
+          613
+        ]
+      },
+      {
+        "surface": "for",
+        "lemma": "for",
+        "span": [
+          614,
+          617
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          618,
+          619
+        ]
+      },
+      {
+        "surface": "courier",
+        "lemma": "courier",
+        "span": [
+          620,
+          627
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          628,
+          630
+        ]
+      },
+      {
+        "surface": "cross",
+        "lemma": "cross",
+        "span": [
+          631,
+          636
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          637,
+          640
+        ]
+      },
+      {
+        "surface": "city",
+        "lemma": "city",
+        "span": [
+          641,
+          645
+        ]
+      },
+      {
+        "surface": "in",
+        "lemma": "in",
+        "span": [
+          646,
+          648
+        ]
+      },
+      {
+        "surface": "traffic",
+        "lemma": "traffic",
+        "span": [
+          649,
+          656
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          656,
+          657
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "prompt": "文章说外卖的隐性成本不包括哪一项？",
+        "options": [
+          "菜单加价",
+          "随天气变化的配送费",
+          "餐厅的房租"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "作者对外卖 App 的态度是？",
+        "options": [
+          "建议删掉所有外卖软件",
+          "建议比价，而不是完全不用",
+          "认为外卖永远更便宜"
+        ],
+        "answer": 1
+      }
+    ]
+  },
+  {
+    "id": "en.a.0004",
+    "title": "Learning to Say No",
+    "body": "Saying no is a skill, and most of us learn it late. As students we say yes to every club, every group project, every invitation. Later at work, the same habit turns into extra shifts and unfinished tasks that belong to someone else.\n\nThe trick is not to become rude. It is to be clear and quick. \"I can't take this on this week\" is a complete sentence. You do not owe anyone a long explanation, and a vague \"maybe later\" usually costs more than an honest no, because it keeps the other person waiting.\n\nPeople who say no well are not less liked. They are simply more predictable, and being predictable is what makes trust possible.",
+    "tokens": [
+      {
+        "surface": "Saying",
+        "lemma": "say",
+        "span": [
+          0,
+          6
+        ]
+      },
+      {
+        "surface": "no",
+        "lemma": "no",
+        "span": [
+          7,
+          9
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          10,
+          12
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          13,
+          14
+        ]
+      },
+      {
+        "surface": "skill",
+        "lemma": "skill",
+        "span": [
+          15,
+          20
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          20,
+          21
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          22,
+          25
+        ]
+      },
+      {
+        "surface": "most",
+        "lemma": "most",
+        "span": [
+          26,
+          30
+        ]
+      },
+      {
+        "surface": "of",
+        "lemma": "of",
+        "span": [
+          31,
+          33
+        ]
+      },
+      {
+        "surface": "us",
+        "lemma": "us",
+        "span": [
+          34,
+          36
+        ]
+      },
+      {
+        "surface": "learn",
+        "lemma": "learn",
+        "span": [
+          37,
+          42
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          43,
+          45
+        ]
+      },
+      {
+        "surface": "late",
+        "lemma": "late",
+        "span": [
+          46,
+          50
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          50,
+          51
+        ]
+      },
+      {
+        "surface": "As",
+        "lemma": "as",
+        "span": [
+          52,
+          54
+        ]
+      },
+      {
+        "surface": "students",
+        "lemma": "student",
+        "span": [
+          55,
+          63
+        ]
+      },
+      {
+        "surface": "we",
+        "lemma": "we",
+        "span": [
+          64,
+          66
+        ]
+      },
+      {
+        "surface": "say",
+        "lemma": "say",
+        "span": [
+          67,
+          70
+        ]
+      },
+      {
+        "surface": "yes",
+        "lemma": "yes",
+        "span": [
+          71,
+          74
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          75,
+          77
+        ]
+      },
+      {
+        "surface": "every",
+        "lemma": "every",
+        "span": [
+          78,
+          83
+        ]
+      },
+      {
+        "surface": "club",
+        "lemma": "club",
+        "span": [
+          84,
+          88
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          88,
+          89
+        ]
+      },
+      {
+        "surface": "every",
+        "lemma": "every",
+        "span": [
+          90,
+          95
+        ]
+      },
+      {
+        "surface": "group",
+        "lemma": "group",
+        "span": [
+          96,
+          101
+        ]
+      },
+      {
+        "surface": "project",
+        "lemma": "project",
+        "span": [
+          102,
+          109
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          109,
+          110
+        ]
+      },
+      {
+        "surface": "every",
+        "lemma": "every",
+        "span": [
+          111,
+          116
+        ]
+      },
+      {
+        "surface": "invitation",
+        "lemma": "invitation",
+        "span": [
+          117,
+          127
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          127,
+          128
+        ]
+      },
+      {
+        "surface": "Later",
+        "lemma": "later",
+        "span": [
+          129,
+          134
+        ]
+      },
+      {
+        "surface": "at",
+        "lemma": "at",
+        "span": [
+          135,
+          137
+        ]
+      },
+      {
+        "surface": "work",
+        "lemma": "work",
+        "span": [
+          138,
+          142
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          142,
+          143
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          144,
+          147
+        ]
+      },
+      {
+        "surface": "same",
+        "lemma": "same",
+        "span": [
+          148,
+          152
+        ]
+      },
+      {
+        "surface": "habit",
+        "lemma": "habit",
+        "span": [
+          153,
+          158
+        ]
+      },
+      {
+        "surface": "turns",
+        "lemma": "turn",
+        "span": [
+          159,
+          164
+        ]
+      },
+      {
+        "surface": "into",
+        "lemma": "into",
+        "span": [
+          165,
+          169
+        ]
+      },
+      {
+        "surface": "extra",
+        "lemma": "extra",
+        "span": [
+          170,
+          175
+        ]
+      },
+      {
+        "surface": "shifts",
+        "lemma": "shift",
+        "span": [
+          176,
+          182
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          183,
+          186
+        ]
+      },
+      {
+        "surface": "unfinished",
+        "lemma": "unfinish",
+        "span": [
+          187,
+          197
+        ]
+      },
+      {
+        "surface": "tasks",
+        "lemma": "task",
+        "span": [
+          198,
+          203
+        ]
+      },
+      {
+        "surface": "that",
+        "lemma": "that",
+        "span": [
+          204,
+          208
+        ]
+      },
+      {
+        "surface": "belong",
+        "lemma": "belong",
+        "span": [
+          209,
+          215
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          216,
+          218
+        ]
+      },
+      {
+        "surface": "someone",
+        "lemma": "someone",
+        "span": [
+          219,
+          226
+        ]
+      },
+      {
+        "surface": "else",
+        "lemma": "else",
+        "span": [
+          227,
+          231
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          231,
+          232
+        ]
+      },
+      {
+        "surface": "The",
+        "lemma": "the",
+        "span": [
+          234,
+          237
+        ]
+      },
+      {
+        "surface": "trick",
+        "lemma": "trick",
+        "span": [
+          238,
+          243
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          244,
+          246
+        ]
+      },
+      {
+        "surface": "not",
+        "lemma": "not",
+        "span": [
+          247,
+          250
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          251,
+          253
+        ]
+      },
+      {
+        "surface": "become",
+        "lemma": "become",
+        "span": [
+          254,
+          260
+        ]
+      },
+      {
+        "surface": "rude",
+        "lemma": "rude",
+        "span": [
+          261,
+          265
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          265,
+          266
+        ]
+      },
+      {
+        "surface": "It",
+        "lemma": "it",
+        "span": [
+          267,
+          269
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          270,
+          272
+        ]
+      },
+      {
+        "surface": "to",
+        "lemma": "to",
+        "span": [
+          273,
+          275
+        ]
+      },
+      {
+        "surface": "be",
+        "lemma": "be",
+        "span": [
+          276,
+          278
+        ]
+      },
+      {
+        "surface": "clear",
+        "lemma": "clear",
+        "span": [
+          279,
+          284
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          285,
+          288
+        ]
+      },
+      {
+        "surface": "quick",
+        "lemma": "quick",
+        "span": [
+          289,
+          294
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          294,
+          295
+        ]
+      },
+      {
+        "surface": "\"",
+        "span": [
+          296,
+          297
+        ]
+      },
+      {
+        "surface": "I",
+        "lemma": "i",
+        "span": [
+          297,
+          298
+        ]
+      },
+      {
+        "surface": "can't",
+        "lemma": "ca not",
+        "span": [
+          299,
+          304
+        ]
+      },
+      {
+        "surface": "take",
+        "lemma": "take",
+        "span": [
+          305,
+          309
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          310,
+          314
+        ]
+      },
+      {
+        "surface": "on",
+        "lemma": "on",
+        "span": [
+          315,
+          317
+        ]
+      },
+      {
+        "surface": "this",
+        "lemma": "thi",
+        "span": [
+          318,
+          322
+        ]
+      },
+      {
+        "surface": "week",
+        "lemma": "week",
+        "span": [
+          323,
+          327
+        ]
+      },
+      {
+        "surface": "\"",
+        "span": [
+          327,
+          328
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          329,
+          331
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          332,
+          333
+        ]
+      },
+      {
+        "surface": "complete",
+        "lemma": "complete",
+        "span": [
+          334,
+          342
+        ]
+      },
+      {
+        "surface": "sentence",
+        "lemma": "sentence",
+        "span": [
+          343,
+          351
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          351,
+          352
+        ]
+      },
+      {
+        "surface": "You",
+        "lemma": "you",
+        "span": [
+          353,
+          356
+        ]
+      },
+      {
+        "surface": "do",
+        "lemma": "do",
+        "span": [
+          357,
+          359
+        ]
+      },
+      {
+        "surface": "not",
+        "lemma": "not",
+        "span": [
+          360,
+          363
+        ]
+      },
+      {
+        "surface": "owe",
+        "lemma": "owe",
+        "span": [
+          364,
+          367
+        ]
+      },
+      {
+        "surface": "anyone",
+        "lemma": "anyone",
+        "span": [
+          368,
+          374
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          375,
+          376
+        ]
+      },
+      {
+        "surface": "long",
+        "lemma": "long",
+        "span": [
+          377,
+          381
+        ]
+      },
+      {
+        "surface": "explanation",
+        "lemma": "explanation",
+        "span": [
+          382,
+          393
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          393,
+          394
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          395,
+          398
+        ]
+      },
+      {
+        "surface": "a",
+        "lemma": "a",
+        "span": [
+          399,
+          400
+        ]
+      },
+      {
+        "surface": "vague",
+        "lemma": "vague",
+        "span": [
+          401,
+          406
+        ]
+      },
+      {
+        "surface": "\"",
+        "span": [
+          407,
+          408
+        ]
+      },
+      {
+        "surface": "maybe",
+        "lemma": "maybe",
+        "span": [
+          408,
+          413
+        ]
+      },
+      {
+        "surface": "later",
+        "lemma": "later",
+        "span": [
+          414,
+          419
+        ]
+      },
+      {
+        "surface": "\"",
+        "span": [
+          419,
+          420
+        ]
+      },
+      {
+        "surface": "usually",
+        "lemma": "usually",
+        "span": [
+          421,
+          428
+        ]
+      },
+      {
+        "surface": "costs",
+        "lemma": "cost",
+        "span": [
+          429,
+          434
+        ]
+      },
+      {
+        "surface": "more",
+        "lemma": "more",
+        "span": [
+          435,
+          439
+        ]
+      },
+      {
+        "surface": "than",
+        "lemma": "than",
+        "span": [
+          440,
+          444
+        ]
+      },
+      {
+        "surface": "an",
+        "lemma": "an",
+        "span": [
+          445,
+          447
+        ]
+      },
+      {
+        "surface": "honest",
+        "lemma": "honest",
+        "span": [
+          448,
+          454
+        ]
+      },
+      {
+        "surface": "no",
+        "lemma": "no",
+        "span": [
+          455,
+          457
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          457,
+          458
+        ]
+      },
+      {
+        "surface": "because",
+        "lemma": "because",
+        "span": [
+          459,
+          466
+        ]
+      },
+      {
+        "surface": "it",
+        "lemma": "it",
+        "span": [
+          467,
+          469
+        ]
+      },
+      {
+        "surface": "keeps",
+        "lemma": "keep",
+        "span": [
+          470,
+          475
+        ]
+      },
+      {
+        "surface": "the",
+        "lemma": "the",
+        "span": [
+          476,
+          479
+        ]
+      },
+      {
+        "surface": "other",
+        "lemma": "other",
+        "span": [
+          480,
+          485
+        ]
+      },
+      {
+        "surface": "person",
+        "lemma": "person",
+        "span": [
+          486,
+          492
+        ]
+      },
+      {
+        "surface": "waiting",
+        "lemma": "wait",
+        "span": [
+          493,
+          500
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          500,
+          501
+        ]
+      },
+      {
+        "surface": "People",
+        "lemma": "person",
+        "span": [
+          503,
+          509
+        ]
+      },
+      {
+        "surface": "who",
+        "lemma": "who",
+        "span": [
+          510,
+          513
+        ]
+      },
+      {
+        "surface": "say",
+        "lemma": "say",
+        "span": [
+          514,
+          517
+        ]
+      },
+      {
+        "surface": "no",
+        "lemma": "no",
+        "span": [
+          518,
+          520
+        ]
+      },
+      {
+        "surface": "well",
+        "lemma": "well",
+        "span": [
+          521,
+          525
+        ]
+      },
+      {
+        "surface": "are",
+        "lemma": "be",
+        "span": [
+          526,
+          529
+        ]
+      },
+      {
+        "surface": "not",
+        "lemma": "not",
+        "span": [
+          530,
+          533
+        ]
+      },
+      {
+        "surface": "less",
+        "lemma": "less",
+        "span": [
+          534,
+          538
+        ]
+      },
+      {
+        "surface": "liked",
+        "lemma": "lik",
+        "span": [
+          539,
+          544
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          544,
+          545
+        ]
+      },
+      {
+        "surface": "They",
+        "lemma": "they",
+        "span": [
+          546,
+          550
+        ]
+      },
+      {
+        "surface": "are",
+        "lemma": "be",
+        "span": [
+          551,
+          554
+        ]
+      },
+      {
+        "surface": "simply",
+        "lemma": "simply",
+        "span": [
+          555,
+          561
+        ]
+      },
+      {
+        "surface": "more",
+        "lemma": "more",
+        "span": [
+          562,
+          566
+        ]
+      },
+      {
+        "surface": "predictable",
+        "lemma": "predictable",
+        "span": [
+          567,
+          578
+        ]
+      },
+      {
+        "surface": ",",
+        "span": [
+          578,
+          579
+        ]
+      },
+      {
+        "surface": "and",
+        "lemma": "and",
+        "span": [
+          580,
+          583
+        ]
+      },
+      {
+        "surface": "being",
+        "lemma": "be",
+        "span": [
+          584,
+          589
+        ]
+      },
+      {
+        "surface": "predictable",
+        "lemma": "predictable",
+        "span": [
+          590,
+          601
+        ]
+      },
+      {
+        "surface": "is",
+        "lemma": "be",
+        "span": [
+          602,
+          604
+        ]
+      },
+      {
+        "surface": "what",
+        "lemma": "what",
+        "span": [
+          605,
+          609
+        ]
+      },
+      {
+        "surface": "makes",
+        "lemma": "make",
+        "span": [
+          610,
+          615
+        ]
+      },
+      {
+        "surface": "trust",
+        "lemma": "trust",
+        "span": [
+          616,
+          621
+        ]
+      },
+      {
+        "surface": "possible",
+        "lemma": "possible",
+        "span": [
+          622,
+          630
+        ]
+      },
+      {
+        "surface": ".",
+        "span": [
+          630,
+          631
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "prompt": "文章认为「模糊的以后再说」的代价是什么？",
+        "options": [
+          "让对方一直等",
+          "显得没有礼貌",
+          "失去工作机会"
+        ],
+        "answer": 0
+      },
+      {
+        "prompt": "作者说会说「不」的人通常怎样？",
+        "options": [
+          "更不受欢迎",
+          "更可预测，因而更被信任",
+          "更少参与团队工作"
+        ],
+        "answer": 1
+      }
+    ]
   }
 ]

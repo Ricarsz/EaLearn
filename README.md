@@ -2,20 +2,21 @@
 
 桌面端语言学习工具，Linux + Windows。同一套应用，换语言只换内容包。
 
-**当前状态**：内核、内容流水线与桌面端界面可用；英语内容包为种子内容，TTS 与图片素材尚未生成。
+**当前状态**：内核、内容流水线、桌面端界面齐全；英语与韩语内容包都已接入，英语 29 句 / 4 篇阅读、韩语 19 句 / 3 篇。另有 120 句英语口语句库放在在线索引里，按需下载进本地库，不占 pack。种子句子带预合成音频，其余按需合成并缓存。
 
 ## 结构
 
 ```
-crates/core     领域内核：pack 模型、标注校验、题型判分、练习排程、FSRS 调度
+crates/core     领域内核：pack 模型、标注校验、题型判分、组卷、FSRS 调度
 crates/lang     语言适配：LanguageProfile trait + 英语 / 韩语实现
-crates/store    SQLite 本地库：pack 登记、SRS 卡、作答、设置
+crates/store    SQLite 本地库：pack 登记、SRS 卡、作答、设置、聊天记录
 crates/llm      兼容 OpenAI 协议的流式对话客户端（SSE、正文流式抽取、标注回贴校验）
-crates/tts      预合成音频：可插拔引擎（espeak-ng / piper）+ 按内容 hash 命名缓存
-crates/forge    内容生产 CLI：校验、分词标注、内容指纹
-app             React 前端（练习 / 情景）
+crates/tts      piper 合成 + 按「音色 + 文本」hash 命名的 wav 缓存
+crates/forge    内容 CLI：校验、分词标注、预合成音频、对话草稿生成
+app             React 前端（首页 / 练习 / 情景 / 词库）
 src-tauri       Tauri 壳层：命令转发与状态管理，不含业务逻辑
-packs/en        英语内容包（种子内容）
+packs/en        英语内容包
+packs/ko        韩语内容包
 docs/design.md  架构设计
 ```
 
@@ -32,54 +33,181 @@ cd app && pnpm install            # 前端依赖（只需一次）
 首次运行会在用户数据目录建库并登记 `packs/` 下的语言包。
 设置环境变量 `EALEARN_PACKS` 可指向别的 pack 目录。
 
-## 已实现的练习流程
+## 首页与练法
 
-组卷（题型按素材现算、同节不重复）→ 作答 → 内核判分 → 答错自动入卡 →
-FSRS-5 排下次复习。到期卡会优先排进组卷，卡种决定题型。
+首页先选怎么练：混合复习、背单词、听力、拼句、阅读。当前语言包没有对应素材时该练法置灰。
 
-四个题型：拼句（词块可拖拽）、听音选词、背诵卡（正面词、背面释义、自评熟练度）、
-阅读理解。背诵卡让没有音频素材的词也能练。
+- **混合复习**排在第一位：到期卡先排，剩下的位置用新素材补满，完成页会写明其中几题是复习
+- 单项练法只出那一种题，不会混进别的题型
+
+上面还有一张**今日目标**卡片：每天做多少题，或者每天专注多少分钟，二选一。目标存在本地
+设置里，进度按当天的作答 / 番茄钟记录实时算。设定目标时可以绑定一本词书——按「目标 × 30 天」
+估算需要多少词并推荐一本够用的，保存时若这本还没导入就自动下载导入。有题量目标时，
+点进练习的一组直接按「今天还差多少题」出，一组练完就达标。
+
+一组练完 → 内核判分 → 答错自动入卡 → FSRS-5 排下次复习。答对且没卡只记作答，不把每道题都塞进复习队列。
+
+## 题型
+
+四个题型：拼句（词块可拖拽）、听音选词、背诵卡、阅读理解（先出正文再出选择题）。
+背诵卡正面只出词和发音，先让用户自评 认识 / 模糊 / 不认识 / 太简单，选完才显示释义——
+先看答案再自评，评出来的「认识」不可信。没有音频素材的词也能靠它练。
+
+情景页另有一条剧本对话线，走对话图分支，不算单题判分。
+
+各模块的素材从哪来：
+
+| 模块 | 素材 |
+|---|---|
+| 背单词 | pack 词条、导入的自定义词条、单词书 |
+| 听力 | 同上；不要求预生成音频，播放时按需合成并缓存 |
+| 拼句 | pack 的 `sentences.json`，或导入的多词短语（≥3 个词，按句子卡入队） |
+| 阅读 | pack 的 `articles.json`，或词库页「导入文章」粘贴一篇 |
+
+## 词库与单词书
 
 词库页列出所有卡片，按熟练度（由 FSRS 稳定性换算）和到期时间排序，可筛选
-待复习 / 不熟、可移出复习。支持导入自定义词条（每行 `word<TAB>释义[<TAB>标签]`），
-导入即入卡。
+待复习 / 不熟 / 自定义，可移出复习。顶部搜索框按词面或释义过滤，几万张卡也够用。
+支持导入自定义词条（每行 `word<TAB>释义[<TAB>标签]`），导入即入卡；「开始复习」直接进混合复习。
 
-单词书走在线索引（`books/index.json`），索引直接指向公开词库地址，不在仓库里存词表。
+单词书走索引文件（`books/index.json`），索引直接指向公开词库地址，不在仓库里存词表。
 内置八本英语应试书（四级 2607 / 六级 2345 / 考研 6705 / 高考 3893 / 雅思 2644 / 托福 4123 /
-GRE 3041 / 核心 4000 3600），数据来自 qwerty-learner（GPL-3.0），点一下下载并导入。
-导入支持 TSV/CSV 与 qwerty 那种 JSON 词书，几千词一次事务写完。
+GRE 3041 / 核心 4000 3600，来自 qwerty-learner，GPL-3.0）和两本韩语书：
+韩语入门词表（486 词，MIT，简体中文释义）、韩语 5000 常用词（4725 词，CC BY 4.0，
+繁体中文释义，带例句）。导入过的书会标「已下载」，可以重复导入更新释义。
 
-情景页有两条线：剧本对话图（点任意词可查义并入卡）和 LLM 自由聊（自备 API key，
-流式打字，标注做回贴校验）。
+索引地址（词库页「索引设置」）支持 http(s) URL、绝对路径与 `books/` 下的文件名；
+默认在开发时读仓库里的 `books/index.json`，打包后读远端地址。导入支持 TSV/CSV、
+JSON 数组与 JSONL 词书（`name`/`word`/`korean_term` + `trans`/`translation`/`meaning`/`english_term`），
+几千词一次事务写完。
 
-音色、模型配置、API key 都在「设置」（侧栏底部），音色可逐条试听。
+索引条目有 `kind` 字段：`words`（默认，单词书）、`sentences`（句库，导入后进拼句）、
+`article`（文本格式文章）。句库数据不写进 pack，例如 `books/sentences/en-tatoeba.tsv`（Tatoeba 英中句对，
+CC BY 2.0）通过索引按需下载到 SQLite，随时可以在设置里清掉。想加自己的句子集，把 TSV 放到
+索引指向的位置、加一条 `kind: "sentences"` 即可。
 
-音频由 `forge audio` 预生成到 `packs/*/media/audio/`，练习时零网络。当前音色是
-`piper:en_US-amy`；没有模型时 `espeak-ng` 兜底。
+词库页的「导入文章」用纯文本约定写一篇阅读材料：
 
-piper 音色从 [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices)
-下载 `onnx` 与同名 `.onnx.json`，放进
-`${XDG_DATA_HOME:-~/.local/share}/ealearn/piper/`（可用 `EALEARN_PIPER_DIR` 覆盖）：
+```
+# 标题
+正文第一段
+第二段
 
-```sh
-base=https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium
-curl -LO $base/en_US-amy-medium.onnx
-curl -LO $base/en_US-amy-medium.onnx.json
+? 题干
+- 选项 A
+- 选项 B
+= 2
 ```
 
-界面左侧可按语言切换音色（espeak 内置音色 + 本机已下载的 piper 模型）。选的音色
-和 pack 一致时直接读预生成音频，否则按需合成并缓存。
+`#` 标题、`?` 题干、`-` 选项、`=` 正确选项序号（从 1 开始），其余行都是正文，空行分段。
+正文会按语言 profile 分词并对齐校验，对不上就整篇拒绝，避免点词查义点到错位置。
 
-情景页的自由聊有 16 个话题可选（八卦、约会、闲聊、点餐、租房、看病、追剧、游戏……），
+## 自建内容仓
+
+词表和内容不必依赖别人的仓库。建议单独建一个公开仓库（例如 Gitee）专放 `books/`：
+词表 JSON、句库 TSV、阅读文章都在里面，和程序仓库分开，随时能加内容而不用发版。
+
+```
+books/
+├── index.json
+├── words/en-cet4.json       # 词表：qwerty-learner 格式或 {"name","trans"} 数组
+├── sentences/en-daily.tsv   # 句库：surface<TAB>释义
+└── articles/en-tech-01.md   # 文章：上面那套 # ? - = 约定
+```
+
+仓库根推送后，raw 地址形如 `https://gitee.com/<用户>/<仓库>/raw/master/books/index.json`
+（Gitee 会 302 到签名地址，程序跟随跳转即可）。在词库页「索引设置」填这个地址，
+或直接写多行地址，前一个失败自动换下一个。
+
+每条书目可以带 `mirrors`（备用地址数组），主地址挂了照样能装：
+
+```json
+{
+  "id": "en-daily",
+  "lang": "en",
+  "kind": "sentences",
+  "name": "英语日常句",
+  "url": "https://gitee.com/you/ealearn-content/raw/master/books/sentences/en-daily.tsv",
+  "mirrors": ["https://raw.githubusercontent.com/you/ealearn-content/main/books/sentences/en-daily.tsv"]
+}
+```
+
+把现有索引里的资源抓成本地副本、同时把 `url` 改写成自建仓地址（原地址进 `mirrors`）：
+
+```sh
+scripts/mirror-books.sh https://gitee.com/you/ealearn-content/raw/master --out /tmp/ealearn-books
+# 然后把 /tmp/ealearn-books/books 整个推上去
+```
+
+阅读材料和句库可以直接让模型批量生成：文章按 `# ? - =` 约定写，句子写成
+`surface<TAB>释义`，装进仓库、在索引里登记即可。句子至少要 3 个词才会进拼句，
+导入不校验语法，但分词对不上的文章会被拒。
+
+## 情景
+
+两条线：剧本对话图（点任意词可查义并入卡）和 LLM 自由聊（自备 API key，
+流式打字，标注做回贴校验）。自由聊有 16 个话题可选（八卦、约会、闲聊、点餐、租房、看病、追剧、游戏……），
 话题会连同样例场景一起进提示词。
 
 LLM 供应商只由 `base_url` 决定，兼容任何 `/chat/completions` 实现，包括本地
-ollama 与自建代理。API key 存在本地库 `settings` 表，设置页只回显末 4 位。
+ollama 与自建代理。设置里先「确认端点」（用这把 key 列出模型），确认成功才出现
+模型下拉框；API key 明文存在本地库 `settings` 表，设置页只回显末 4 位。
+
+## 发音
+
+侧栏「发音」是静态参考表：英语 12 个单元音、8 个双元音、24 个辅音；韩语 19 个辅音、
+21 个元音、7 个代表收音（받침）。韩语每个字母先听「字音」（ㄱ 读 그、ㅏ 读 아），
+再听「例词」（가방）；英语每行听示例词。表只做查询，不参与判分。
+
+## 音色
+
+音频由 `forge audio` 预生成到 `packs/*/media/audio/`，练习时零网络。当前音色是
+`piper:en_US-lessac`。合成只走 piper：没有对应模型时直接报错，不会退化成机械音。
+
+音色也可以直接在应用里装：设置 → 发音 → 「更多音色（下载）」，列出 piper 官方索引里
+这门语言的全部音色（英语 40 个、韩语 1 个），点下载即写入模型目录，随后在上面的列表里选中即可。
+手动装的话，从 [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices)
+下载 `onnx` 与同名 `.onnx.json`，放进 `${XDG_DATA_HOME:-~/.local/share}/ealearn/piper/`
+（可用 `EALEARN_PIPER_DIR` 覆盖）：
+
+```sh
+base=https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium
+curl -LO $base/en_US-lessac-medium.onnx
+curl -LO $base/en_US-lessac-medium.onnx.json
+```
+
+设置里可按语言切换音色并逐条试听，列表只列本机真实存在的模型。选的音色和 pack
+一致且词条有预生成音频时直接读文件，否则按需合成并缓存到用户数据目录。
+
+## 数据
+
+所有状态在一个 SQLite 文件里：`~/.local/share/top.chase141.ealearn/ealearn.db`（Windows 在应用数据目录）。
+设置抽屉底部有两档清理：
+
+- **清除学习记录**：卡片、复习进度、作答、番茄钟、聊天记录
+- **清空所有数据**：再加导入的词条、文章和设置，回到刚装好的状态
+
+设置 → 数据还有「导出 CSV」：把当前语言的卡片导出成
+`word,gloss,kind,stability,difficulty,reps,lapses,due,last_review`，
+默认写到应用数据目录的 `exports/ealearn-<lang>-<日期>.csv`，可以直接进表格或留给 Anki 备份。
+「备份整库」用 `VACUUM INTO` 把整个 SQLite 复制到 `exports/ealearn-<日期>.db`，
+包含导入的词书、文章和设置，换机时复制回去即可。
+
+`packs/` 是只读内容，清理不会动它；语言包会在下次启动时重新登记。
+
+## 统计与错题
+
+侧栏「统计」页：
+
+- 近 7 / 14 / 30 天的每日作答柱子（蓝=答对，浅=答错）
+- 题型表现表：题量、正确率、平均耗时
+- 未来 7 天的到期卡数，用来看复习负荷会不会堆起来
+- 错题本：近 30 天错得最多的词条，按错次排序；「错题重练」直接生成一组只含错题的练习
 
 ## 开发排查
 
 - 改了前端却还显示旧界面：WebKitGTK 会把 dev 资源缓存在应用数据目录，删掉
-  `~/.local/share/top.chase141.ealearn/WebKitCache` 再启动。
+  `~/.local/share/top.chase141.ealearn/WebKitCache` 再启动（`scripts/dev.sh` 每次会清）。
 - 某个音色没声音：`forge say <voice> "测试文本" /tmp/t.wav` 直接合成一份出来对比。
 - 音色列表是空的：说明模型目录里没有对应语言的 piper 模型，见上面的下载步骤。
 
@@ -90,8 +218,20 @@ forge validate packs/en          # 校验：标注对齐、题目、对话图、
 forge hash packs/en              # 打印内容指纹，写进 manifest 的 content_hash
 forge annotate en "text"         # 打印分词与标注
 forge tokens en "text"           # 输出 token 的 JSON 数组，生成 pack 时内联
-forge audio packs/en             # 预合成音频并写回 pack（--voice=piper:en_US-amy 换音色）
+forge audio packs/en             # 预合成音频并写回 pack（--voice=piper:en_US-lessac 换音色）
+forge voices en                  # 列出本机可用音色
+forge say piper:en_US-lessac "hi" /tmp/t.wav   # 合成一句，排查音色问题
+forge gen dialog en "被人放鸽子"  # LLM 出对话草稿到 drafts/（先 --dry-run 看提示词）
+forge check-import book.json     # 试解析词书，报告能识别多少词
+forge corpus words packs/en --from=ecdict.csv --tag=cet4 --limit=2000
+                                 # 从 ECDICT 批量灌词条（按词频排序，带考试标签）
+forge corpus sentences packs/en --from=cmn.txt --limit=200 --max-words=12
+                                 # 从 Tatoeba 句对批量灌句子（英文<TAB>中文）
 ```
+
+批量语料只用公开数据：词条与释义来自 [ECDICT](https://github.com/skywind3000/ECDICT)，
+例句来自 Tatoeba（CC BY 2.0，句对文件可用 manythings.org 的 `cmn-eng.zip`）。
+`corpus` 只做筛选、去重和分词标注，写完自己更新 content_hash，之后跑 `forge audio` 补音频。
 
 `validate` 的核心是标注对齐校验：所有 token 必须首尾相接铺满原文（空白除外），
 且每块内容与 span 指向的原文逐字节相等。LLM 生成的标注错位会在这里被挡下，
@@ -101,4 +241,4 @@ forge audio packs/en             # 预合成音频并写回 pack（--voice=piper
 
 见 `docs/design.md` §3。一个 pack 目录包含 `manifest.json` 与
 `words.json` / `sentences.json` / `articles.json` / `dialogs.json`，
-素材（预合成音频、图片）放在 `media/` 下，路径相对 pack 根目录。
+预合成音频放在 `media/audio/` 下，路径相对 pack 根目录。

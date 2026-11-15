@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, type Answer, type Exercise, type SessionPlan, type SubmitResult } from "./api";
+import { api, type Answer, type Article, type Exercise, type SessionPlan, type SubmitResult } from "./api";
 import { playUrl } from "./audio";
+import { loadGoal } from "./Goal";
 
 const SESSION_SIZE = 8;
 
@@ -36,7 +37,19 @@ export function Practice({
     setError(null);
     setSession(null);
     try {
-      const s = await api.startSession(lang, SESSION_SIZE, Date.now() >>> 0, mode);
+      // 有每日题量目标时，这一组按「今天还差多少题」出，练完就达标。
+      let size = SESSION_SIZE;
+      try {
+        const goal = await loadGoal(lang);
+        if (goal && goal.kind === "attempts") {
+          const days = await api.activity(1, -new Date().getTimezoneOffset());
+          const done = days[0]?.attempts ?? 0;
+          if (done < goal.target) size = Math.min(40, Math.max(1, goal.target - done));
+        }
+      } catch {
+        // 读目标失败就按默认题量出
+      }
+      const s = await api.startSession(lang, size, Date.now() >>> 0, mode);
       // 兼容旧后端（返回裸数组）与半新不旧的 dev 缓存，别让整个页面白掉
       setSession(Array.isArray(s) ? { exercises: s, review: 0 } : s);
       setIdx(0);
@@ -82,9 +95,19 @@ export function Practice({
   if (!session) return <div className="panel muted">正在组卷…</div>;
 
   if (session.exercises.length === 0) {
+    const why: Record<string, string> = {
+      article:
+        "阅读需要文章。到词库页用「导入文章」粘一篇（标题、正文、题目），或往 pack 里加 articles.json。",
+      sentence:
+        "拼句需要 3 个词以上的句子。在词库页导入整句或短语，或往 pack 的 sentences.json 里加。",
+      audio:
+        "听音题要有可选项。先在词库导入一批词；没有预生成音频也会按需合成，只要设置里有可用音色。",
+      recall: "这门语言还没有可背的词条。导入单词书或自定义词条即可。",
+      weak: "近 30 天没有错题，或者错题对应的词条已经不在包里。",
+    };
     return (
       <div className="panel">
-        <p className="muted">这种练法在当前语言包里还没有素材。</p>
+        <p className="muted">{why[mode] ?? "这种练法在当前语言包里还没有素材。"}</p>
         <button onClick={onExit}>换一种</button>
       </div>
     );
@@ -144,7 +167,7 @@ export function Practice({
       />
 
       {result ? (
-        <Feedback result={result} onNext={advance} lang={lang} />
+        <Feedback result={result} ex={ex} onNext={advance} lang={lang} />
       ) : ex.kind === "recall" ? null : (
         <div className="actions">
           <button
@@ -172,6 +195,8 @@ function kindLabel(ex: Exercise) {
       return "听音选词";
     case "article-mcq":
       return "阅读理解";
+    case "recall":
+      return "背诵卡";
     default:
       return "情景";
   }
@@ -227,9 +252,71 @@ function ExerciseView({
   }
 
   return (
-    <div className="exercise">
-      <p className="question">{ex.prompt}</p>
-      <Options options={ex.options} picked={picked} setPicked={setPicked} locked={locked} />
+    <ArticleQuestion
+      lang={lang}
+      ex={ex}
+      picked={picked}
+      setPicked={setPicked}
+      locked={locked}
+    />
+  );
+}
+
+/// 阅读理解：先出正文，再出题。正文与题目分开取，切题时不必重下整篇文章。
+function ArticleQuestion({
+  lang,
+  ex,
+  picked,
+  setPicked,
+  locked,
+}: {
+  lang: string;
+  ex: Extract<Exercise, { kind: "article-mcq" }>;
+  picked: number | null;
+  setPicked: (v: number | null) => void;
+  locked: boolean;
+}) {
+  const [article, setArticle] = useState<Article | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    setArticle(null);
+    setError(null);
+    api
+      .getArticle(lang, ex.article)
+      .then((a) => alive && setArticle(a))
+      .catch((e) => alive && setError(String(e)));
+    return () => {
+      alive = false;
+    };
+  }, [lang, ex.article]);
+
+  if (error) {
+    return (
+      <div className="exercise">
+        <p className="error">取正文失败：{error}</p>
+      </div>
+    );
+  }
+
+  if (!article) return <div className="exercise muted">正在取正文…</div>;
+
+  return (
+    <div className="exercise article">
+      <article className="passage">
+        <h3>{article.title}</h3>
+        {article.body.split(/\n{2,}/).map((para, i) => (
+          <p key={i}>{para}</p>
+        ))}
+      </article>
+
+      <div className="question-block">
+        <p className="question">
+          <span className="tag">第 {ex.question + 1} 题</span> {ex.prompt}
+        </p>
+        <Options options={ex.options} picked={picked} setPicked={setPicked} locked={locked} />
+      </div>
     </div>
   );
 }
@@ -351,7 +438,10 @@ function SentenceBuilder({
   );
 }
 
-/// 背诵卡：正面是词，翻开看释义，自评熟练度。没有音频素材的自定义词也能练。
+/// 背诵卡：正面出词，直接自评；选完才给释义。
+///
+/// 先看释义再自评等于给自己答案，评出来的「认识」不可信。顺序反过来，
+/// 用户先凭记忆判断，再对答案。
 function RecallCard({
   lang,
   ex,
@@ -363,8 +453,6 @@ function RecallCard({
   onSubmit: (rating: number) => void;
   locked: boolean;
 }) {
-  const [revealed, setRevealed] = useState(false);
-
   return (
     <div className="exercise recall">
       <div className="recall-front">
@@ -373,29 +461,20 @@ function RecallCard({
         {ex.reading && <p className="muted">/{ex.reading}/</p>}
       </div>
 
-      {!revealed ? (
-        <div className="actions center">
-          <button className="primary" disabled={locked} onClick={() => setRevealed(true)}>
-            显示释义
+      <p className="muted recall-ask">认识这个词吗？</p>
+
+      <div className="rating">
+        {[
+          { r: 3, label: "认识", cls: "good" },
+          { r: 2, label: "模糊", cls: "hard" },
+          { r: 1, label: "不认识", cls: "again" },
+          { r: 4, label: "太简单", cls: "easy" },
+        ].map((x) => (
+          <button key={x.r} className={x.cls} disabled={locked} onClick={() => onSubmit(x.r)}>
+            {x.label}
           </button>
-        </div>
-      ) : (
-        <>
-          <p className="recall-back">{ex.gloss ?? "（这个词还没有释义）"}</p>
-          <div className="rating">
-            {[
-              { r: 1, label: "不认识", cls: "again" },
-              { r: 2, label: "模糊", cls: "hard" },
-              { r: 3, label: "认识", cls: "good" },
-              { r: 4, label: "太简单", cls: "easy" },
-            ].map((x) => (
-              <button key={x.r} className={x.cls} disabled={locked} onClick={() => onSubmit(x.r)}>
-                {x.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }
@@ -466,22 +545,38 @@ function Options({
 
 function Feedback({
   result,
+  ex,
   onNext,
   lang,
 }: {
   result: SubmitResult;
+  ex: Exercise;
   onNext: () => void;
   lang: string;
 }) {
   const { grade, card } = result;
   const days = card ? Math.max(0, Math.round((card.state.due * 1000 - Date.now()) / 86_400_000)) : null;
-  const expected = grade.items.find((i) => !i.correct && i.expected)?.expected;
+  const recall = ex.kind === "recall" ? ex : null;
+  const expected = recall ? undefined : grade.items.find((i) => !i.correct && i.expected)?.expected;
+
+  const RATING_LABEL: Record<number, string> = {
+    1: "不认识",
+    2: "模糊",
+    3: "认识",
+    4: "太简单",
+  };
 
   return (
     <div className={`feedback ${grade.correct ? "ok" : "bad"}`}>
       <div className="feedback-head">
         <p className="verdict">
-          {grade.correct ? "正确" : grade.ratio > 0 ? `部分正确 ${Math.round(grade.ratio * 100)}%` : "再想想"}
+          {recall
+            ? `自评：${RATING_LABEL[result.rating] ?? "已记录"}`
+            : grade.correct
+              ? "正确"
+              : grade.ratio > 0
+                ? `部分正确 ${Math.round(grade.ratio * 100)}%`
+                : "再想想"}
         </p>
         {expected && (
           <span className="answer-reveal">
@@ -491,7 +586,13 @@ function Feedback({
         )}
       </div>
 
-      {!grade.correct && (
+      {recall && (
+        <p className="recall-back">
+          <b>{recall.surface}</b> · {recall.gloss ?? "（这个词还没有释义）"}
+        </p>
+      )}
+
+      {!recall && !grade.correct && (
         <ul className="correction">
           {grade.items
             .filter((i) => !i.correct && i.expected)

@@ -347,5 +347,2350 @@
         "explain": "原文：시간을 지키는 것은 작은 배려다。"
       }
     ]
+  },
+  {
+    "id": "ko.a.0002",
+    "title": "편의점은 왜 밤에도 열려 있을까",
+    "body": "한국의 편의점은 거의 24시간 문을 연다. 밤늦게 출출할 때, 갑자기 약이 필요할 때, 휴대폰 충전기가 없을 때 사람들은 편의점으로 간다. 작은 가게 하나가 동네의 작은 응급실 역할을 하는 셈이다.\n\n편의점이 늘어난 데에는 이유가 있다. 혼자 사는 사람이 많아지고, 집에서 밥을 해 먹는 시간이 줄었다. 또 택배를 받거나 보내는 일도 편의점에서 해결할 수 있다.\n\n다만 늘어난 만큼 경쟁도 치열하다. 같은 골목에 가게가 세 개씩 있는 경우도 드물지 않다.",
+    "tokens": [
+      {
+        "surface": "한국",
+        "reading": "hanguk",
+        "pos": "NNP",
+        "span": [
+          0,
+          6
+        ]
+      },
+      {
+        "surface": "의",
+        "reading": "ui",
+        "pos": "JKG",
+        "span": [
+          6,
+          9
+        ]
+      },
+      {
+        "surface": "편의점",
+        "lemma": "편의",
+        "reading": "pyeonuijeom",
+        "pos": "NNG",
+        "span": [
+          10,
+          19
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "JX",
+        "span": [
+          19,
+          22
+        ]
+      },
+      {
+        "surface": "거의",
+        "reading": "geoui",
+        "pos": "MAG",
+        "span": [
+          23,
+          29
+        ]
+      },
+      {
+        "surface": "24",
+        "reading": "24",
+        "pos": "SN",
+        "span": [
+          30,
+          32
+        ]
+      },
+      {
+        "surface": "시간",
+        "reading": "sigan",
+        "pos": "NNBC",
+        "span": [
+          32,
+          38
+        ]
+      },
+      {
+        "surface": "문",
+        "reading": "mun",
+        "pos": "NNG",
+        "span": [
+          39,
+          42
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          42,
+          45
+        ]
+      },
+      {
+        "surface": "연다",
+        "lemma": "열",
+        "reading": "yeonda",
+        "pos": "VV+EC",
+        "span": [
+          46,
+          52
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SY",
+        "span": [
+          52,
+          53
+        ]
+      },
+      {
+        "surface": "밤",
+        "reading": "bam",
+        "pos": "NNG",
+        "span": [
+          54,
+          57
+        ]
+      },
+      {
+        "surface": "늦",
+        "reading": "neut",
+        "pos": "VA",
+        "span": [
+          57,
+          60
+        ]
+      },
+      {
+        "surface": "게",
+        "reading": "ge",
+        "pos": "EC",
+        "span": [
+          60,
+          63
+        ]
+      },
+      {
+        "surface": "출출",
+        "reading": "chulchul",
+        "pos": "XR",
+        "span": [
+          64,
+          70
+        ]
+      },
+      {
+        "surface": "할",
+        "lemma": "하",
+        "reading": "hal",
+        "pos": "XSA+ETM",
+        "span": [
+          70,
+          73
+        ]
+      },
+      {
+        "surface": "때",
+        "reading": "ttae",
+        "pos": "NNG",
+        "span": [
+          74,
+          77
+        ]
+      },
+      {
+        "surface": ",",
+        "reading": ",",
+        "pos": "SC",
+        "span": [
+          77,
+          78
+        ]
+      },
+      {
+        "surface": "갑자기",
+        "reading": "gapjagi",
+        "pos": "MAG",
+        "span": [
+          79,
+          88
+        ]
+      },
+      {
+        "surface": "약",
+        "reading": "yak",
+        "pos": "NNG",
+        "span": [
+          89,
+          92
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "JKS",
+        "span": [
+          92,
+          95
+        ]
+      },
+      {
+        "surface": "필요",
+        "reading": "piryo",
+        "pos": "NNG",
+        "span": [
+          96,
+          102
+        ]
+      },
+      {
+        "surface": "할",
+        "lemma": "하",
+        "reading": "hal",
+        "pos": "XSV+ETM",
+        "span": [
+          102,
+          105
+        ]
+      },
+      {
+        "surface": "때",
+        "reading": "ttae",
+        "pos": "NNG",
+        "span": [
+          106,
+          109
+        ]
+      },
+      {
+        "surface": ",",
+        "reading": ",",
+        "pos": "SC",
+        "span": [
+          109,
+          110
+        ]
+      },
+      {
+        "surface": "휴대폰",
+        "lemma": "휴대",
+        "reading": "hyudaepon",
+        "pos": "NNG",
+        "span": [
+          111,
+          120
+        ]
+      },
+      {
+        "surface": "충전기",
+        "lemma": "충전",
+        "reading": "chungjeongi",
+        "pos": "NNG",
+        "span": [
+          121,
+          130
+        ]
+      },
+      {
+        "surface": "가",
+        "reading": "ga",
+        "pos": "JKS",
+        "span": [
+          130,
+          133
+        ]
+      },
+      {
+        "surface": "없",
+        "reading": "eop",
+        "pos": "VA",
+        "span": [
+          134,
+          137
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "ETM",
+        "span": [
+          137,
+          140
+        ]
+      },
+      {
+        "surface": "때",
+        "reading": "ttae",
+        "pos": "NNG",
+        "span": [
+          141,
+          144
+        ]
+      },
+      {
+        "surface": "사람",
+        "reading": "saram",
+        "pos": "NNG",
+        "span": [
+          145,
+          151
+        ]
+      },
+      {
+        "surface": "들",
+        "reading": "deul",
+        "pos": "XSN",
+        "span": [
+          151,
+          154
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "JX",
+        "span": [
+          154,
+          157
+        ]
+      },
+      {
+        "surface": "편의점",
+        "lemma": "편의",
+        "reading": "pyeonuijeom",
+        "pos": "NNG",
+        "span": [
+          158,
+          167
+        ]
+      },
+      {
+        "surface": "으로",
+        "reading": "euro",
+        "pos": "JKB",
+        "span": [
+          167,
+          173
+        ]
+      },
+      {
+        "surface": "간다",
+        "lemma": "가",
+        "reading": "ganda",
+        "pos": "VV+EF",
+        "span": [
+          174,
+          180
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          180,
+          181
+        ]
+      },
+      {
+        "surface": "작",
+        "reading": "jak",
+        "pos": "VA",
+        "span": [
+          182,
+          185
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "ETM",
+        "span": [
+          185,
+          188
+        ]
+      },
+      {
+        "surface": "가",
+        "reading": "ga",
+        "pos": "VV",
+        "span": [
+          189,
+          192
+        ]
+      },
+      {
+        "surface": "게",
+        "reading": "ge",
+        "pos": "EC",
+        "span": [
+          192,
+          195
+        ]
+      },
+      {
+        "surface": "하나",
+        "reading": "hana",
+        "pos": "NR",
+        "span": [
+          196,
+          202
+        ]
+      },
+      {
+        "surface": "가",
+        "reading": "ga",
+        "pos": "JKS",
+        "span": [
+          202,
+          205
+        ]
+      },
+      {
+        "surface": "동네",
+        "reading": "dongne",
+        "pos": "NNG",
+        "span": [
+          206,
+          212
+        ]
+      },
+      {
+        "surface": "의",
+        "reading": "ui",
+        "pos": "JKG",
+        "span": [
+          212,
+          215
+        ]
+      },
+      {
+        "surface": "작",
+        "reading": "jak",
+        "pos": "VA",
+        "span": [
+          216,
+          219
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "ETM",
+        "span": [
+          219,
+          222
+        ]
+      },
+      {
+        "surface": "응급실",
+        "lemma": "응급",
+        "reading": "eunggeupsil",
+        "pos": "NNG",
+        "span": [
+          223,
+          232
+        ]
+      },
+      {
+        "surface": "역할",
+        "reading": "yeokhal",
+        "pos": "NNG",
+        "span": [
+          233,
+          239
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          239,
+          242
+        ]
+      },
+      {
+        "surface": "하",
+        "reading": "ha",
+        "pos": "VV",
+        "span": [
+          243,
+          246
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          246,
+          249
+        ]
+      },
+      {
+        "surface": "셈",
+        "reading": "sem",
+        "pos": "NNG",
+        "span": [
+          250,
+          253
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "VCP",
+        "span": [
+          253,
+          256
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          256,
+          259
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          259,
+          260
+        ]
+      },
+      {
+        "surface": "편의점",
+        "lemma": "편의",
+        "reading": "pyeonuijeom",
+        "pos": "NNG",
+        "span": [
+          262,
+          271
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "JKS",
+        "span": [
+          271,
+          274
+        ]
+      },
+      {
+        "surface": "늘어난",
+        "lemma": "늘어나",
+        "reading": "neureonan",
+        "pos": "VV+ETM",
+        "span": [
+          275,
+          284
+        ]
+      },
+      {
+        "surface": "데",
+        "reading": "de",
+        "pos": "NNB",
+        "span": [
+          285,
+          288
+        ]
+      },
+      {
+        "surface": "에",
+        "reading": "e",
+        "pos": "JKB",
+        "span": [
+          288,
+          291
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "JX",
+        "span": [
+          291,
+          294
+        ]
+      },
+      {
+        "surface": "이유",
+        "reading": "iyu",
+        "pos": "NNG",
+        "span": [
+          295,
+          301
+        ]
+      },
+      {
+        "surface": "가",
+        "reading": "ga",
+        "pos": "JKS",
+        "span": [
+          301,
+          304
+        ]
+      },
+      {
+        "surface": "있",
+        "reading": "it",
+        "pos": "VA",
+        "span": [
+          305,
+          308
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          308,
+          311
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          311,
+          312
+        ]
+      },
+      {
+        "surface": "혼자",
+        "reading": "honja",
+        "pos": "NNG",
+        "span": [
+          313,
+          319
+        ]
+      },
+      {
+        "surface": "사",
+        "reading": "sa",
+        "pos": "VV",
+        "span": [
+          320,
+          323
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          323,
+          326
+        ]
+      },
+      {
+        "surface": "사람",
+        "reading": "saram",
+        "pos": "NNG",
+        "span": [
+          327,
+          333
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "JKS",
+        "span": [
+          333,
+          336
+        ]
+      },
+      {
+        "surface": "많",
+        "reading": "man",
+        "pos": "VA",
+        "span": [
+          337,
+          340
+        ]
+      },
+      {
+        "surface": "아",
+        "reading": "a",
+        "pos": "EC",
+        "span": [
+          340,
+          343
+        ]
+      },
+      {
+        "surface": "지",
+        "reading": "ji",
+        "pos": "VX",
+        "span": [
+          343,
+          346
+        ]
+      },
+      {
+        "surface": "고",
+        "reading": "go",
+        "pos": "EC",
+        "span": [
+          346,
+          349
+        ]
+      },
+      {
+        "surface": ",",
+        "reading": ",",
+        "pos": "SC",
+        "span": [
+          349,
+          350
+        ]
+      },
+      {
+        "surface": "집",
+        "reading": "jip",
+        "pos": "NNG",
+        "span": [
+          351,
+          354
+        ]
+      },
+      {
+        "surface": "에서",
+        "reading": "eseo",
+        "pos": "JKB",
+        "span": [
+          354,
+          360
+        ]
+      },
+      {
+        "surface": "밥",
+        "reading": "bap",
+        "pos": "NNG",
+        "span": [
+          361,
+          364
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          364,
+          367
+        ]
+      },
+      {
+        "surface": "해",
+        "lemma": "하",
+        "reading": "hae",
+        "pos": "VV+EC",
+        "span": [
+          368,
+          371
+        ]
+      },
+      {
+        "surface": "먹",
+        "reading": "meok",
+        "pos": "VV",
+        "span": [
+          372,
+          375
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          375,
+          378
+        ]
+      },
+      {
+        "surface": "시간",
+        "reading": "sigan",
+        "pos": "NNG",
+        "span": [
+          379,
+          385
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "JKS",
+        "span": [
+          385,
+          388
+        ]
+      },
+      {
+        "surface": "줄",
+        "reading": "jul",
+        "pos": "VV",
+        "span": [
+          389,
+          392
+        ]
+      },
+      {
+        "surface": "었",
+        "reading": "eot",
+        "pos": "EP",
+        "span": [
+          392,
+          395
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          395,
+          398
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          398,
+          399
+        ]
+      },
+      {
+        "surface": "또",
+        "reading": "tto",
+        "pos": "MAG",
+        "span": [
+          400,
+          403
+        ]
+      },
+      {
+        "surface": "택배",
+        "reading": "taekbae",
+        "pos": "NNG",
+        "span": [
+          404,
+          410
+        ]
+      },
+      {
+        "surface": "를",
+        "reading": "reul",
+        "pos": "JKO",
+        "span": [
+          410,
+          413
+        ]
+      },
+      {
+        "surface": "받",
+        "reading": "bat",
+        "pos": "VV",
+        "span": [
+          414,
+          417
+        ]
+      },
+      {
+        "surface": "거나",
+        "reading": "geona",
+        "pos": "EC",
+        "span": [
+          417,
+          423
+        ]
+      },
+      {
+        "surface": "보내",
+        "reading": "bonae",
+        "pos": "VV",
+        "span": [
+          424,
+          430
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          430,
+          433
+        ]
+      },
+      {
+        "surface": "일",
+        "reading": "il",
+        "pos": "NNG",
+        "span": [
+          434,
+          437
+        ]
+      },
+      {
+        "surface": "도",
+        "reading": "do",
+        "pos": "JX",
+        "span": [
+          437,
+          440
+        ]
+      },
+      {
+        "surface": "편의점",
+        "lemma": "편의",
+        "reading": "pyeonuijeom",
+        "pos": "NNG",
+        "span": [
+          441,
+          450
+        ]
+      },
+      {
+        "surface": "에서",
+        "reading": "eseo",
+        "pos": "JKB",
+        "span": [
+          450,
+          456
+        ]
+      },
+      {
+        "surface": "해결",
+        "reading": "haegyeol",
+        "pos": "NNG",
+        "span": [
+          457,
+          463
+        ]
+      },
+      {
+        "surface": "할",
+        "lemma": "하",
+        "reading": "hal",
+        "pos": "XSV+ETM",
+        "span": [
+          463,
+          466
+        ]
+      },
+      {
+        "surface": "수",
+        "reading": "su",
+        "pos": "NNG",
+        "span": [
+          467,
+          470
+        ]
+      },
+      {
+        "surface": "있",
+        "reading": "it",
+        "pos": "VA",
+        "span": [
+          471,
+          474
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          474,
+          477
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          477,
+          478
+        ]
+      },
+      {
+        "surface": "다만",
+        "reading": "daman",
+        "pos": "MAJ",
+        "span": [
+          480,
+          486
+        ]
+      },
+      {
+        "surface": "늘어난",
+        "lemma": "늘어나",
+        "reading": "neureonan",
+        "pos": "VV+ETM",
+        "span": [
+          487,
+          496
+        ]
+      },
+      {
+        "surface": "만큼",
+        "reading": "mankeum",
+        "pos": "NNB",
+        "span": [
+          497,
+          503
+        ]
+      },
+      {
+        "surface": "경쟁",
+        "reading": "gyeongjaeng",
+        "pos": "NNG",
+        "span": [
+          504,
+          510
+        ]
+      },
+      {
+        "surface": "도",
+        "reading": "do",
+        "pos": "JX",
+        "span": [
+          510,
+          513
+        ]
+      },
+      {
+        "surface": "치열",
+        "reading": "chiyeol",
+        "pos": "NNG",
+        "span": [
+          514,
+          520
+        ]
+      },
+      {
+        "surface": "하",
+        "reading": "ha",
+        "pos": "XSV",
+        "span": [
+          520,
+          523
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          523,
+          526
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          526,
+          527
+        ]
+      },
+      {
+        "surface": "같",
+        "reading": "gat",
+        "pos": "VA",
+        "span": [
+          528,
+          531
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "ETM",
+        "span": [
+          531,
+          534
+        ]
+      },
+      {
+        "surface": "골목",
+        "reading": "golmok",
+        "pos": "NNG",
+        "span": [
+          535,
+          541
+        ]
+      },
+      {
+        "surface": "에",
+        "reading": "e",
+        "pos": "JKB",
+        "span": [
+          541,
+          544
+        ]
+      },
+      {
+        "surface": "가게",
+        "reading": "gage",
+        "pos": "NNG",
+        "span": [
+          545,
+          551
+        ]
+      },
+      {
+        "surface": "가",
+        "reading": "ga",
+        "pos": "JKS",
+        "span": [
+          551,
+          554
+        ]
+      },
+      {
+        "surface": "세",
+        "reading": "se",
+        "pos": "VV+EC",
+        "span": [
+          555,
+          558
+        ]
+      },
+      {
+        "surface": "개",
+        "reading": "gae",
+        "pos": "NNG",
+        "span": [
+          559,
+          562
+        ]
+      },
+      {
+        "surface": "씩",
+        "reading": "ssik",
+        "pos": "XSN",
+        "span": [
+          562,
+          565
+        ]
+      },
+      {
+        "surface": "있",
+        "reading": "it",
+        "pos": "VA",
+        "span": [
+          566,
+          569
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          569,
+          572
+        ]
+      },
+      {
+        "surface": "경우",
+        "reading": "gyeongu",
+        "pos": "NNG",
+        "span": [
+          573,
+          579
+        ]
+      },
+      {
+        "surface": "도",
+        "reading": "do",
+        "pos": "JX",
+        "span": [
+          579,
+          582
+        ]
+      },
+      {
+        "surface": "드물",
+        "reading": "deumul",
+        "pos": "VA",
+        "span": [
+          583,
+          589
+        ]
+      },
+      {
+        "surface": "지",
+        "reading": "ji",
+        "pos": "EC",
+        "span": [
+          589,
+          592
+        ]
+      },
+      {
+        "surface": "않",
+        "reading": "an",
+        "pos": "VX",
+        "span": [
+          593,
+          596
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          596,
+          599
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          599,
+          600
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "prompt": "글에서 편의점이 하는 역할로 언급되지 않은 것은?",
+        "options": [
+          "늦은 밤 간식 사기",
+          "택배 보내기",
+          "병원 진료 받기"
+        ],
+        "answer": 2
+      },
+      {
+        "prompt": "편의점이 늘어난 이유로 글에서 말한 것은?",
+        "options": [
+          "혼자 사는 사람이 늘어서",
+          "값이 아주 싸져서",
+          "정부에서 지원해서"
+        ],
+        "answer": 0
+      }
+    ]
+  },
+  {
+    "id": "ko.a.0003",
+    "title": "지하철에서 지켜야 할 작은 예절",
+    "body": "지하철은 많은 사람이 함께 쓰는 공간이다. 그래서 작은 배려가 큰 차이를 만든다. 이어폰 없이 영상을 보거나, 큰 소리로 통화를 하면 옆 사람의 하루가 피곤해진다.\n\n가방은 앞으로 메는 것이 좋다. 사람이 많은 시간에는 특히 그렇다. 문이 열릴 때 내리는 사람을 먼저 보내는 것도 기본이다.\n\n이런 예절은 규칙이라기보다 약속에 가깝다. 누군가 시켜서 하는 것이 아니라, 서로의 공간을 존중하려는 마음에서 나온다.",
+    "tokens": [
+      {
+        "surface": "지하철",
+        "lemma": "지하",
+        "reading": "jihacheol",
+        "pos": "NNG",
+        "span": [
+          0,
+          9
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "JX",
+        "span": [
+          9,
+          12
+        ]
+      },
+      {
+        "surface": "많",
+        "reading": "man",
+        "pos": "VA",
+        "span": [
+          13,
+          16
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "ETM",
+        "span": [
+          16,
+          19
+        ]
+      },
+      {
+        "surface": "사람",
+        "reading": "saram",
+        "pos": "NNG",
+        "span": [
+          20,
+          26
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "JKS",
+        "span": [
+          26,
+          29
+        ]
+      },
+      {
+        "surface": "함께",
+        "reading": "hamkke",
+        "pos": "MAG",
+        "span": [
+          30,
+          36
+        ]
+      },
+      {
+        "surface": "쓰",
+        "reading": "sseu",
+        "pos": "VV",
+        "span": [
+          37,
+          40
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          40,
+          43
+        ]
+      },
+      {
+        "surface": "공간",
+        "reading": "gonggan",
+        "pos": "NNG",
+        "span": [
+          44,
+          50
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "VCP",
+        "span": [
+          50,
+          53
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          53,
+          56
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          56,
+          57
+        ]
+      },
+      {
+        "surface": "그래서",
+        "reading": "geuraeseo",
+        "pos": "MAJ",
+        "span": [
+          58,
+          67
+        ]
+      },
+      {
+        "surface": "작",
+        "reading": "jak",
+        "pos": "VA",
+        "span": [
+          68,
+          71
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "ETM",
+        "span": [
+          71,
+          74
+        ]
+      },
+      {
+        "surface": "배려",
+        "reading": "baeryeo",
+        "pos": "NNG",
+        "span": [
+          75,
+          81
+        ]
+      },
+      {
+        "surface": "가",
+        "reading": "ga",
+        "pos": "JKS",
+        "span": [
+          81,
+          84
+        ]
+      },
+      {
+        "surface": "큰",
+        "lemma": "크",
+        "reading": "keun",
+        "pos": "VA+ETM",
+        "span": [
+          85,
+          88
+        ]
+      },
+      {
+        "surface": "차이",
+        "reading": "chai",
+        "pos": "NNG",
+        "span": [
+          89,
+          95
+        ]
+      },
+      {
+        "surface": "를",
+        "reading": "reul",
+        "pos": "JKO",
+        "span": [
+          95,
+          98
+        ]
+      },
+      {
+        "surface": "만든",
+        "reading": "mandeun",
+        "pos": "VV",
+        "span": [
+          99,
+          105
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          105,
+          108
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          108,
+          109
+        ]
+      },
+      {
+        "surface": "이어폰",
+        "reading": "ieopon",
+        "pos": "NNG",
+        "span": [
+          110,
+          119
+        ]
+      },
+      {
+        "surface": "없이",
+        "reading": "eobsi",
+        "pos": "MAG",
+        "span": [
+          120,
+          126
+        ]
+      },
+      {
+        "surface": "영상",
+        "reading": "yeongsang",
+        "pos": "NNG",
+        "span": [
+          127,
+          133
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          133,
+          136
+        ]
+      },
+      {
+        "surface": "보",
+        "reading": "bo",
+        "pos": "VV",
+        "span": [
+          137,
+          140
+        ]
+      },
+      {
+        "surface": "거나",
+        "reading": "geona",
+        "pos": "EC",
+        "span": [
+          140,
+          146
+        ]
+      },
+      {
+        "surface": ",",
+        "reading": ",",
+        "pos": "SC",
+        "span": [
+          146,
+          147
+        ]
+      },
+      {
+        "surface": "큰",
+        "lemma": "크",
+        "reading": "keun",
+        "pos": "VA+ETM",
+        "span": [
+          148,
+          151
+        ]
+      },
+      {
+        "surface": "소리",
+        "reading": "sori",
+        "pos": "NNG",
+        "span": [
+          152,
+          158
+        ]
+      },
+      {
+        "surface": "로",
+        "reading": "ro",
+        "pos": "JKB",
+        "span": [
+          158,
+          161
+        ]
+      },
+      {
+        "surface": "통화",
+        "reading": "tonghwa",
+        "pos": "NNG",
+        "span": [
+          162,
+          168
+        ]
+      },
+      {
+        "surface": "를",
+        "reading": "reul",
+        "pos": "JKO",
+        "span": [
+          168,
+          171
+        ]
+      },
+      {
+        "surface": "하",
+        "reading": "ha",
+        "pos": "VV",
+        "span": [
+          172,
+          175
+        ]
+      },
+      {
+        "surface": "면",
+        "reading": "myeon",
+        "pos": "EC",
+        "span": [
+          175,
+          178
+        ]
+      },
+      {
+        "surface": "옆",
+        "reading": "yeop",
+        "pos": "NNG",
+        "span": [
+          179,
+          182
+        ]
+      },
+      {
+        "surface": "사람",
+        "reading": "saram",
+        "pos": "NNG",
+        "span": [
+          183,
+          189
+        ]
+      },
+      {
+        "surface": "의",
+        "reading": "ui",
+        "pos": "JKG",
+        "span": [
+          189,
+          192
+        ]
+      },
+      {
+        "surface": "하루",
+        "reading": "haru",
+        "pos": "NNG",
+        "span": [
+          193,
+          199
+        ]
+      },
+      {
+        "surface": "가",
+        "reading": "ga",
+        "pos": "JKS",
+        "span": [
+          199,
+          202
+        ]
+      },
+      {
+        "surface": "피곤",
+        "reading": "pigon",
+        "pos": "NNG",
+        "span": [
+          203,
+          209
+        ]
+      },
+      {
+        "surface": "해진다",
+        "lemma": "하",
+        "reading": "haejinda",
+        "pos": "XSA+EC+VX+EF",
+        "span": [
+          209,
+          218
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          218,
+          219
+        ]
+      },
+      {
+        "surface": "가방",
+        "reading": "gabang",
+        "pos": "NNG",
+        "span": [
+          221,
+          227
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "JX",
+        "span": [
+          227,
+          230
+        ]
+      },
+      {
+        "surface": "앞",
+        "reading": "ap",
+        "pos": "NNG",
+        "span": [
+          231,
+          234
+        ]
+      },
+      {
+        "surface": "으로",
+        "reading": "euro",
+        "pos": "JKB",
+        "span": [
+          234,
+          240
+        ]
+      },
+      {
+        "surface": "메",
+        "reading": "me",
+        "pos": "VV",
+        "span": [
+          241,
+          244
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          244,
+          247
+        ]
+      },
+      {
+        "surface": "것",
+        "reading": "geot",
+        "pos": "NNB",
+        "span": [
+          248,
+          251
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "VCP",
+        "span": [
+          251,
+          254
+        ]
+      },
+      {
+        "surface": "좋",
+        "reading": "jot",
+        "pos": "VA",
+        "span": [
+          255,
+          258
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          258,
+          261
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          261,
+          262
+        ]
+      },
+      {
+        "surface": "사람",
+        "reading": "saram",
+        "pos": "NNG",
+        "span": [
+          263,
+          269
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "JKS",
+        "span": [
+          269,
+          272
+        ]
+      },
+      {
+        "surface": "많",
+        "reading": "man",
+        "pos": "VA",
+        "span": [
+          273,
+          276
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "ETM",
+        "span": [
+          276,
+          279
+        ]
+      },
+      {
+        "surface": "시간",
+        "reading": "sigan",
+        "pos": "NNG",
+        "span": [
+          280,
+          286
+        ]
+      },
+      {
+        "surface": "에",
+        "reading": "e",
+        "pos": "JKB",
+        "span": [
+          286,
+          289
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "JX",
+        "span": [
+          289,
+          292
+        ]
+      },
+      {
+        "surface": "특히",
+        "reading": "teukhi",
+        "pos": "MAG",
+        "span": [
+          293,
+          299
+        ]
+      },
+      {
+        "surface": "그렇",
+        "reading": "geureot",
+        "pos": "VA",
+        "span": [
+          300,
+          306
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          306,
+          309
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          309,
+          310
+        ]
+      },
+      {
+        "surface": "문",
+        "reading": "mun",
+        "pos": "NNG",
+        "span": [
+          311,
+          314
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "JKS",
+        "span": [
+          314,
+          317
+        ]
+      },
+      {
+        "surface": "열릴",
+        "lemma": "열리",
+        "reading": "yeolril",
+        "pos": "VV+ETM",
+        "span": [
+          318,
+          324
+        ]
+      },
+      {
+        "surface": "때",
+        "reading": "ttae",
+        "pos": "NNG",
+        "span": [
+          325,
+          328
+        ]
+      },
+      {
+        "surface": "내리",
+        "reading": "naeri",
+        "pos": "VV",
+        "span": [
+          329,
+          335
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          335,
+          338
+        ]
+      },
+      {
+        "surface": "사람",
+        "reading": "saram",
+        "pos": "NNG",
+        "span": [
+          339,
+          345
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          345,
+          348
+        ]
+      },
+      {
+        "surface": "먼저",
+        "reading": "meonjeo",
+        "pos": "MAG",
+        "span": [
+          349,
+          355
+        ]
+      },
+      {
+        "surface": "보내",
+        "reading": "bonae",
+        "pos": "VV",
+        "span": [
+          356,
+          362
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          362,
+          365
+        ]
+      },
+      {
+        "surface": "것",
+        "reading": "geot",
+        "pos": "NNB",
+        "span": [
+          366,
+          369
+        ]
+      },
+      {
+        "surface": "도",
+        "reading": "do",
+        "pos": "JX",
+        "span": [
+          369,
+          372
+        ]
+      },
+      {
+        "surface": "기본",
+        "reading": "gibon",
+        "pos": "NNG",
+        "span": [
+          373,
+          379
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "VCP",
+        "span": [
+          379,
+          382
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          382,
+          385
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          385,
+          386
+        ]
+      },
+      {
+        "surface": "이런",
+        "reading": "ireon",
+        "pos": "MM",
+        "span": [
+          388,
+          394
+        ]
+      },
+      {
+        "surface": "예절",
+        "reading": "yejeol",
+        "pos": "NNG",
+        "span": [
+          395,
+          401
+        ]
+      },
+      {
+        "surface": "은",
+        "reading": "eun",
+        "pos": "JX",
+        "span": [
+          401,
+          404
+        ]
+      },
+      {
+        "surface": "규칙",
+        "reading": "gyuchik",
+        "pos": "NNG",
+        "span": [
+          405,
+          411
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "VCP",
+        "span": [
+          411,
+          414
+        ]
+      },
+      {
+        "surface": "라기",
+        "reading": "ragi",
+        "pos": "ETN",
+        "span": [
+          414,
+          420
+        ]
+      },
+      {
+        "surface": "보다",
+        "reading": "boda",
+        "pos": "JKB",
+        "span": [
+          420,
+          426
+        ]
+      },
+      {
+        "surface": "약속",
+        "reading": "yaksok",
+        "pos": "NNG",
+        "span": [
+          427,
+          433
+        ]
+      },
+      {
+        "surface": "에",
+        "reading": "e",
+        "pos": "JKB",
+        "span": [
+          433,
+          436
+        ]
+      },
+      {
+        "surface": "가깝",
+        "reading": "gakkap",
+        "pos": "VA",
+        "span": [
+          437,
+          443
+        ]
+      },
+      {
+        "surface": "다",
+        "reading": "da",
+        "pos": "EF",
+        "span": [
+          443,
+          446
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          446,
+          447
+        ]
+      },
+      {
+        "surface": "누군가",
+        "lemma": "누구",
+        "reading": "nugunga",
+        "pos": "NP+VCP+EC",
+        "span": [
+          448,
+          457
+        ]
+      },
+      {
+        "surface": "시켜서",
+        "lemma": "시키",
+        "reading": "sikyeoseo",
+        "pos": "VV+EC",
+        "span": [
+          458,
+          467
+        ]
+      },
+      {
+        "surface": "하",
+        "reading": "ha",
+        "pos": "VV",
+        "span": [
+          468,
+          471
+        ]
+      },
+      {
+        "surface": "는",
+        "reading": "neun",
+        "pos": "ETM",
+        "span": [
+          471,
+          474
+        ]
+      },
+      {
+        "surface": "것",
+        "reading": "geot",
+        "pos": "NNB",
+        "span": [
+          475,
+          478
+        ]
+      },
+      {
+        "surface": "이",
+        "reading": "i",
+        "pos": "VCP",
+        "span": [
+          478,
+          481
+        ]
+      },
+      {
+        "surface": "아니",
+        "reading": "ani",
+        "pos": "VCN",
+        "span": [
+          482,
+          488
+        ]
+      },
+      {
+        "surface": "라",
+        "reading": "ra",
+        "pos": "EC",
+        "span": [
+          488,
+          491
+        ]
+      },
+      {
+        "surface": ",",
+        "reading": ",",
+        "pos": "SC",
+        "span": [
+          491,
+          492
+        ]
+      },
+      {
+        "surface": "서로",
+        "reading": "seoro",
+        "pos": "NNG",
+        "span": [
+          493,
+          499
+        ]
+      },
+      {
+        "surface": "의",
+        "reading": "ui",
+        "pos": "JKG",
+        "span": [
+          499,
+          502
+        ]
+      },
+      {
+        "surface": "공간",
+        "reading": "gonggan",
+        "pos": "NNG",
+        "span": [
+          503,
+          509
+        ]
+      },
+      {
+        "surface": "을",
+        "reading": "eul",
+        "pos": "JKO",
+        "span": [
+          509,
+          512
+        ]
+      },
+      {
+        "surface": "존중",
+        "reading": "jonjung",
+        "pos": "NNG",
+        "span": [
+          513,
+          519
+        ]
+      },
+      {
+        "surface": "하",
+        "reading": "ha",
+        "pos": "XSV",
+        "span": [
+          519,
+          522
+        ]
+      },
+      {
+        "surface": "려는",
+        "reading": "ryeoneun",
+        "pos": "ETM",
+        "span": [
+          522,
+          528
+        ]
+      },
+      {
+        "surface": "마음",
+        "reading": "maeum",
+        "pos": "NNG",
+        "span": [
+          529,
+          535
+        ]
+      },
+      {
+        "surface": "에서",
+        "reading": "eseo",
+        "pos": "JKB",
+        "span": [
+          535,
+          541
+        ]
+      },
+      {
+        "surface": "나온다",
+        "lemma": "나오",
+        "reading": "naonda",
+        "pos": "VV+EF",
+        "span": [
+          542,
+          551
+        ]
+      },
+      {
+        "surface": ".",
+        "reading": ".",
+        "pos": "SF",
+        "span": [
+          551,
+          552
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "prompt": "글에서 말한 예절로 맞는 것은?",
+        "options": [
+          "이어폰 없이 영상 보기",
+          "가방을 앞으로 메기",
+          "문이 열리면 먼저 타기"
+        ],
+        "answer": 1
+      },
+      {
+        "prompt": "글쓴이가 말하는 예절의 성격은?",
+        "options": [
+          "법으로 정해진 규칙",
+          "서로의 공간을 존중하는 약속",
+          "벌금을 내야 하는 규칙"
+        ],
+        "answer": 1
+      }
+    ]
   }
 ]

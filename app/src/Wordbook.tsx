@@ -4,6 +4,9 @@ import { playUrl } from "./audio";
 
 type Filter = "all" | "due" | "weak" | "custom";
 
+/// 索引条目的类型。老索引没有 kind，按单词书处理。
+const bookKind = (b: RemoteBook) => b.kind ?? "words";
+
 type ParsedRow = { surface: string; gloss?: string; tags?: string; line: number };
 
 /// 与 Rust 侧 `ealearn_core::import::parse` 同一套规则，用来做导入前预览。
@@ -29,10 +32,21 @@ function parseRows(text: string): ParsedRow[] {
   return rows;
 }
 
-export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () => void }) {
+export function Wordbook({
+  lang,
+  onPractice,
+  onChanged,
+}: {
+  lang: string;
+  onPractice: () => void;
+  onChanged?: () => void;
+}) {
   const [rows, setRows] = useState<CardItem[] | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
   const [importing, setImporting] = useState(false);
+  const [importingArticle, setImportingArticle] = useState(false);
+  const [articleDraft, setArticleDraft] = useState("");
   const [draft, setDraft] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [skipped, setSkipped] = useState<string[]>([]);
@@ -72,6 +86,10 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
   const weakCount = (rows ?? []).filter((r) => r.mastery < 0.4).length;
 
   const visible = (rows ?? []).filter((r) => {
+    const q = query.trim().toLowerCase();
+    if (q && !r.surface.toLowerCase().includes(q) && !(r.gloss ?? "").toLowerCase().includes(q)) {
+      return false;
+    }
     if (filter === "due") return r.due <= now;
     if (filter === "weak") return r.mastery < 0.4;
     if (filter === "custom") return r.is_custom;
@@ -96,6 +114,21 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
       setDraft("");
       setImporting(false);
       await load();
+      onChanged?.();
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  /// 阅读文章的导入：格式由内核解析，正文分词对齐不过就直接拒绝。
+  const doImportArticle = async () => {
+    setError(null);
+    try {
+      await api.importArticle(lang, articleDraft);
+      setNote("文章已导入，「练习 · 阅读」里就能练");
+      setArticleDraft("");
+      setImportingArticle(false);
+      onChanged?.();
     } catch (e) {
       setError(String(e));
     }
@@ -107,6 +140,7 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
       const r = await api.importBook(id);
       setNote(`单词书导入完成：新增 ${r.added} 个，更新 ${r.updated} 个`);
       await load();
+      onChanged?.();
       api.listBooks().then(setBooks).catch(() => {});
     } catch (e) {
       setError(String(e));
@@ -117,9 +151,13 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
     setBusyBook(b.id);
     setError(null);
     try {
-      const r = await api.installRemoteBook(b.lang, b.name, b.url);
+      const r = await api.installRemoteBook(b.lang, b.name, b.url, b.kind, b.mirrors);
       setNote(`${b.name}：新增 ${r.added} 个，更新 ${r.updated} 个`);
+      setRemote((prev) =>
+        prev?.map((x) => (x.id === b.id ? { ...x, imported: r.added + r.updated } : x)) ?? null,
+      );
       await load();
+      onChanged?.();
       api.listBooks().then(setBooks).catch(() => {});
     } catch (e) {
       setError(`${b.name} 导入失败：${e}`);
@@ -176,7 +214,21 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
           </button>
         </div>
         <div className="actions">
+          <input
+            className="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="搜词或释义"
+          />
           <button onClick={() => setImporting((v) => !v)}>导入单词</button>
+          <button
+            onClick={() => {
+              setImportingArticle((v) => !v);
+              setImporting(false);
+            }}
+          >
+            导入文章
+          </button>
           <button className="primary" disabled={dueCount === 0} onClick={onPractice}>
             开始复习
           </button>
@@ -223,7 +275,7 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
             <input
               value={indexUrl}
               onChange={(e) => setIndexUrl(e.target.value)}
-              placeholder="https://…/books/index.json（留空用默认）"
+              placeholder="默认用仓库里的 books/index.json"
             />
             <button
               className="small"
@@ -233,24 +285,37 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
                 refreshRemote();
               }}
             >
-              保存
+              保存并使用
+            </button>
+            <button
+              className="ghost"
+              onClick={async () => {
+                setIndexUrl("");
+                await api.setBooksIndexUrl("").catch((e) => setError(String(e)));
+                setShowIndex(false);
+                refreshRemote();
+              }}
+            >
+              恢复默认
             </button>
           </div>
         )}
         {remoteError && <p className="muted">在线索引不可用：{remoteError}（不影响本地导入）</p>}
         {remote === null && !remoteError && <p className="muted">读取索引…</p>}
         {remote?.length === 0 && <p className="muted">索引里没有单词书</p>}
-        {!!remote?.length && remote.filter((b) => b.lang === lang).length === 0 && (
-          <p className="muted">索引里暂时没有这门语言的单词书</p>
-        )}
+        {!!remote?.length &&
+          remote.filter((b) => b.lang === lang && bookKind(b) === "words").length === 0 && (
+            <p className="muted">索引里暂时没有这门语言的单词书</p>
+          )}
         {!!remote?.length && (
           <ul>
             {remote
-              .filter((b) => b.lang === lang)
+              .filter((b) => b.lang === lang && bookKind(b) === "words")
               .map((b) => (
                 <li key={b.id}>
                   <div>
                     <b>{b.name}</b>
+                    {b.imported > 0 && <span className="tag">已下载 {b.imported}</span>}
                     <span className="muted">
                       {" "}
                       {b.count ? `${b.count} 词 · ` : ""}
@@ -263,13 +328,46 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
                     disabled={busyBook === b.id}
                     onClick={() => installRemote(b)}
                   >
-                    {busyBook === b.id ? "下载中…" : "下载并导入"}
+                    {busyBook === b.id ? "下载中…" : b.imported > 0 ? "重新导入" : "下载并导入"}
                   </button>
                 </li>
               ))}
           </ul>
         )}
       </section>
+
+      {!!remote?.length &&
+        remote.filter((b) => b.lang === lang && bookKind(b) === "sentences").length > 0 && (
+          <section className="books">
+            <p className="section-label">在线句库</p>
+            <p className="muted">句库下载后进「拼句子」，按句子卡入队，随时可在数据里清掉。</p>
+            <ul>
+              {remote
+                .filter((b) => b.lang === lang && bookKind(b) === "sentences")
+                .map((b) => (
+                  <li key={b.id}>
+                    <div>
+                      <b>{b.name}</b>
+                      {b.imported > 0 && <span className="tag">已下载 {b.imported}</span>}
+                      <span className="muted">
+                        {" "}
+                        {b.count ? `${b.count} 句 · ` : ""}
+                        {b.license || "许可见来源"}
+                      </span>
+                      {b.note && <div className="muted">{b.note}</div>}
+                    </div>
+                    <button
+                      className="small"
+                      disabled={busyBook === b.id}
+                      onClick={() => installRemote(b)}
+                    >
+                      {busyBook === b.id ? "下载中…" : b.imported > 0 ? "重新导入" : "下载并导入"}
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </section>
+        )}
 
       {importing && (
         <div className="import-box">
@@ -322,6 +420,40 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
               {parsed.length > 8 && <li className="muted">…还有 {parsed.length - 8} 个</li>}
             </ul>
           )}
+        </div>
+      )}
+
+      {importingArticle && (
+        <div className="import-box">
+          <p className="muted">
+            粘贴一篇文章：<code># 标题</code> 开头，正文直接写、空行分段；题目用
+            <code>? 题干</code>、<code>- 选项</code>、<code>= 正确选项序号</code>（从 1 开始）。
+          </p>
+          <textarea
+            value={articleDraft}
+            onChange={(e) => setArticleDraft(e.target.value)}
+            placeholder={
+              "# 为什么我们玩消失\n\nGhosting used to be rude. Now it is normal.\n\n? 人们不回消息的原因是什么？\n- 对话太沉重\n- 手机没电\n- 大家都变礼貌\n= 1"
+            }
+          />
+          <div className="import-file">
+            <label className="file-btn">
+              从文件读取
+              <input
+                type="file"
+                accept=".txt,.md"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setArticleDraft(await f.text());
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <div className="spacer" />
+            <button className="primary" disabled={!articleDraft.trim()} onClick={doImportArticle}>
+              导入文章
+            </button>
+          </div>
         </div>
       )}
 

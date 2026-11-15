@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 5,
   "source": "https://github.com/Kaiyiwing/qwerty-learner",
   "license": "GPL-3.0",
   "note": "词书数据来自 qwerty-learner 社区词库，直接按其公开地址下载，不在本仓库存储。要加自己的书，改这个文件的 books 数组即可。",
@@ -75,6 +75,34 @@
       "count": 3600,
       "license": "GPL-3.0 · qwerty-learner",
       "note": "按使用频率编排的通识词表，3600 词"
+    },
+    {
+      "id": "ko-basic-521",
+      "lang": "ko",
+      "name": "韩语入门词表",
+      "url": "https://raw.githubusercontent.com/an-an-618/korean-vocab-trainer/main/src/data/vocabulary.json",
+      "count": 486,
+      "license": "MIT · korean-vocab-trainer",
+      "note": "教材 2–9 课词汇，含中文释义"
+    },
+    {
+      "id": "ko-hf-5000",
+      "lang": "ko",
+      "name": "韩语 5000 常用词",
+      "url": "https://huggingface.co/datasets/jaylee8864/korean-vocabulary-5000/resolve/main/words.zh-TW.jsonl",
+      "count": 4725,
+      "license": "CC BY 4.0 · jaylee8864/korean-vocabulary-5000",
+      "note": "常用词 + 例句，繁体中文释义"
+    },
+    {
+      "id": "en-tatoeba-120",
+      "lang": "en",
+      "kind": "sentences",
+      "name": "英语口语句库（Tatoeba）",
+      "url": "https://raw.githubusercontent.com/Ricarsz/EaLearn/main/books/sentences/en-tatoeba.tsv",
+      "count": 120,
+      "license": "CC BY 2.0 · Tatoeba",
+      "note": "英中句对，导入后进拼句"
     }
   ]
 }
