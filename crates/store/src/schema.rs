@@ -3,7 +3,7 @@
 //! 迁移策略：版本号不匹配时按 `MIGRATIONS` 逐级执行，不删用户数据。
 //! 目前只有 v1（初始结构），后续新增迁移追加到数组尾部即可。
 
-pub const VERSION: i64 = 1;
+pub const VERSION: i64 = 2;
 
 pub const INIT: &str = r#"
 CREATE TABLE IF NOT EXISTS packs (
@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS custom_entries (
     surface    TEXT NOT NULL,
     gloss      TEXT,
     tags       TEXT NOT NULL DEFAULT '',
+    book       TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL,
     UNIQUE (pack, surface)
 );

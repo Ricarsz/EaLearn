@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { api, type CardItem } from "./api";
+import { api, type BookInfo, type CardItem } from "./api";
 import { playUrl } from "./audio";
 
 type Filter = "all" | "due" | "weak" | "custom";
@@ -36,6 +36,8 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
   const [draft, setDraft] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [skipped, setSkipped] = useState<string[]>([]);
+  const [books, setBooks] = useState<BookInfo[]>([]);
+  const [bookName, setBookName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -48,6 +50,7 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
 
   useEffect(() => {
     load();
+    api.listBooks().then(setBooks).catch(() => setBooks([]));
   }, [load]);
 
   const now = Math.floor(Date.now() / 1000);
@@ -68,15 +71,28 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
     setError(null);
     setSkipped([]);
     try {
-      const r = await api.importWords(lang, draft);
+      const r = await api.importWords(lang, draft, bookName.trim() || undefined);
       setNote(
         `新增 ${r.added} 个` + (r.updated ? `，更新 ${r.updated} 个` : "") +
           (r.skipped.length ? `，跳过 ${r.skipped.length} 行` : ""),
       );
+      api.listBooks().then(setBooks).catch(() => {});
       setSkipped(r.skipped);
       setDraft("");
       setImporting(false);
       await load();
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  const importBook = async (id: string) => {
+    setError(null);
+    try {
+      const r = await api.importBook(id);
+      setNote(`单词书导入完成：新增 ${r.added} 个，更新 ${r.updated} 个`);
+      await load();
+      api.listBooks().then(setBooks).catch(() => {});
     } catch (e) {
       setError(String(e));
     }
@@ -127,6 +143,31 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
         </div>
       </div>
 
+      {books.filter((b) => b.lang === lang).length > 0 && (
+        <section className="books">
+          <p className="section-label">单词书</p>
+          <ul>
+            {books
+              .filter((b) => b.lang === lang)
+              .map((b) => (
+                <li key={b.id}>
+                  <div>
+                    <b>{b.name}</b>
+                    <span className="muted">
+                      {" "}
+                      共 {b.count} 词
+                      {b.imported > 0 ? ` · 已导入 ${b.imported}` : ""}
+                    </span>
+                  </div>
+                  <button className="small" onClick={() => importBook(b.id)}>
+                    {b.imported > 0 ? "重新导入" : "导入并开始背诵"}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
+
       {importing && (
         <div className="import-box">
           <p className="muted">
@@ -139,6 +180,12 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
             placeholder={"ghost\t玩消失，失联\tslang\nspill the tea\t说八卦\nvibe"}
           />
           <div className="import-file">
+            <input
+              className="book-name"
+              value={bookName}
+              onChange={(e) => setBookName(e.target.value)}
+              placeholder="书名（可省略）"
+            />
             <label className="file-btn">
               从文件读取
               <input

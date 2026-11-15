@@ -169,6 +169,43 @@ impl LlmClient {
     }
 }
 
+impl LlmClient {
+    /// 拉取模型列表（`GET {base}/models`）。国内厂商基本都兼容这个端点，
+    /// 比在代码里硬编码模型名可靠得多。
+    pub async fn list_models(
+        base_url: &str,
+        api_key: &str,
+    ) -> Result<Vec<String>, LlmError> {
+        let url = format!("{}/models", base_url.trim_end_matches('/'));
+        let mut req = reqwest::Client::builder()
+            .timeout(Duration::from_secs(20))
+            .build()
+            .map_err(|e| LlmError::Http(e.to_string()))?
+            .get(url);
+        if !api_key.is_empty() {
+            req = req.bearer_auth(api_key);
+        }
+        let resp = req.send().await.map_err(|e| LlmError::Http(e.to_string()))?;
+        let status = resp.status();
+        let body = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(LlmError::Status(status.as_u16(), truncate(&body, 300)));
+        }
+        let v: Value = serde_json::from_str(&body).map_err(|e| LlmError::Http(e.to_string()))?;
+        let mut ids: Vec<String> = v
+            .get("data")
+            .and_then(|d| d.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|m| m.get("id").and_then(|i| i.as_str()).map(str::to_string))
+                    .collect()
+            })
+            .unwrap_or_default();
+        ids.sort();
+        Ok(ids)
+    }
+}
+
 /// 从一帧 `data:` 负载里取出 `choices[0].delta.content`。
 pub fn delta_content(payload: &str) -> Option<String> {
     let v: Value = serde_json::from_str(payload).ok()?;

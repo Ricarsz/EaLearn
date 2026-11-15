@@ -149,6 +149,13 @@ export type TutorTurn = {
   warnings?: string[];
 };
 
+export type ProviderPreset = {
+  id: string;
+  name: string;
+  base_url: string;
+  note: string;
+};
+
 export type LlmSettings = {
   base_url: string;
   model: string;
@@ -170,6 +177,15 @@ export type CardItem = {
   last_review?: number | null;
   mastery: number;
   is_custom: boolean;
+  book: string;
+};
+
+export type BookInfo = {
+  id: string;
+  lang: string;
+  name: string;
+  count: number;
+  imported: number;
 };
 
 export type ImportResult = { added: number; updated: number; skipped: string[] };
@@ -202,6 +218,9 @@ export const api = {
     invoke<Token[]>("lookup", { lang, entryId }),
   define: (lang: string, word: string) =>
     invoke<Entry | null>("define", { lang, word }),
+  llmProviders: () => invoke<ProviderPreset[]>("llm_providers"),
+  llmModels: (baseUrl: string, apiKey?: string) =>
+    invoke<string[]>("llm_models", { baseUrl, apiKey }),
   getLlmSettings: () => invoke<LlmSettings>("get_llm_settings"),
   setLlmSettings: (baseUrl: string, model: string, apiKey?: string) =>
     invoke<void>("set_llm_settings", { baseUrl, model, apiKey }),
@@ -218,8 +237,10 @@ export const api = {
   deleteCard: (cardId: number) => invoke<void>("delete_card", { cardId }),
   deleteCustomEntry: (lang: string, entryId: string) =>
     invoke<void>("delete_custom_entry", { lang, entryId }),
-  importWords: (lang: string, text: string) =>
-    invoke<ImportResult>("import_words", { lang, text }),
+  importWords: (lang: string, text: string, book?: string) =>
+    invoke<ImportResult>("import_words", { lang, text, book }),
+  listBooks: () => invoke<BookInfo[]>("list_books"),
+  importBook: (id: string) => invoke<ImportResult>("import_book", { id }),
   recordFocus: (minutes: number, completed: boolean) =>
     invoke<void>("record_focus", { minutes, completed }),
   activity: (days: number, tzOffsetMin: number) =>

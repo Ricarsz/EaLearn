@@ -84,6 +84,8 @@ pub struct CustomEntry {
     pub surface: String,
     pub gloss: Option<String>,
     pub tags: Vec<String>,
+    /// 来自哪本单词书（手工导入为空）
+    pub book: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -143,6 +145,15 @@ impl Store {
     fn prepare(conn: &mut Connection) -> Result<()> {
         conn.pragma_update(None, "foreign_keys", "ON")?;
         conn.execute_batch(schema::INIT)?;
+
+        let version: i64 = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
+        if version < 2 {
+            // v1 的 custom_entries 没有 book 列；新库由 INIT 建好，这里只补老库
+            let _ = conn.execute(
+                "ALTER TABLE custom_entries ADD COLUMN book TEXT NOT NULL DEFAULT ''",
+                [],
+            );
+        }
         conn.pragma_update(None, "user_version", schema::VERSION)?;
         Ok(())
     }
@@ -419,13 +430,16 @@ impl Store {
         surface: &str,
         gloss: Option<&str>,
         tags: &str,
+        book: &str,
         now: i64,
     ) -> Result<String> {
         self.conn.execute(
-            "INSERT INTO custom_entries (pack, surface, gloss, tags, created_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)
-             ON CONFLICT(pack, surface) DO UPDATE SET gloss = excluded.gloss, tags = excluded.tags",
-            params![pack, surface, gloss, tags, now],
+            "INSERT INTO custom_entries (pack, surface, gloss, tags, book, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+             ON CONFLICT(pack, surface) DO UPDATE SET
+                gloss = excluded.gloss, tags = excluded.tags,
+                book = CASE WHEN excluded.book = '' THEN custom_entries.book ELSE excluded.book END",
+            params![pack, surface, gloss, tags, book, now],
         )?;
         let seq: i64 = self.conn.query_row(
             "SELECT seq FROM custom_entries WHERE pack = ?1 AND surface = ?2",
@@ -437,7 +451,7 @@ impl Store {
 
     pub fn custom_entries(&self, pack: &str) -> Result<Vec<CustomEntry>> {
         let mut stmt = self.conn.prepare(
-            "SELECT seq, surface, gloss, tags FROM custom_entries WHERE pack = ?1 ORDER BY seq",
+            "SELECT seq, surface, gloss, tags, book FROM custom_entries WHERE pack = ?1 ORDER BY seq",
         )?;
         let rows = stmt
             .query_map(params![pack], |r| {
@@ -452,6 +466,7 @@ impl Store {
                         .filter(|t| !t.is_empty())
                         .map(str::to_string)
                         .collect(),
+                    book: r.get::<_, String>(4)?,
                 })
             })?
             .collect::<rusqlite::Result<Vec<_>>>()?;
@@ -761,7 +776,9 @@ mod tests {
     #[test]
     fn custom_entries_roundtrip_and_dedupe() {
         let s = store();
-        let id = s.add_custom_entry("en", "ghost", Some("玩消失"), "slang", NOW).unwrap();
+        let id = s
+            .add_custom_entry("en", "ghost", Some("玩消失"), "slang", "", NOW)
+            .unwrap();
         assert!(id.starts_with("custom.en."), "id 形状不对: {id}");
 
         let list = s.custom_entries("en").unwrap();
@@ -770,7 +787,9 @@ mod tests {
         assert_eq!(list[0].tags, vec!["slang"]);
 
         // 同一个词再导入一次不应新增，只更新释义
-        let again = s.add_custom_entry("en", "ghost", Some("失联"), "", NOW).unwrap();
+        let again = s
+            .add_custom_entry("en", "ghost", Some("失联"), "", "", NOW)
+            .unwrap();
         assert_eq!(again, id);
         let list = s.custom_entries("en").unwrap();
         assert_eq!(list.len(), 1);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, type LlmSettings, type VoiceInfo } from "./api";
+import { api, type LlmSettings, type ProviderPreset, type VoiceInfo } from "./api";
 import { playUrl } from "./audio";
 
 const SAMPLE: Record<string, string> = {
@@ -14,12 +14,17 @@ export function Settings({ lang, onClose }: { lang: string | null; onClose: () =
   const [llm, setLlm] = useState<LlmSettings | null>(null);
   const [baseUrl, setBaseUrl] = useState("");
   const [model, setModel] = useState("");
+  const [providers, setProviders] = useState<ProviderPreset[]>([]);
+  const [provider, setProvider] = useState("custom");
+  const [models, setModels] = useState<string[]>([]);
+  const [fetching, setFetching] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
+    api.llmProviders().then((p) => alive && setProviders(p)).catch(() => {});
     api
       .getLlmSettings()
       .then((s) => {
@@ -27,6 +32,8 @@ export function Settings({ lang, onClose }: { lang: string | null; onClose: () =
         setLlm(s);
         setBaseUrl(s.base_url);
         setModel(s.model);
+        const hit = providers.find((p) => p.base_url === s.base_url);
+        if (hit) setProvider(hit.id);
       })
       .catch((e) => alive && setError(String(e)));
     if (!lang) return;
@@ -56,6 +63,21 @@ export function Settings({ lang, onClose }: { lang: string | null; onClose: () =
       setError(`试听失败：${e}`);
     } finally {
       setPreviewing(null);
+    }
+  };
+
+  const fetchModels = async () => {
+    setFetching(true);
+    setError(null);
+    try {
+      const list = await api.llmModels(baseUrl, apiKey || undefined);
+      setModels(list);
+      if (list.length === 0) setError("接口没有返回可用模型");
+      setNote(`拿到 ${list.length} 个模型`);
+    } catch (e) {
+      setError(`拉取模型失败：${e}`);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -110,6 +132,30 @@ export function Settings({ lang, onClose }: { lang: string | null; onClose: () =
         <section>
           <p className="section-label">模型（自由聊）</p>
           <label>
+            供应商
+            <select
+              value={provider}
+              onChange={(e) => {
+                const id = e.target.value;
+                setProvider(id);
+                const p = providers.find((x) => x.id === id);
+                if (p) {
+                  setBaseUrl(p.base_url);
+                  setModels([]);
+                }
+              }}
+            >
+              {providers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {providers.find((p) => p.id === provider)?.note && (
+            <p className="muted">{providers.find((p) => p.id === provider)?.note}</p>
+          )}
+          <label>
             Base URL
             <input
               value={baseUrl}
@@ -119,8 +165,23 @@ export function Settings({ lang, onClose }: { lang: string | null; onClose: () =
           </label>
           <label>
             模型
-            <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="gpt-4o-mini" />
+            <div className="model-row">
+              <input
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="deepseek-chat"
+                list="model-options"
+              />
+              <button className="small" onClick={fetchModels} disabled={!baseUrl || fetching}>
+                {fetching ? "…" : "拉取"}
+              </button>
+            </div>
           </label>
+          <datalist id="model-options">
+            {models.map((m) => (
+              <option key={m} value={m} />
+            ))}
+          </datalist>
           <label>
             API Key
             <input

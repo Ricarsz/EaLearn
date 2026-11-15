@@ -358,6 +358,83 @@ pub struct LlmSettingsView {
     key_hint: String,
 }
 
+#[derive(Serialize)]
+pub struct ProviderPreset {
+    id: String,
+    name: String,
+    base_url: String,
+    note: String,
+}
+
+/// 预设供应商。都走 OpenAI 兼容协议，差异只在 base_url。
+#[tauri::command]
+fn llm_providers() -> Vec<ProviderPreset> {
+    let p = |id: &str, name: &str, base_url: &str, note: &str| ProviderPreset {
+        id: id.into(),
+        name: name.into(),
+        base_url: base_url.into(),
+        note: note.into(),
+    };
+    vec![
+        p(
+            "opencode",
+            "OpenCode Console",
+            "https://opencode.ai/inference/openai/v1",
+            "聚合网关，DeepSeek / GLM / Kimi / MiMo 等都有，含免费模型档",
+        ),
+        p(
+            "deepseek",
+            "DeepSeek",
+            "https://api.deepseek.com/v1",
+            "deepseek-chat / deepseek-reasoner，中文语感好，价格低",
+        ),
+        p(
+            "zhipu",
+            "智谱 GLM",
+            "https://open.bigmodel.cn/api/paas/v4",
+            "glm-4.6 等",
+        ),
+        p(
+            "moonshot",
+            "月之暗面 Kimi",
+            "https://api.moonshot.cn/v1",
+            "长上下文",
+        ),
+        p(
+            "dashscope",
+            "阿里通义千问",
+            "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            "qwen 系列，兼容模式",
+        ),
+        p(
+            "siliconflow",
+            "硅基流动",
+            "https://api.siliconflow.cn/v1",
+            "国内多家开源模型托管",
+        ),
+        p("openai", "OpenAI", "https://api.openai.com/v1", "官方"),
+        p("custom", "自定义", "", "任何 /chat/completions 兼容端点"),
+    ]
+}
+
+#[tauri::command]
+async fn llm_models(
+    state: State<'_, AppState>,
+    base_url: String,
+    api_key: Option<String>,
+) -> Result<Vec<String>, String> {
+    let key = match api_key.filter(|k| !k.trim().is_empty()) {
+        Some(k) => k,
+        None => {
+            let store = state.store.lock().map_err(err)?;
+            store.get_setting(KEY_API).map_err(err)?.unwrap_or_default()
+        }
+    };
+    ealearn_llm::LlmClient::list_models(&base_url, &key)
+        .await
+        .map_err(err)
+}
+
 const KEY_BASE_URL: &str = "llm_base_url";
 const KEY_MODEL: &str = "llm_model";
 const KEY_API: &str = "llm_api_key";
@@ -423,7 +500,7 @@ async fn chat_send(
         return Err("说点什么再发".into());
     }
 
-    let (cfg, history, slang, label) = {
+    let (cfg, history, slang, targets, label) = {
         let store = state.store.lock().map_err(err)?;
         let packs = state.packs.lock().map_err(err)?;
         let pack = packs.get(&lang).ok_or_else(|| format!("未加载的语言包: {lang}"))?;
@@ -445,6 +522,15 @@ async fn chat_send(
             .map(|w| w.surface.clone())
             .take(20)
             .collect();
+        // 复习队列里最不熟的几个词，让模型主动用上，聊天顺便复习
+        let targets: Vec<String> = store
+            .cards(&lang)
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|c| c.state.stability < 7.0)
+            .filter_map(|c| pack.entry(&c.entry_id).map(|e| e.surface.clone()))
+            .take(6)
+            .collect();
         (
             ealearn_llm::LlmConfig {
                 base_url,
@@ -455,6 +541,7 @@ async fn chat_send(
             },
             history,
             slang,
+            targets,
             pack.manifest.display.clone(),
         )
     };
@@ -466,6 +553,7 @@ async fn chat_send(
         theme: &theme,
         level,
         slang: &slang,
+        target_words: &targets,
     });
     let messages = ealearn_llm::prompt::build_messages(prompt, &history, &text);
 
@@ -622,6 +710,8 @@ pub struct CardListItem {
     /// 0–1，由 FSRS 稳定性换算；只用于展示，不参与调度
     mastery: f64,
     is_custom: bool,
+    /// 来自哪本单词书，手工导入为空
+    book: String,
 }
 
 /// 删掉自定义词条及其卡片。词库里的「自定义」条目才允许删。
@@ -648,6 +738,13 @@ fn list_cards(state: State<'_, AppState>, lang: String) -> Result<Vec<CardListIt
     let pack = packs.get(&lang).ok_or_else(|| format!("未加载的语言包: {lang}"))?;
     let store = state.store.lock().map_err(err)?;
 
+    let books: std::collections::HashMap<String, String> = store
+        .custom_entries(&lang)
+        .map_err(err)?
+        .into_iter()
+        .map(|c| (c.id, c.book))
+        .collect();
+
     Ok(store
         .cards(&lang)
         .map_err(err)?
@@ -668,6 +765,7 @@ fn list_cards(state: State<'_, AppState>, lang: String) -> Result<Vec<CardListIt
                 last_review: c.state.last_review,
                 mastery: mastery_of(c.state.stability),
                 is_custom: c.entry_id.starts_with("custom."),
+                book: books.get(&c.entry_id).cloned().unwrap_or_default(),
             }
         })
         .collect())
@@ -697,13 +795,13 @@ pub struct ImportResult {
 
 /// 导入自定义词条：每行 `word<TAB>释义[<TAB>标签]`。
 /// 导入即入卡——用户特意写下来的词，不该还要再点一次才会复习。
-#[tauri::command]
-fn import_words(
-    state: State<'_, AppState>,
-    lang: String,
-    text: String,
+fn do_import(
+    state: &AppState,
+    lang: &str,
+    text: &str,
+    book: &str,
 ) -> Result<ImportResult, String> {
-    let report = ealearn_core::import::parse(&text);
+    let report = ealearn_core::import::parse(text);
     if report.words.is_empty() {
         return Ok(ImportResult { added: 0, updated: 0, skipped: report.skipped });
     }
@@ -711,9 +809,9 @@ fn import_words(
     let mut packs = state.packs.lock().map_err(err)?;
     let store = state.store.lock().map_err(err)?;
     let pack = packs
-        .get_mut(&lang)
+        .get_mut(lang)
         .ok_or_else(|| format!("未加载的语言包: {lang}"))?;
-    let profile = ealearn_lang::profile(&lang);
+    let profile = ealearn_lang::profile(lang);
     let at = now();
 
     let mut added = 0usize;
@@ -721,21 +819,22 @@ fn import_words(
     for word in report.words {
         let id = store
             .add_custom_entry(
-                &lang,
+                lang,
                 &word.surface,
                 word.gloss.as_deref(),
                 &word.tags.join(","),
+                book,
                 at,
             )
             .map_err(err)?;
         if pack.entry(&id).is_some() {
-            // 词条已存在：同步一遍释义/标签，保留已有的调度状态
+            // 词条已存在：同步释义/标签，保留已有的调度状态
             if let Some(existing) = pack.words.iter_mut().find(|e| e.id == id) {
                 existing.gloss = word.gloss.clone();
                 existing.tags = word.tags.clone();
             }
             updated += 1;
-            store.add_card(&lang, &id, CardKind::Word, at).map_err(err)?;
+            store.add_card(lang, &id, CardKind::Word, at).map_err(err)?;
             continue;
         }
         let mut entry = ealearn_core::entry::Entry::new(&id, &word.surface);
@@ -745,13 +844,104 @@ fn import_words(
             entry.tokens = p.tokenize(&word.surface);
         }
         pack.words.push(entry);
-        store
-            .add_card(&lang, &id, CardKind::Word, at)
-            .map_err(err)?;
+        store.add_card(lang, &id, CardKind::Word, at).map_err(err)?;
         added += 1;
     }
 
     Ok(ImportResult { added, updated, skipped: report.skipped })
+}
+
+/// 导入自定义词条：每行 `word<TAB>释义[<TAB>标签]`。
+/// 导入即入卡——用户特意写下来的词，不该还要再点一次才会复习。
+#[tauri::command]
+fn import_words(
+    state: State<'_, AppState>,
+    lang: String,
+    text: String,
+    book: Option<String>,
+) -> Result<ImportResult, String> {
+    do_import(&state, &lang, &text, book.as_deref().unwrap_or(""))
+}
+
+// ── 单词书 ────────────────────────────────────────────────────────────
+
+fn books_dir(app: &tauri::AppHandle) -> PathBuf {
+    if let Ok(p) = std::env::var("EALEARN_BOOKS") {
+        return PathBuf::from(p);
+    }
+    let dev = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../books");
+    if dev.is_dir() {
+        return dev;
+    }
+    app.path()
+        .app_data_dir()
+        .map(|d| d.join("books"))
+        .unwrap_or_else(|_| PathBuf::from("books"))
+}
+
+#[derive(Serialize)]
+pub struct BookInfo {
+    id: String,
+    lang: String,
+    name: String,
+    count: usize,
+    /// 已经导入过多少个词
+    imported: usize,
+}
+
+/// 文件名形如 `en-daily.tsv` / `ko-daily.tsv`：第一段是语言，其余是书名。
+#[tauri::command]
+fn list_books(app: tauri::AppHandle, state: State<'_, AppState>) -> Result<Vec<BookInfo>, String> {
+    let dir = books_dir(&app);
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+        return Ok(Vec::new());
+    };
+    let store = state.store.lock().map_err(err)?;
+
+    let mut out = Vec::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("tsv") {
+            continue;
+        }
+        let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        let Some((lang, name)) = stem.split_once('-') else {
+            continue;
+        };
+        let count = std::fs::read_to_string(&path)
+            .map(|t| t.lines().filter(|l| !l.trim().is_empty() && !l.starts_with('#')).count())
+            .unwrap_or(0);
+        let imported = store
+            .custom_entries(lang)
+            .map(|list| list.iter().filter(|c| c.book == name).count())
+            .unwrap_or(0);
+        out.push(BookInfo {
+            id: stem.to_string(),
+            lang: lang.to_string(),
+            name: name.to_string(),
+            count,
+            imported,
+        });
+    }
+    out.sort_by(|a, b| a.lang.cmp(&b.lang).then(a.name.cmp(&b.name)));
+    Ok(out)
+}
+
+#[tauri::command]
+fn import_book(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<ImportResult, String> {
+    let Some((lang, name)) = id.split_once('-') else {
+        return Err(format!("单词书 id 不合法: {id}"));
+    };
+    let path = books_dir(&app).join(format!("{id}.tsv"));
+    let text = std::fs::read_to_string(&path)
+        .map_err(|e| format!("读取 {} 失败: {e}", path.display()))?;
+    do_import(&state, lang, &text, name)
 }
 
 // ── 专注与打卡 ────────────────────────────────────────────────────────
@@ -829,6 +1019,8 @@ pub fn run() {
             define,
             get_setting,
             set_setting,
+            llm_providers,
+            llm_models,
             get_llm_settings,
             set_llm_settings,
             chat_send,
@@ -841,6 +1033,8 @@ pub fn run() {
             delete_custom_entry,
             delete_card,
             import_words,
+            list_books,
+            import_book,
             record_focus,
             activity
         ])
