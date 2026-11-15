@@ -109,17 +109,27 @@ pub struct Piper {
 }
 
 impl Tts for Piper {
+    /// piper 1.8 的 stdout 输出不可靠（实测输出空文件），一律写临时文件再读回。
     fn synth_wav(&self, text: &str) -> Result<Vec<u8>, TtsError> {
         use std::io::Write;
-        let mut child = Command::new("piper")
-            .args([
-                "--model",
-                &self.model.to_string_lossy(),
-                "--output_file",
-                "-",
-            ])
+
+        if !self.model.exists() {
+            return Err(TtsError::Unsupported(format!(
+                "没有找到模型 {}",
+                self.model.display()
+            )));
+        }
+
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let out = std::env::temp_dir().join(format!("ealearn-tts-{}-{stamp}.wav", std::process::id()));
+
+        let mut child = Command::new(piper_bin())
+            .args(["-m", &self.model.to_string_lossy(), "-f", &out.to_string_lossy()])
             .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
+            .stdout(Stdio::null())
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|e| TtsError::Spawn(e.to_string()))?;
@@ -129,16 +139,45 @@ impl Tts for Piper {
             .ok_or_else(|| TtsError::Spawn("拿不到 piper 的 stdin".into()))?
             .write_all(text.as_bytes())
             .map_err(|e| TtsError::Spawn(e.to_string()))?;
-        let out = child
+        let status = child
             .wait_with_output()
             .map_err(|e| TtsError::Spawn(e.to_string()))?;
-        if !out.status.success() || out.stdout.is_empty() {
+
+        let bytes = std::fs::read(&out).unwrap_or_default();
+        let _ = std::fs::remove_file(&out);
+
+        if !status.status.success() || bytes.is_empty() {
             return Err(TtsError::Empty(
-                String::from_utf8_lossy(&out.stderr).trim().to_string(),
+                String::from_utf8_lossy(&status.stderr).trim().to_string(),
             ));
         }
-        Ok(out.stdout)
+        Ok(bytes)
     }
+}
+
+/// piper 的安装位置：先看 EALEARN_PIPER_BIN，再找 ~/.local/bin，最后落到 PATH。
+fn piper_bin() -> PathBuf {
+    if let Ok(p) = std::env::var("EALEARN_PIPER_BIN") {
+        return PathBuf::from(p);
+    }
+    if let Ok(home) = std::env::var("HOME") {
+        let p = PathBuf::from(home).join(".local/bin/piper");
+        if p.exists() {
+            return p;
+        }
+    }
+    PathBuf::from("piper")
+}
+
+/// 模型目录：EALEARN_PIPER_DIR → $XDG_DATA_HOME/ealearn/piper → ~/.local/share/ealearn/piper
+fn piper_dir() -> PathBuf {
+    if let Ok(p) = std::env::var("EALEARN_PIPER_DIR") {
+        return PathBuf::from(p);
+    }
+    if let Ok(x) = std::env::var("XDG_DATA_HOME") {
+        return PathBuf::from(x).join("ealearn/piper");
+    }
+    PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| ".".into())).join(".local/share/ealearn/piper")
 }
 
 /// 按音色标识造引擎。piper 的模型目录取 `EALEARN_PIPER_DIR`，默认
@@ -148,10 +187,7 @@ pub fn engine_for(spec: &str) -> Result<Box<dyn Tts>, TtsError> {
     match engine {
         "espeak" => Ok(Box::new(Espeak::new(name))),
         "piper" => {
-            let dir = std::env::var("EALEARN_PIPER_DIR")
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| PathBuf::from("piper"));
-            let model = dir.join(format!("{name}.onnx"));
+            let model = piper_dir().join(format!("{name}.onnx"));
             if !model.exists() {
                 return Err(TtsError::Unsupported(format!(
                     "没有找到模型 {}，先下载 piper 音色或用 espeak:<lang> 顶替",

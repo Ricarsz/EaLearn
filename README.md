@@ -37,8 +37,18 @@ cd app && pnpm install && pnpm tauri dev    # 桌面端
 FSRS-5 排下次复习。情景页有两条线：剧本对话图（点任意词可查义并入卡）和
 LLM 自由聊（自备 API key，流式打字，标注做回贴校验）。
 
-音频由 `forge audio` 预生成到 `packs/*/media/audio/`，练习时零网络。默认引擎
-`espeak-ng`；改成 `piper` 只需换 `voice` 约定并把模型放进 `EALEARN_PIPER_DIR`。
+音频由 `forge audio` 预生成到 `packs/*/media/audio/`，练习时零网络。当前音色是
+`piper:en_US-amy`；没有模型时 `espeak-ng` 兜底。
+
+piper 音色从 [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices)
+下载 `onnx` 与同名 `.onnx.json`，放进
+`${XDG_DATA_HOME:-~/.local/share}/ealearn/piper/`（可用 `EALEARN_PIPER_DIR` 覆盖）：
+
+```sh
+base=https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium
+curl -LO $base/en_US-amy-medium.onnx
+curl -LO $base/en_US-amy-medium.onnx.json
+```
 
 LLM 供应商只由 `base_url` 决定，兼容任何 `/chat/completions` 实现，包括本地
 ollama 与自建代理。API key 存在本地库 `settings` 表，设置页只回显末 4 位。

@@ -169,7 +169,9 @@ Studio 是应用内的隐藏路由，`--studio` 启动才出现，随主程序�
 
 接口在 `core` 固定：`tts::synth(text, voice) -> AudioBytes`，引擎实现可换。
 
-选型现状：`espeak-ng` 作为起步引擎实测英语与韩语都能出声，成本为零，先让听音题跑通；音质升级走 `piper`——manifest 的 `voice` 写成 `piper:<模型名>` 即自动切换，模型目录由 `EALEARN_PIPER_DIR` 指定。同一个 `voice` 前缀决定引擎，换音色不换代码。
+选型现状：`piper` 已接入，英语用 `en_US-amy`（medium，61 MB），音质可接受；`espeak-ng` 留作没有模型时的兜底。manifest 的 `voice` 写成 `piper:<模型名>` 或 `espeak:<语言>` 即可切换，同一个前缀决定引擎，换音色不换代码。
+
+piper 的坑（实测）：`--output_file -` 不写 stdout，会产出空文件，必须写临时文件再读回。piper 有韩语音色 `ko_KR-kss-medium`，之前的「韩语得换引擎」判断不成立。
 
 - 音频文件名 = `sha256(voice + "\0" + text).wav`，落在 pack 的 `media/audio/`。换音色 hash 必变，旧文件不会被误认
 - `forge audio <pack>` 批量预合成并写回 pack，已存在的直接复用，`--force` 才重做

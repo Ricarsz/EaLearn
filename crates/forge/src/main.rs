@@ -267,6 +267,23 @@ fn audio(dir: &str, rest: &[String]) -> ExitCode {
         return ExitCode::from(1);
     }
 
+    // 清掉没有词条引用的旧音频（换音色后 hash 会变，旧文件就成了垃圾）
+    let referenced: std::collections::HashSet<String> = pack
+        .words
+        .iter()
+        .chain(pack.sentences.iter())
+        .filter_map(|e| e.audio.as_ref().and_then(|a| a.rsplit('/').next()).map(str::to_string))
+        .collect();
+    let mut pruned = 0usize;
+    if let Ok(entries) = std::fs::read_dir(&audio_dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if !referenced.contains(&name) && std::fs::remove_file(entry.path()).is_ok() {
+                pruned += 1;
+            }
+        }
+    }
+
     // 音色变了要记在新 manifest 里，否则下次不知道这批音频是谁合成的
     pack.manifest.voice = spec.clone();
     let hash = match pack.content_hash() {
@@ -283,7 +300,7 @@ fn audio(dir: &str, rest: &[String]) -> ExitCode {
     }
 
     println!(
-        "{} · 音色 {spec} · 新生成 {made} · 复用 {reused} · 失败 {failed} · hash {}…",
+        "{} · 音色 {spec} · 新生成 {made} · 复用 {reused} · 清理 {pruned} · 失败 {failed} · hash {}…",
         pack.manifest.display,
         &hash[..12]
     );
