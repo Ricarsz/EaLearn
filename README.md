@@ -35,11 +35,14 @@ cd app && pnpm install            # 前端依赖（只需一次）
 
 ## 安装
 
-发布版：GitHub Release 的 deb / rpm。Arch 从 `packaging/PKGBUILD` 构建：
+发布版在 GitHub Release：Linux 用 deb / rpm，Windows 用 msi。Arch 从 `packaging/PKGBUILD` 构建：
 
 ```sh
 cd packaging && makepkg -f && paru -U ealearn-<version>-1-x86_64.pkg.tar.zst
 ```
+
+Windows 自己打包（需 MSVC 生成工具）：`pnpm --dir app install` 后跑 `app\node_modules\.bin\tauri build`，
+产物在 `src-tauri/target/release/bundle/msi/`。
 
 ## 首页与练法
 

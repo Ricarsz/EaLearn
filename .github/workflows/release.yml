@@ -12,7 +12,7 @@ jobs:
   linux:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: 安装系统依赖
         run: |
@@ -24,7 +24,7 @@ jobs:
         with:
           version: 12
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
@@ -42,11 +42,64 @@ jobs:
       - name: 构建 deb / rpm
         run: ./app/node_modules/.bin/tauri build
 
-      - name: 上传到 Release
-        uses: softprops/action-gh-release@v2
+      - name: 暂存产物
+        uses: actions/upload-artifact@v6
         with:
-          files: |
+          name: linux-bundles
+          path: |
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/rpm/*.rpm
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "src-tauri -> target"
+
+      - name: 安装前端依赖
+        run: pnpm --dir app install --frozen-lockfile --config.strictDepBuilds=false
+
+      # tauri.windows.conf.json 把 bundle.targets 设成 msi
+      - name: 构建 msi
+        run: app\node_modules\.bin\tauri.cmd build --bundles msi
+
+      - name: 暂存产物
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-bundles
+          path: src-tauri/target/release/bundle/msi/*.msi
+
+  publish:
+    needs: [linux, windows]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: 取回产物
+        uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: 上传到 Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            dist/*.deb
+            dist/*.rpm
+            dist/*.msi
           generate_release_notes: true
           fail_on_unmatched_files: true

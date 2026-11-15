@@ -1,9 +1,9 @@
 # Arch 打包：源码来自 GitHub tag，构建前端 + Rust 发布版，安装到系统目录。
 # 用法（在仓库根目录）：
-#   cd packaging && makepkg -f && paru -U ealearn-1.0.0-1-x86_64.pkg.tar.zst
+#   cd packaging && makepkg -f && paru -U ealearn-1.0.1-1-x86_64.pkg.tar.zst
 pkgname=ealearn
-pkgver=1.0.0
-pkgrel=2
+pkgver=1.0.1
+pkgrel=1
 pkgdesc="离线优先的语言学习桌面应用：背单词、听力、拼句、阅读与自由聊"
 arch=('x86_64')
 url="https://github.com/Ricarsz/EaLearn"
