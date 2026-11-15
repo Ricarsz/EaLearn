@@ -27,7 +27,8 @@ impl ExerciseKind {
 }
 
 /// 一个 pack 里能被出成某个题型的素材有多少。
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Coverage {
     pub build_sentence: usize,
     pub word_from_image: usize,

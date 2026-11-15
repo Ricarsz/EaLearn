@@ -2,26 +2,37 @@
 
 桌面端语言学习工具，Linux + Windows。同一套应用，换语言只换内容包。
 
-**当前状态**：内核与内容流水线可用（Rust），GUI 尚未开始。
+**当前状态**：内核、内容流水线与桌面端界面可用；英语内容包为种子内容，TTS 与图片素材尚未生成。
 
 ## 结构
 
 ```
-crates/core     领域内核：pack 模型、标注校验、题型判分、FSRS 调度（无 GUI 依赖）
+crates/core     领域内核：pack 模型、标注校验、题型判分、练习排程、FSRS 调度
 crates/lang     语言适配：LanguageProfile trait + 英语 / 韩语实现
+crates/store    SQLite 本地库：pack 登记、SRS 卡、作答、设置
 crates/forge    内容生产 CLI：校验、分词标注、内容指纹
+app             React 前端（练习 / 情景）
+src-tauri       Tauri 壳层：命令转发与状态管理，不含业务逻辑
 packs/en        英语内容包（种子内容）
 docs/design.md  架构设计
 ```
 
 设计原则：内容（pack）与程序解耦，判分与调度在内核而不在前端，运行时绝不调用 LLM 生成教学内容。
 
-## 构建与测试
+## 运行
 
 ```sh
-cargo test --workspace
-cargo build -p ealearn-forge
+cargo test --workspace                      # 内核与内容流水线
+cd app && pnpm install && pnpm tauri dev    # 桌面端
 ```
+
+首次运行会在用户数据目录建库并登记 `packs/` 下的语言包。
+设置环境变量 `EALEARN_PACKS` 可指向别的 pack 目录。
+
+## 已实现的练习流程
+
+组卷（题型按素材现算、同节不重复）→ 作答 → 内核判分 → 答错自动入卡 →
+FSRS-5 排下次复习。情景页是对话图，点任意词可查义并入卡。
 
 ## forge
 

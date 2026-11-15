@@ -320,19 +320,24 @@ impl Store {
             .ok_or_else(|| StoreError::Corner(format!("卡 {card_id} 不存在")))
     }
 
-    /// 记录一次作答。答错自动入卡（`auto_card` 为 true 时）。
+    /// 记录一次作答。`card_id` 为空表示这次作答没有进复习队列（答对且未入卡）。
+    #[allow(clippy::too_many_arguments)]
     pub fn record_attempt(
         &self,
-        card_id: i64,
+        pack: &str,
+        entry_id: &str,
+        card_id: Option<i64>,
         exercise_kind: &str,
         grade: &Grade,
         elapsed_ms: i64,
         now: i64,
     ) -> Result<()> {
         self.conn.execute(
-            "INSERT INTO attempts (card_id, exercise_kind, correct, ratio, elapsed_ms, at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT INTO attempts (pack, entry_id, card_id, exercise_kind, correct, ratio, elapsed_ms, at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![
+                pack,
+                entry_id,
                 card_id,
                 exercise_kind,
                 i64::from(grade.correct),
@@ -520,10 +525,26 @@ mod tests {
         };
         let right = ex.grade(&Answer::Choice { index: 0 }).unwrap();
         let wrong = ex.grade(&Answer::Choice { index: 1 }).unwrap();
-        s.record_attempt(id, "word-from-image", &right, 1200, NOW)
-            .unwrap();
-        s.record_attempt(id, "word-from-image", &wrong, 3400, NOW + 10)
-            .unwrap();
+        s.record_attempt(
+            "en",
+            "en.w.0001",
+            Some(id),
+            "word-from-image",
+            &right,
+            1200,
+            NOW,
+        )
+        .unwrap();
+        s.record_attempt(
+            "en",
+            "en.w.0001",
+            Some(id),
+            "word-from-image",
+            &wrong,
+            3400,
+            NOW + 10,
+        )
+        .unwrap();
 
         let stats = s.stats(NOW + 20).unwrap();
         assert_eq!(stats.cards, 1);

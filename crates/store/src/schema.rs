@@ -38,7 +38,9 @@ CREATE INDEX IF NOT EXISTS idx_reviews_due ON reviews(due);
 
 CREATE TABLE IF NOT EXISTS attempts (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    card_id       INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+    pack          TEXT NOT NULL,
+    entry_id      TEXT NOT NULL,
+    card_id       INTEGER REFERENCES cards(id) ON DELETE SET NULL,
     exercise_kind TEXT NOT NULL,
     correct       INTEGER NOT NULL,
     ratio         REAL NOT NULL,

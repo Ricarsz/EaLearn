@@ -1,5 +1,7 @@
 /target
-node_modules/
-dist/
+/src-tauri/target
+/src-tauri/gen
+/app/dist
+/app/node_modules
 *.bak
 .DS_Store

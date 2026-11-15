@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "EaLearn",
+  "version": "0.1.0",
+  "identifier": "top.chase141.ealearn",
+  "build": {
+    "beforeDevCommand": "pnpm --dir ../app dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm --dir ../app build",
+    "frontendDist": "../app/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "EaLearn",
+        "width": 1120,
+        "height": 780,
+        "minWidth": 880,
+        "minHeight": 600,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": false,
+    "targets": "all"
+  }
+}
