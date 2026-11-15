@@ -473,6 +473,82 @@ impl Store {
         Ok(rows)
     }
 
+    /// 批量导入词条。几千个词逐条 transaction 会慢到不可用，这里一次事务做完。
+    /// 返回 (id, 是否新建)。
+    pub fn bulk_add_custom_entries(
+        &self,
+        pack: &str,
+        rows: &[(String, Option<String>, String, String)],
+        now: i64,
+    ) -> Result<Vec<(String, bool)>> {
+        let tx = self.conn.unchecked_transaction()?;
+        let mut out = Vec::with_capacity(rows.len());
+
+        for (surface, gloss, tags, book) in rows {
+            let existing: Option<i64> = tx
+                .query_row(
+                    "SELECT seq FROM custom_entries WHERE pack = ?1 AND surface = ?2",
+                    params![pack, surface],
+                    |r| r.get(0),
+                )
+                .optional()?;
+
+            let (seq, created) = match existing {
+                Some(seq) => {
+                    tx.execute(
+                        "UPDATE custom_entries SET gloss = ?2, tags = ?3,
+                            book = CASE WHEN ?4 = '' THEN book ELSE ?4 END
+                         WHERE seq = ?1",
+                        params![seq, gloss, tags, book],
+                    )?;
+                    (seq, false)
+                }
+                None => {
+                    tx.execute(
+                        "INSERT INTO custom_entries (pack, surface, gloss, tags, book, created_at)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                        params![pack, surface, gloss, tags, book, now],
+                    )?;
+                    (tx.last_insert_rowid(), true)
+                }
+            };
+            out.push((format!("custom.{pack}.{seq}"), created));
+        }
+
+        tx.commit()?;
+        Ok(out)
+    }
+
+    /// 批量建卡。已存在的卡不重置调度状态。
+    pub fn bulk_add_cards(
+        &self,
+        pack: &str,
+        entry_ids: &[String],
+        kind: CardKind,
+        now: i64,
+    ) -> Result<usize> {
+        let tx = self.conn.unchecked_transaction()?;
+        let mut created = 0usize;
+        for id in entry_ids {
+            let changed = tx.execute(
+                "INSERT OR IGNORE INTO cards (pack, entry_id, kind, created_at)
+                 VALUES (?1, ?2, ?3, ?4)",
+                params![pack, id, kind.as_str(), now],
+            )?;
+            if changed == 1 {
+                let card_id = tx.last_insert_rowid();
+                tx.execute(
+                    "INSERT INTO reviews (card_id, stability, difficulty, reps, lapses, last_review, due)
+                     VALUES (?1, 0, 0, 0, 0, NULL, ?2)",
+                    params![card_id, now],
+                )?;
+                created += 1;
+            }
+        }
+        tx.commit()?;
+        Ok(created)
+    }
+
     pub fn delete_custom_entry(&self, id: &str) -> Result<()> {
         // id 形如 custom.<pack>.<seq>
         let seq = id.rsplit('.').next().unwrap_or_default();
@@ -794,6 +870,29 @@ mod tests {
         let list = s.custom_entries("en").unwrap();
         assert_eq!(list.len(), 1);
         assert_eq!(list[0].gloss.as_deref(), Some("失联"));
+    }
+
+    #[test]
+    fn bulk_import_is_idempotent() {
+        let s = store();
+        let rows = vec![
+            ("ghost".to_string(), Some("玩消失".to_string()), "slang".to_string(), "daily".to_string()),
+            ("vibe".to_string(), None, String::new(), "daily".to_string()),
+        ];
+        let first = s.bulk_add_custom_entries("en", &rows, NOW).unwrap();
+        assert_eq!(first.len(), 2);
+        assert!(first.iter().all(|(_, created)| *created));
+
+        let ids: Vec<String> = first.iter().map(|(id, _)| id.clone()).collect();
+        assert_eq!(s.bulk_add_cards("en", &ids, CardKind::Word, NOW).unwrap(), 2);
+        // 再来一次不新增卡
+        assert_eq!(s.bulk_add_cards("en", &ids, CardKind::Word, NOW).unwrap(), 0);
+
+        let second = s.bulk_add_custom_entries("en", &rows, NOW).unwrap();
+        assert!(second.iter().all(|(_, created)| !created));
+        assert_eq!(second[0].0, first[0].0, "重复导入应复用同一条");
+        assert_eq!(s.custom_entries("en").unwrap().len(), 2);
+        assert_eq!(s.custom_entries("en").unwrap()[0].book, "daily");
     }
 
     #[test]

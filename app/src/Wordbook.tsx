@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { api, type BookInfo, type CardItem } from "./api";
+import { api, type BookInfo, type CardItem, type RemoteBook } from "./api";
 import { playUrl } from "./audio";
 
 type Filter = "all" | "due" | "weak" | "custom";
@@ -38,6 +38,11 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
   const [skipped, setSkipped] = useState<string[]>([]);
   const [books, setBooks] = useState<BookInfo[]>([]);
   const [bookName, setBookName] = useState("");
+  const [remote, setRemote] = useState<RemoteBook[] | null>(null);
+  const [remoteError, setRemoteError] = useState<string | null>(null);
+  const [indexUrl, setIndexUrl] = useState("");
+  const [showIndex, setShowIndex] = useState(false);
+  const [busyBook, setBusyBook] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -51,6 +56,14 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
   useEffect(() => {
     load();
     api.listBooks().then(setBooks).catch(() => setBooks([]));
+    api.booksIndexUrl().then(setIndexUrl).catch(() => {});
+    api
+      .remoteBooks()
+      .then((r) => {
+        setRemote(r);
+        setRemoteError(null);
+      })
+      .catch((e) => setRemoteError(String(e)));
   }, [load]);
 
   const now = Math.floor(Date.now() / 1000);
@@ -95,6 +108,31 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
       api.listBooks().then(setBooks).catch(() => {});
     } catch (e) {
       setError(String(e));
+    }
+  };
+
+  const installRemote = async (b: RemoteBook) => {
+    setBusyBook(b.id);
+    setError(null);
+    try {
+      const r = await api.installRemoteBook(b.lang, b.name, b.url);
+      setNote(`${b.name}：新增 ${r.added} 个，更新 ${r.updated} 个`);
+      await load();
+      api.listBooks().then(setBooks).catch(() => {});
+    } catch (e) {
+      setError(`${b.name} 导入失败：${e}`);
+    } finally {
+      setBusyBook(null);
+    }
+  };
+
+  const refreshRemote = async () => {
+    setRemoteError(null);
+    setRemote(null);
+    try {
+      setRemote(await api.remoteBooks());
+    } catch (e) {
+      setRemoteError(String(e));
     }
   };
 
@@ -167,6 +205,66 @@ export function Wordbook({ lang, onPractice }: { lang: string; onPractice: () =>
           </ul>
         </section>
       )}
+
+      <section className="books">
+        <p className="section-label">在线单词书</p>
+        <div className="books-toolbar">
+          <button className="small" onClick={refreshRemote}>
+            刷新索引
+          </button>
+          <button className="ghost" onClick={() => setShowIndex((v) => !v)}>
+            索引设置
+          </button>
+        </div>
+        {showIndex && (
+          <div className="index-url">
+            <input
+              value={indexUrl}
+              onChange={(e) => setIndexUrl(e.target.value)}
+              placeholder="https://…/books/index.json（留空用默认）"
+            />
+            <button
+              className="small"
+              onClick={async () => {
+                await api.setBooksIndexUrl(indexUrl).catch((e) => setError(String(e)));
+                setShowIndex(false);
+                refreshRemote();
+              }}
+            >
+              保存
+            </button>
+          </div>
+        )}
+        {remoteError && <p className="muted">在线索引不可用：{remoteError}（不影响本地导入）</p>}
+        {remote === null && !remoteError && <p className="muted">读取索引…</p>}
+        {remote?.length === 0 && <p className="muted">索引里没有单词书</p>}
+        {!!remote?.length && (
+          <ul>
+            {remote
+              .filter((b) => b.lang === lang)
+              .map((b) => (
+                <li key={b.id}>
+                  <div>
+                    <b>{b.name}</b>
+                    <span className="muted">
+                      {" "}
+                      {b.count ? `${b.count} 词 · ` : ""}
+                      {b.license || "许可见来源"}
+                    </span>
+                    {b.note && <div className="muted">{b.note}</div>}
+                  </div>
+                  <button
+                    className="small"
+                    disabled={busyBook === b.id}
+                    onClick={() => installRemote(b)}
+                  >
+                    {busyBook === b.id ? "下载中…" : "下载并导入"}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        )}
+      </section>
 
       {importing && (
         <div className="import-box">

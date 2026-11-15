@@ -826,6 +826,7 @@ dependencies = [
  "ealearn-llm",
  "ealearn-store",
  "ealearn-tts",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "tauri",
@@ -854,6 +855,7 @@ dependencies = [
 name = "ealearn-llm"
 version = "0.1.0"
 dependencies = [
+ "ealearn-core",
  "futures-util",
  "reqwest 0.12.28",
  "serde",

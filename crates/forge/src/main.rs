@@ -23,6 +23,7 @@ fn main() -> ExitCode {
         ("audio", Some(dir)) => audio(dir, &args[2..]),
         ("voices", Some(lang)) => voices(lang),
         ("say", Some(spec)) => say(spec, &args[2..]),
+        ("gen", Some("dialog")) => gen_dialog(&args[2..]),
         ("--help" | "-h" | "help", _) => {
             usage();
             ExitCode::SUCCESS
@@ -45,7 +46,11 @@ fn usage() {
                                    预合成词条与句子的音频，写回 pack 并更新指纹
   forge voices <lang>              列出该语言可用的音色（espeak + 本机 piper 模型）
   forge say <voice> <文字> <输出.wav>
-                                   用指定音色合成一句，排查音色问题时用"
+                                   用指定音色合成一句，排查音色问题时用
+  forge gen dialog <lang> <theme> [--count N] [--level L] [--nodes N]
+                   [--out DIR] [--dry-run]
+                                   让 LLM 生成剧本对话草稿，标注后写入 DIR
+                                   环境变量：EALEARN_LLM_KEY / EALEARN_LLM_BASE / EALEARN_LLM_MODEL"
     );
 }
 
@@ -389,4 +394,161 @@ fn say(spec: &str, rest: &[String]) -> ExitCode {
             ExitCode::from(1)
         }
     }
+}
+
+// ── LLM 生成剧本对话 ──────────────────────────────────────────────────
+
+fn gen_dialog(rest: &[String]) -> ExitCode {
+    let Some(lang) = rest.first().cloned() else {
+        eprintln!("用法: forge gen dialog <lang> <theme> [--count N] [--level L] [--nodes N] [--out DIR] [--dry-run]");
+        return ExitCode::from(2);
+    };
+    let Some(theme) = rest.get(1).cloned() else {
+        eprintln!("缺少话题。例如: forge gen dialog en \"被人放鸽子\"");
+        return ExitCode::from(2);
+    };
+
+    let mut count = 1usize;
+    let mut level = 2u8;
+    let mut nodes = 6usize;
+    let mut out_dir = "drafts".to_string();
+    let mut dry_run = false;
+    for arg in &rest[2..] {
+        if let Some(v) = arg.strip_prefix("--count=") {
+            count = v.parse().unwrap_or(1).clamp(1, 10);
+        } else if let Some(v) = arg.strip_prefix("--level=") {
+            level = v.parse().unwrap_or(2).clamp(1, 5);
+        } else if let Some(v) = arg.strip_prefix("--nodes=") {
+            nodes = v.parse().unwrap_or(6).clamp(4, 20);
+        } else if let Some(v) = arg.strip_prefix("--out=") {
+            out_dir = v.to_string();
+        } else if arg == "--dry-run" {
+            dry_run = true;
+        }
+    }
+
+    let Some(profile) = ealearn_lang::profile(&lang) else {
+        eprintln!("未实现的语言: {lang}");
+        return ExitCode::from(1);
+    };
+    let label = match lang.as_str() {
+        "ko" => "韩语",
+        _ => "英语",
+    };
+
+    let mut results = Vec::new();
+    for i in 0..count {
+        let prompt = ealearn_llm::dialog_prompt(&ealearn_llm::dialog::DialogPromptCtx {
+            lang: &lang,
+            target_label: label,
+            theme: &theme,
+            level,
+            nodes,
+            target_words: &[],
+        });
+        if dry_run {
+            println!("{prompt}");
+            return ExitCode::SUCCESS;
+        }
+
+        let key = std::env::var("EALEARN_LLM_KEY")
+            .or_else(|_| std::env::var("OPENAI_API_KEY"))
+            .unwrap_or_default();
+        if key.is_empty() {
+            eprintln!("没有 API key：设置 EALEARN_LLM_KEY 后再跑（也可以加 --dry-run 只看提示词）");
+            return ExitCode::from(1);
+        }
+        let base = std::env::var("EALEARN_LLM_BASE")
+            .unwrap_or_else(|_| "https://api.deepseek.com/v1".into());
+        let model = std::env::var("EALEARN_LLM_MODEL").unwrap_or_else(|_| "deepseek-chat".into());
+
+        let messages = vec![
+            ealearn_llm::prompt::ChatMessage::system(prompt),
+            ealearn_llm::prompt::ChatMessage::user(format!(
+                "生成第 {} 段对话。话题固定为「{theme}」，请换一个具体场景角度。",
+                i + 1
+            )),
+        ];
+
+        let cfg = ealearn_llm::LlmConfig {
+            base_url: base,
+            api_key: key,
+            model,
+            temperature: 0.9,
+            timeout_secs: 120,
+        };
+        let runtime = match tokio::runtime::Builder::new_current_thread().enable_all().build() {
+            Ok(rt) => rt,
+            Err(e) => {
+                eprintln!("创建运行时失败: {e}");
+                return ExitCode::from(1);
+            }
+        };
+        let client = match ealearn_llm::LlmClient::new(cfg) {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("{e}");
+                return ExitCode::from(1);
+            }
+        };
+
+        let raw = match runtime.block_on(client.complete(&messages)) {
+            Ok(t) => t,
+            Err(e) => {
+                eprintln!("第 {} 段生成失败: {e}", i + 1);
+                continue;
+            }
+        };
+
+        let id = format!("{lang}.d.gen{:04}", i + 1);
+        match ealearn_llm::parse_dialogs(&raw, &id) {
+            Ok(mut dialog) => {
+                // 补标注：token 由语言 profile 产出，和 pack 里其它内容同一套规则
+                for node in &mut dialog.nodes {
+                    if node.text.trim().is_empty() {
+                        continue;
+                    }
+                    node.tokens = profile.tokenize(&node.text);
+                    let report =
+                        ealearn_core::validate::check_coverage(&format!("{id}/{}", node.id), &node.text, &node.tokens);
+                    for issue in report.errors() {
+                        eprintln!("[标注] {} — {}", issue.at, issue.message);
+                    }
+                }
+                if dialog.theme.trim().is_empty() {
+                    dialog.theme = theme.clone();
+                }
+                results.push(dialog);
+            }
+            Err(e) => eprintln!("第 {} 段解析失败: {e}", i + 1),
+        }
+        eprintln!("第 {}/{} 段完成", i + 1, count);
+    }
+
+    if results.is_empty() {
+        eprintln!("没有生成任何可用对话");
+        return ExitCode::from(1);
+    }
+    if std::fs::create_dir_all(&out_dir).is_err() {
+        eprintln!("建目录失败: {out_dir}");
+        return ExitCode::from(1);
+    }
+    for dialog in &results {
+        let path = std::path::Path::new(&out_dir).join(format!("{}.json", dialog.id));
+        match serde_json::to_string_pretty(dialog) {
+            Ok(json) => {
+                if let Err(e) = std::fs::write(&path, json + "\n") {
+                    eprintln!("写入 {} 失败: {e}", path.display());
+                } else {
+                    println!("{} · {} 个节点", path.display(), dialog.nodes.len());
+                }
+            }
+            Err(e) => eprintln!("序列化失败: {e}"),
+        }
+    }
+    println!(
+        "生成 {} 段 · 音色无关 · 草稿在 {out_dir}/，人工校对后再并入 dialogs.json",
+        results.len()
+    );
+    ExitCode::SUCCESS
 }

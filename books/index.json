@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "books": [
+    {
+      "id": "en-daily",
+      "lang": "en",
+      "name": "英语日常 50 词",
+      "url": "https://raw.githubusercontent.com/Ricarsz/EaLearn/main/books/en-daily.tsv",
+      "count": 50,
+      "license": "本项目原创",
+      "note": "高频日常词，配背诵卡与听音"
+    },
+    {
+      "id": "ko-daily",
+      "lang": "ko",
+      "name": "韩语日常 36 词",
+      "url": "https://raw.githubusercontent.com/Ricarsz/EaLearn/main/books/ko-daily.tsv",
+      "count": 36,
+      "license": "本项目原创",
+      "note": "问候、日常、消费场景常用词"
+    }
+  ]
+}

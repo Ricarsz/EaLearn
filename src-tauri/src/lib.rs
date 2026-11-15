@@ -814,37 +814,52 @@ fn do_import(
     let profile = ealearn_lang::profile(lang);
     let at = now();
 
+    let rows: Vec<(String, Option<String>, String, String)> = report
+        .words
+        .iter()
+        .map(|w| {
+            (
+                w.surface.clone(),
+                w.gloss.clone(),
+                w.tags.join(","),
+                book.to_string(),
+            )
+        })
+        .collect();
+    let stored = store.bulk_add_custom_entries(lang, &rows, at).map_err(err)?;
+
+    let card_ids: Vec<String> = stored.iter().map(|(id, _)| id.clone()).collect();
+    store
+        .bulk_add_cards(lang, &card_ids, CardKind::Word, at)
+        .map_err(err)?;
+
+    // 合并进内存里的 pack，练习组卷才能立刻用上
+    let mut index: std::collections::HashMap<String, usize> = pack
+        .words
+        .iter()
+        .enumerate()
+        .map(|(i, e)| (e.id.clone(), i))
+        .collect();
+
     let mut added = 0usize;
     let mut updated = 0usize;
-    for word in report.words {
-        let id = store
-            .add_custom_entry(
-                lang,
-                &word.surface,
-                word.gloss.as_deref(),
-                &word.tags.join(","),
-                book,
-                at,
-            )
-            .map_err(err)?;
-        if pack.entry(&id).is_some() {
-            // 词条已存在：同步释义/标签，保留已有的调度状态
-            if let Some(existing) = pack.words.iter_mut().find(|e| e.id == id) {
-                existing.gloss = word.gloss.clone();
-                existing.tags = word.tags.clone();
+    for ((id, created), word) in stored.iter().zip(report.words.iter()) {
+        if !*created {
+            if let Some(&i) = index.get(id) {
+                pack.words[i].gloss = word.gloss.clone();
+                pack.words[i].tags = word.tags.clone();
             }
             updated += 1;
-            store.add_card(lang, &id, CardKind::Word, at).map_err(err)?;
             continue;
         }
-        let mut entry = ealearn_core::entry::Entry::new(&id, &word.surface);
+        let mut entry = ealearn_core::entry::Entry::new(id, &word.surface);
         entry.gloss = word.gloss.clone();
         entry.tags = word.tags.clone();
         if let Some(p) = profile {
             entry.tokens = p.tokenize(&word.surface);
         }
+        index.insert(id.clone(), pack.words.len());
         pack.words.push(entry);
-        store.add_card(lang, &id, CardKind::Word, at).map_err(err)?;
         added += 1;
     }
 
@@ -877,6 +892,97 @@ fn books_dir(app: &tauri::AppHandle) -> PathBuf {
         .app_data_dir()
         .map(|d| d.join("books"))
         .unwrap_or_else(|_| PathBuf::from("books"))
+}
+
+const KEY_BOOKS_INDEX: &str = "books_index_url";
+const DEFAULT_BOOKS_INDEX: &str =
+    "https://raw.githubusercontent.com/Ricarsz/EaLearn/main/books/index.json";
+
+#[derive(Serialize, serde::Deserialize, Clone)]
+pub struct RemoteBook {
+    id: String,
+    lang: String,
+    name: String,
+    url: String,
+    #[serde(default)]
+    count: usize,
+    #[serde(default)]
+    license: String,
+    #[serde(default)]
+    note: String,
+}
+
+#[derive(serde::Deserialize)]
+struct BooksIndex {
+    #[serde(default)]
+    books: Vec<RemoteBook>,
+}
+
+/// 在线单词书索引。索引只是一个 JSON 文件，加书不用发版。
+#[tauri::command]
+async fn remote_books(
+    state: State<'_, AppState>,
+    index_url: Option<String>,
+) -> Result<Vec<RemoteBook>, String> {
+    let url = match index_url.filter(|u| !u.trim().is_empty()) {
+        Some(u) => u,
+        None => {
+            let store = state.store.lock().map_err(err)?;
+            store
+                .get_setting(KEY_BOOKS_INDEX)
+                .map_err(err)?
+                .filter(|u| !u.trim().is_empty())
+                .unwrap_or_else(|| DEFAULT_BOOKS_INDEX.to_string())
+        }
+    };
+
+    let resp = reqwest::Client::new()
+        .get(&url)
+        .timeout(std::time::Duration::from_secs(20))
+        .send()
+        .await
+        .map_err(|e| format!("拉取索引失败: {e}"))?;
+    if !resp.status().is_success() {
+        return Err(format!("索引返回 {}", resp.status()));
+    }
+    let index: BooksIndex = resp.json().await.map_err(|e| format!("解析索引失败: {e}"))?;
+    Ok(index.books)
+}
+
+#[tauri::command]
+fn books_index_url(state: State<'_, AppState>) -> Result<String, String> {
+    let store = state.store.lock().map_err(err)?;
+    Ok(store
+        .get_setting(KEY_BOOKS_INDEX)
+        .map_err(err)?
+        .unwrap_or_default())
+}
+
+#[tauri::command]
+fn set_books_index_url(state: State<'_, AppState>, url: String) -> Result<(), String> {
+    let store = state.store.lock().map_err(err)?;
+    store.set_setting(KEY_BOOKS_INDEX, url.trim()).map_err(err)
+}
+
+/// 下载并导入一本在线单词书。
+#[tauri::command]
+async fn install_remote_book(
+    state: State<'_, AppState>,
+    lang: String,
+    name: String,
+    url: String,
+) -> Result<ImportResult, String> {
+    let resp = reqwest::Client::new()
+        .get(&url)
+        .timeout(std::time::Duration::from_secs(60))
+        .send()
+        .await
+        .map_err(|e| format!("下载失败: {e}"))?;
+    if !resp.status().is_success() {
+        return Err(format!("下载返回 {}", resp.status()));
+    }
+    let text = resp.text().await.map_err(|e| format!("读取失败: {e}"))?;
+    do_import(&state, &lang, &text, &name)
 }
 
 #[derive(Serialize)]
@@ -1035,6 +1141,10 @@ pub fn run() {
             import_words,
             list_books,
             import_book,
+            remote_books,
+            books_index_url,
+            set_books_index_url,
+            install_remote_book,
             record_focus,
             activity
         ])

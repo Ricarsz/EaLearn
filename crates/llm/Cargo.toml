@@ -7,6 +7,7 @@ description = "EaLearn 的 LLM 客户端：兼容 OpenAI 协议的流式对话�
 
 [dependencies]
 serde = { workspace = true }
+ealearn-core = { workspace = true }
 serde_json = { workspace = true }
 reqwest = { version = "0.12", default-features = false, features = [
     "json",

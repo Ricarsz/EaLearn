@@ -1502,3 +1502,18 @@ textarea:focus {
 .book-name {
   width: 150px;
 }
+
+.books-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.index-url {
+  display: flex;
+  gap: 8px;
+}
+
+.index-url input {
+  flex: 1;
+}

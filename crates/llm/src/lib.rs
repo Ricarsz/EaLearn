@@ -9,11 +9,13 @@
 //! 同一套 `/chat/completions` 协议。
 
 pub mod client;
+pub mod dialog;
 pub mod prompt;
 pub mod reply;
 pub mod sse;
 pub mod turn;
 
 pub use client::{LlmClient, LlmConfig, LlmError};
+pub use dialog::{dialog_prompt, parse_dialogs, DialogDraft};
 pub use prompt::{ChatMessage, PromptContext};
 pub use turn::{Annotation, Correction, TutorTurn};

@@ -94,8 +94,25 @@ impl LlmClient {
     pub async fn chat<F>(
         &self,
         messages: &[ChatMessage],
-        mut on_delta: F,
+        on_delta: F,
     ) -> Result<TutorTurn, LlmError>
+    where
+        F: FnMut(&str) + Send,
+    {
+        let accumulated = self.stream_text(messages, on_delta).await?;
+        parse_turn(&accumulated).map_err(LlmError::Turn)
+    }
+
+    /// 只要原始文本，不做回合解析。剧本生成用这条。
+    pub async fn complete(&self, messages: &[ChatMessage]) -> Result<String, LlmError> {
+        self.stream_text(messages, |_| {}).await
+    }
+
+    async fn stream_text<F>(
+        &self,
+        messages: &[ChatMessage],
+        mut on_delta: F,
+    ) -> Result<String, LlmError>
     where
         F: FnMut(&str) + Send,
     {
@@ -165,7 +182,7 @@ impl LlmClient {
             }
         }
 
-        parse_turn(&accumulated).map_err(LlmError::Turn)
+        Ok(accumulated)
     }
 }
 

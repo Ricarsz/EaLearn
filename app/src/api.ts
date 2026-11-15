@@ -188,6 +188,16 @@ export type BookInfo = {
   imported: number;
 };
 
+export type RemoteBook = {
+  id: string;
+  lang: string;
+  name: string;
+  url: string;
+  count: number;
+  license: string;
+  note: string;
+};
+
 export type ImportResult = { added: number; updated: number; skipped: string[] };
 
 export type DayActivity = {
@@ -241,6 +251,12 @@ export const api = {
     invoke<ImportResult>("import_words", { lang, text, book }),
   listBooks: () => invoke<BookInfo[]>("list_books"),
   importBook: (id: string) => invoke<ImportResult>("import_book", { id }),
+  remoteBooks: (indexUrl?: string) =>
+    invoke<RemoteBook[]>("remote_books", { indexUrl }),
+  booksIndexUrl: () => invoke<string>("books_index_url"),
+  setBooksIndexUrl: (url: string) => invoke<void>("set_books_index_url", { url }),
+  installRemoteBook: (lang: string, name: string, url: string) =>
+    invoke<ImportResult>("install_remote_book", { lang, name, url }),
   recordFocus: (minutes: number, completed: boolean) =>
     invoke<void>("record_focus", { minutes, completed }),
   activity: (days: number, tzOffsetMin: number) =>

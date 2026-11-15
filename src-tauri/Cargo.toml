@@ -12,6 +12,7 @@ tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 base64 = "0.22"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 ealearn-core = { path = "../crates/core" }
 ealearn-lang = { path = "../crates/lang" }
 ealearn-store = { path = "../crates/store" }
